@@ -3,13 +3,13 @@ import Google from "next-auth/providers/google";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { db } from "./db";
 import { Adapter } from "next-auth/adapters";
-import { accounts, sessions, users } from "@/db/schema";
+import { account, session, user } from "@/db/schema";
 
 export const { auth, handlers, signIn, signOut } = NextAuth({
   adapter: DrizzleAdapter(db, {
-    usersTable: users,
-    accountsTable: accounts,
-    sessionsTable: sessions,
+    usersTable: user,
+    accountsTable: account,
+    sessionsTable: session,
   }) as Adapter,
   providers: [Google],
   callbacks: {
