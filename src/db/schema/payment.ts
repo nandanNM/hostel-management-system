@@ -1,34 +1,50 @@
 import * as t from "drizzle-orm/pg-core";
 import { pgTable as table } from "drizzle-orm/pg-core";
-import { audits, users } from "@/db/schema";
-import { relations } from "drizzle-orm";
+import { audit, user } from "@/db/schema";
+import { InferSelectModel, relations } from "drizzle-orm";
+import { createInsertSchema } from "drizzle-zod";
+import { z } from "zod";
 
-export const payments = table("payments", {
-  id: t.uuid("id").primaryKey().defaultRandom().unique(),
-  userId: t
-    .text("userId")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  auditId: t
-    .text("auditId")
-    .notNull()
-    .references(() => audits.id, { onDelete: "cascade" }),
-  amount: t.integer("amount").notNull(),
-  createdAt: t.timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
-  updatedAt: t
-    .timestamp("updated_at", { mode: "date" })
-    .$onUpdate(() => new Date())
-    .notNull()
-    .defaultNow(),
-});
+export const payment = table(
+  "payment",
+  {
+    id: t.uuid("id").primaryKey().defaultRandom(),
+    userId: t
+      .uuid("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    auditId: t
+      .uuid("audit_id")
+      .notNull()
+      .references(() => audit.id, { onDelete: "cascade" }),
+    amount: t.integer("amount").notNull(),
+    createdAt: t
+      .timestamp("created_at", { mode: "string" })
+      .notNull()
+      .defaultNow(),
+    updatedAt: t
+      .timestamp("updated_at", { mode: "string" })
+      .notNull()
+      .defaultNow(),
+  },
+  (payment) => {
+    return {
+      paymentAk1: t.unique("payment_ak_1").on(payment.userId, payment.auditId),
+    };
+  },
+);
 
-export const paymentRelations = relations(payments, ({ one }) => ({
-  user: one(users, {
-    fields: [payments.userId],
-    references: [users.id],
+export const paymentRelations = relations(payment, ({ one }) => ({
+  user: one(user, {
+    fields: [payment.userId],
+    references: [user.id],
   }),
-  audit: one(audits, {
-    fields: [payments.auditId],
-    references: [audits.id],
+  audit: one(audit, {
+    fields: [payment.auditId],
+    references: [audit.id],
   }),
 }));
+
+export const paymentSchema = createInsertSchema(payment);
+export type PaymentSchema = z.infer<typeof paymentSchema>;
+export type SelectPaymentModel = InferSelectModel<typeof payment>;

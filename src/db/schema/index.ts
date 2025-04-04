@@ -1,8 +1,13 @@
-export { users } from "@/db/schema/user";
-export { accounts } from "@/db/schema/account";
-export { sessions } from "@/db/schema/session";
-export { meals } from "@/db/schema/meal";
-export { guestmeals } from "@/db/schema/guest-meal";
-export { payments } from "@/db/schema/payment";
-export { audits } from "@/db/schema/audit";
-export { fines } from "@/db/schema/fine";
+export { user, genderEnum, religionEnum, rolesEnum } from "@/db/schema/user";
+export { account } from "@/db/schema/account";
+export { session } from "@/db/schema/session";
+export {
+  meal,
+  mealTimeEnum,
+  mealTypeEnum,
+  nonVegTypeEnum,
+} from "@/db/schema/meal";
+export { guestmeal } from "@/db/schema/guest-meal";
+export { payment } from "@/db/schema/payment";
+export { audit } from "@/db/schema/audit";
+export { fine } from "@/db/schema/fine";

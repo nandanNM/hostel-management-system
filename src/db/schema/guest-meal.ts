@@ -1,32 +1,40 @@
 import * as t from "drizzle-orm/pg-core";
 import { pgTable as table } from "drizzle-orm/pg-core";
-import { users } from "@/db/schema";
-
+import { user } from "@/db/schema";
 import { mealTimeEnum, mealTypeEnum, nonVegTypeEnum } from "@/db/schema/meal";
-import { relations } from "drizzle-orm";
+import { InferSelectModel, relations } from "drizzle-orm";
+import { createInsertSchema } from "drizzle-zod";
+import { z } from "zod";
 
-export const guestmeals = table("guestmeals", {
-  id: t.uuid("id").primaryKey().defaultRandom().unique(),
+export const guestmeal = table("guestmeals", {
+  id: t.uuid("id").primaryKey().defaultRandom(),
   userId: t
-    .text("userId")
+    .uuid("user_id")
     .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
+    .references(() => user.id, { onDelete: "cascade" }),
   mealType: mealTypeEnum().notNull(),
-  nonVegType: nonVegTypeEnum().notNull().default("none"), // Default to "none" if veg
+  nonVegType: nonVegTypeEnum().notNull(), // Default to "none" if veg
   mealTime: mealTimeEnum().notNull(),
-  numberOfMeals: t.integer("number_of_meals").notNull(),
+  numberOfMeals: t.integer("number_of_meals").default(1).notNull(),
   mealCharge: t.real("meal_charge").notNull(),
   mobileNumber: t.varchar("mobile_number", { length: 15 }),
-  createdAt: t.timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+  createdAt: t
+    .timestamp("created_at", { mode: "string" })
+    .notNull()
+    .defaultNow(),
   updatedAt: t
-    .timestamp("updated_at", { mode: "date" })
-    .$onUpdate(() => new Date())
-    .notNull(),
+    .timestamp("updated_at", { mode: "string" })
+    .notNull()
+    .defaultNow(),
 });
 
-export const guestmealRelations = relations(guestmeals, ({ one }) => ({
-  user: one(users, {
-    fields: [guestmeals.userId],
-    references: [users.id],
+export const guestmealRelations = relations(guestmeal, ({ one }) => ({
+  user: one(user, {
+    fields: [guestmeal.userId],
+    references: [user.id],
   }),
 }));
+
+export const guestmealSchema = createInsertSchema(guestmeal);
+export type GuestMealSchema = z.infer<typeof guestmealSchema>;
+export type SelectGuestMealModel = InferSelectModel<typeof guestmeal>;
