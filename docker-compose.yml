@@ -1,0 +1,18 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: hmspg1-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: hmspg1
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5433:5432"
+    volumes:
+      - hmspg1:/var/lib/postgresql/data
+
+volumes:
+  hmspg1:
