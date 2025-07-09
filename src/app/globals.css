@@ -155,16 +155,11 @@
   .link {
     @apply text-blue-500 underline-offset-4 hover:underline;
   }
-
-  ::-webkit-scrollbar {
-    width: 8px;
-  }
-
   ::-webkit-scrollbar-track {
     background: transparent;
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-accent rounded-lg;
+    @apply bg-accent rounded-xl;
   }
 }

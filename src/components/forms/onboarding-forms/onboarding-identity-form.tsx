@@ -31,7 +31,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { GENDER_OPTIONS, RELIGION_OPTIONS } from "@/constants/form.constants";
 import { useRouter } from "next/navigation";
-// import { Calendar } from "@/components/ui/calendar";
+import { Calendar } from "@/components/ui/calendar";
 import { useOnboardingStore } from "@/app/(root)/onboarding/store";
 const identitySchema = onboardingUserSchema.pick({
   name: true,
@@ -164,7 +164,7 @@ export default function OnboardingIdentityForm() {
                     </FormControl>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
-                    {/* <Calendar
+                    <Calendar
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
@@ -172,7 +172,7 @@ export default function OnboardingIdentityForm() {
                         date > new Date() || date < new Date("1900-01-01")
                       }
                       captionLayout="dropdown"
-                    /> */}
+                    />
                   </PopoverContent>
                 </Popover>
                 <FormMessage />

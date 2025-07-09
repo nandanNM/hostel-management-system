@@ -4,6 +4,7 @@ import { InferSelectModel, relations } from "drizzle-orm";
 import { payment, user } from "@/db/schemas";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import { media } from "./media";
 
 export const audit = table(
   "audits",
@@ -13,7 +14,6 @@ export const audit = table(
       .uuid("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "no action" }),
-    // action: t.text("action").notNull(),
     date: t.date("date").notNull(),
     totalFine: t.real("total_fine").notNull(),
     riceExpenditure: t.real("rice_expenditure").notNull(),
@@ -45,6 +45,7 @@ export const auditRelations = relations(audit, ({ one, many }) => ({
     references: [user.id],
   }),
   payments: many(payment),
+  attachments: many(media),
 }));
 
 export const auditSchema = createInsertSchema(audit);

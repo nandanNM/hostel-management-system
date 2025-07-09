@@ -18,12 +18,10 @@ import { useRouter } from "next/navigation";
 import { educationSchema } from "@/lib/validations";
 import { useOnboardingStore } from "@/app/(root)/onboarding/store";
 import { useEffect } from "react";
-import { useHydration } from "@/hooks/use-hydration";
 
 type EducationFormValues = z.infer<typeof educationSchema>;
 export default function OnboardingEducationForm() {
   const router = useRouter();
-  const isHydrated = useHydration();
   const name = useOnboardingStore((state) => state.name);
   const phone = useOnboardingStore((state) => state.selfPhNo);
   const dob = useOnboardingStore((state) => state.dob);
@@ -46,11 +44,11 @@ export default function OnboardingEducationForm() {
     router.push("/onboarding/hostel");
   }
   useEffect(() => {
-    if (!isHydrated || !useOnboardingStore.persist.hasHydrated) return;
+    if (!useOnboardingStore.persist.hasHydrated) return;
     if (!name || !phone || !dob || !address) {
       router.push("/onboarding/identity");
     }
-  }, [isHydrated, name, phone, dob, address, router]);
+  }, [name, phone, dob, address, router]);
 
   return (
     <Form {...form}>

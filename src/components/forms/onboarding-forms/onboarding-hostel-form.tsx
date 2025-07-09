@@ -25,12 +25,10 @@ import {
 import { HOSTAL_ID, HOSTAL_TAG } from "@/constants/form.constants";
 import { useOnboardingStore } from "@/app/(root)/onboarding/store";
 import { useEffect } from "react";
-import { useHydration } from "@/hooks/use-hydration";
 
 type OnboardingHostelFormValues = z.infer<typeof hostelSchema>;
 export default function OnboardingHostelForm() {
   const router = useRouter();
-  const isHydrated = useHydration();
   const degree = useOnboardingStore((state) => state.education?.degree);
   const admissionYear = useOnboardingStore(
     (state) => state.education?.admissionYear,
@@ -56,11 +54,11 @@ export default function OnboardingHostelForm() {
     router.push("/onboarding/meal");
   }
   useEffect(() => {
-    if (!isHydrated || !useOnboardingStore.persist.hasHydrated) return;
+    if (!useOnboardingStore.persist.hasHydrated) return;
     if (!degree || !admissionYear || !passingYear || !institute) {
       router.push("/onboarding/identity");
     }
-  }, [isHydrated, degree, admissionYear, passingYear, institute, router]);
+  }, [degree, admissionYear, passingYear, institute, router]);
 
   return (
     <Form {...form}>

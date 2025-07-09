@@ -8,6 +8,7 @@ import {
   OnboardingUserSchemaUserValues,
 } from "@/lib/validations";
 import { ApiResponse } from "@/types";
+import { eq } from "drizzle-orm";
 
 export const CreateUserOnboarding = async (
   values: OnboardingUserSchemaUserValues,
@@ -29,14 +30,31 @@ export const CreateUserOnboarding = async (
       };
     }
     const dataToInsert = {
-      ...values,
+      name: values.name,
+      gender: values.gender,
+      religion: values.religion,
+      selfPhNo: values.selfPhNo,
+      address: values.address,
+      hostel: values.hostel,
+      education: values.education,
       dob: values.dob instanceof Date ? values.dob.toISOString() : values.dob,
+      onboarding: true,
     };
-    await db.insert(user).values(dataToInsert);
-    await db.insert(meal).values({
-      userId: session?.user.id,
-      ...values.meal,
-    });
+    console.log(dataToInsert);
+    await db.update(user).set(dataToInsert).where(eq(user.id, session.user.id));
+    await db
+      .insert(meal)
+      .values({
+        userId: session.user.id,
+        ...values.meal,
+      })
+      .onConflictDoUpdate({
+        target: meal.id,
+        set: {
+          ...values.meal,
+        },
+      });
+
     return {
       status: "success",
       message: "Boader onboarding successfully.🎉",

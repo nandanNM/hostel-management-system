@@ -27,7 +27,7 @@ import {
   NON_VEG_OPTIONS,
 } from "@/constants/form.constants";
 import { ArrowLeft } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { useOnboardingStore } from "@/app/(root)/onboarding/store";
 import { useEffect, useTransition } from "react";
@@ -35,22 +35,17 @@ import { tryCatch } from "@/hooks/try-catch";
 import { CreateUserOnboarding } from "./action";
 import { toast } from "sonner";
 import LoadingButton from "@/components/LoadingButton";
-import { useHydration } from "@/hooks/use-hydration";
 
 export default function OnboardingMealForm() {
   const router = useRouter();
   const [isPanding, startTransition] = useTransition();
-  const isHydrated = useHydration();
   const name = useOnboardingStore((state) => state.name);
   const selfPhNo = useOnboardingStore((state) => state.selfPhNo);
   const dob = useOnboardingStore((state) => state.dob);
   const gender = useOnboardingStore((state) => state.gender);
   const religion = useOnboardingStore((state) => state.religion);
   const address = useOnboardingStore((state) => state.address);
-  const hostelName = useOnboardingStore((state) => state.hostelName);
-  const hostelTag = useOnboardingStore((state) => state.hostelTag);
-  const roomNo = useOnboardingStore((state) => state.roomNo);
-  const hostelId = useOnboardingStore((state) => state.hostelId);
+  const hostel = useOnboardingStore((state) => state.hostel);
   const education = useOnboardingStore((state) => state.education);
   const form = useForm<CreateMealFormValues>({
     resolver: zodResolver(createMealSchema),
@@ -63,19 +58,6 @@ export default function OnboardingMealForm() {
   });
 
   function onSubmit(values: CreateMealFormValues) {
-    console.log({
-      name,
-      gender,
-      religion,
-      dob,
-      selfPhNo,
-      address,
-      hostelName,
-      hostelTag,
-      hostelId,
-      roomNo,
-      education,
-    });
     startTransition(async () => {
       if (
         name &&
@@ -84,10 +66,7 @@ export default function OnboardingMealForm() {
         dob &&
         selfPhNo &&
         address &&
-        hostelName &&
-        hostelTag &&
-        hostelId &&
-        roomNo &&
+        hostel &&
         education
       ) {
         const { data: result, error } = await tryCatch(
@@ -98,10 +77,7 @@ export default function OnboardingMealForm() {
             dob,
             selfPhNo,
             address,
-            hostelName,
-            hostelTag,
-            hostelId,
-            roomNo,
+            hostel,
             education,
             meal: values,
           }),
@@ -111,7 +87,9 @@ export default function OnboardingMealForm() {
           return;
         }
         if (result.status === "success") {
+          useOnboardingStore.persist.clearStorage();
           toast.success(result.message);
+          redirect("/dashboard");
         }
       } else {
         toast.error("Please fill all the fields");
@@ -120,23 +98,11 @@ export default function OnboardingMealForm() {
   }
 
   useEffect(() => {
-    if (!isHydrated || !useOnboardingStore.persist.hasHydrated) return;
-    if (!hostelName || !hostelTag || !hostelId || !roomNo) {
+    if (!useOnboardingStore.persist.hasHydrated) return;
+    if (!hostel) {
       router.push("/onboarding/identity");
     }
-  }, [
-    isHydrated,
-    name,
-    selfPhNo,
-    dob,
-    address,
-    hostelName,
-    hostelTag,
-    hostelId,
-    roomNo,
-    education,
-    router,
-  ]);
+  }, [name, selfPhNo, dob, address, hostel, education, router]);
   return (
     <Form {...form}>
       <form
