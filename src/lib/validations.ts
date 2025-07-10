@@ -66,14 +66,13 @@ export const createMealSchema = baseMealFields.extend({
 });
 export type CreateMealValues = z.infer<typeof createMealSchema>;
 export const editMealSchema = baseMealFields.extend({
-  id: z.string().uuid(), // Meal ID (required for edits)
+  id: z.string().uuid(),
   mealType: z.enum(["veg", "non-veg"]),
   mealMassage: z.string().optional(),
   isActive: z.boolean(),
 });
 export type EditMealValues = z.infer<typeof editMealSchema>;
 export const toggleMealStatusSchema = z.object({
-  id: z.string().uuid(),
   isActive: z.boolean(),
 });
 export type ToggleMealValues = z.infer<typeof toggleMealStatusSchema>;

@@ -10,7 +10,7 @@ import {
 import { ApiResponse } from "@/types";
 import { eq } from "drizzle-orm";
 
-export const CreateUserOnboarding = async (
+export const createUserOnboarding = async (
   values: OnboardingUserSchemaUserValues,
 ): Promise<ApiResponse> => {
   try {

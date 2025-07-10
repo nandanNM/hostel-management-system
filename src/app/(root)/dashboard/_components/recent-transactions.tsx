@@ -14,39 +14,85 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-export default function RecentTransactions() {
+import { db } from "@/db";
+import { fine, guestmeal, payment } from "@/db/schemas";
+import { desc, eq } from "drizzle-orm";
+import { compareDesc } from "date-fns";
+import { P } from "@/components/custom/p";
+interface RecentTransactionsProps {
+  userId: string;
+}
+export default async function RecentTransactions({
+  userId,
+}: RecentTransactionsProps) {
+  const userPayments = await db.query.payment.findMany({
+    where: eq(payment.userId, userId),
+    orderBy: [desc(payment.createdAt)],
+    limit: 2,
+    columns: {
+      id: true,
+      amount: true,
+      createdAt: true,
+    },
+  });
+  const userGuestMeals = await db.query.guestmeal.findMany({
+    where: eq(guestmeal.userId, userId),
+    orderBy: [desc(guestmeal.createdAt)],
+    limit: 2,
+    columns: {
+      id: true,
+      mealType: true,
+      mealCharge: true,
+      createdAt: true,
+    },
+  });
+  const userFine = await db.query.fine.findMany({
+    where: eq(fine.userId, userId),
+    orderBy: [desc(fine.createdAt)],
+    limit: 2,
+    columns: {
+      id: true,
+      reason: true,
+      amount: true,
+      createdAt: true,
+    },
+  });
+
+  const formattedPayments = userPayments.map((p) => ({
+    id: p.id,
+    date: p.createdAt,
+    type: "Payment",
+    amount: p.amount,
+    description: `User Payment`,
+  }));
+
+  const formattedGuestMeals = userGuestMeals.map((g) => ({
+    id: g.id,
+    date: g.createdAt,
+    type: "Guest Meal",
+    amount: -g.mealCharge,
+    description: `${g.mealType} - 1 Guest`,
+  }));
+
+  const formattedFines = userFine.map((f) => ({
+    id: f.id,
+    date: f.createdAt,
+    type: "Fine",
+    amount: -f.amount,
+    description: f.reason,
+  }));
+
   const recentTransactions = [
-    {
-      date: "2025-01-07",
-      type: "Guest Meal",
-      amount: -45,
-      description: "Lunch - 1 Guest",
-    },
-    {
-      date: "2025-01-06",
-      type: "Regular Meal",
-      amount: 0,
-      description: "Dinner",
-    },
-    {
-      date: "2025-01-05",
-      type: "Guest Meal",
-      amount: -45,
-      description: "Breakfast - 1 Guest",
-    },
-    {
-      date: "2025-01-04",
-      type: "Payment",
-      amount: 8500,
-      description: "Monthly Payment",
-    },
-    {
-      date: "2025-01-03",
-      type: "Regular Meal",
-      amount: 0,
-      description: "Lunch",
-    },
+    ...formattedPayments,
+    ...formattedGuestMeals,
+    ...formattedFines,
   ];
+  const sortedRecentTransactions = recentTransactions.sort((a, b) =>
+    compareDesc(a.date, b.date),
+  );
+  if (!sortedRecentTransactions.length) {
+    return <P className="text-center">No recent transactions found .</P>;
+  }
   return (
     <Card className="gap-4">
       <CardHeader>
@@ -66,9 +112,9 @@ export default function RecentTransactions() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {recentTransactions.map((transaction, index) => (
+            {sortedRecentTransactions.map((transaction) => (
               <TableRow
-                key={index}
+                key={transaction.id}
                 className="transition-colors hover:bg-gray-50/50"
               >
                 <TableCell className="font-medium">

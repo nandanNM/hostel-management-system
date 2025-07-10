@@ -67,7 +67,9 @@ export default async function UserDataCard({ user }: UserDataCardProps) {
             <div className="space-y-2">
               <div>
                 <p className="text-xs text-gray-500">Full Adddress</p>
-                <p className="text-sm font-medium">{user.address}</p>
+                <p className="text-sm font-medium text-balance">
+                  {user.address}{" "}
+                </p>
               </div>
             </div>
           </div>

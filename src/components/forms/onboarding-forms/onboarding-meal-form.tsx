@@ -32,7 +32,7 @@ import { Input } from "@/components/ui/input";
 import { useOnboardingStore } from "@/app/(root)/onboarding/store";
 import { useEffect, useTransition } from "react";
 import { tryCatch } from "@/hooks/try-catch";
-import { CreateUserOnboarding } from "./action";
+import { createUserOnboarding } from "./action";
 import { toast } from "sonner";
 import LoadingButton from "@/components/LoadingButton";
 
@@ -70,7 +70,7 @@ export default function OnboardingMealForm() {
         education
       ) {
         const { data: result, error } = await tryCatch(
-          CreateUserOnboarding({
+          createUserOnboarding({
             name,
             gender,
             religion,
@@ -88,8 +88,11 @@ export default function OnboardingMealForm() {
         }
         if (result.status === "success") {
           useOnboardingStore.persist.clearStorage();
+          form.reset();
           toast.success(result.message);
           redirect("/dashboard");
+        } else if (result.status === "error") {
+          toast.error(result.message);
         }
       } else {
         toast.error("Please fill all the fields");

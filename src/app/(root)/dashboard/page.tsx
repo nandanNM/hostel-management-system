@@ -27,8 +27,6 @@ export default async function Page() {
   const session = await getSession();
   if (!session?.user.id) return null;
   const user = await getUserById(session.user.id);
-  console.log(user, "user");
-
   return (
     <div className="w-full md:mx-8 lg:mx-auto">
       <h2 className="mb-4 font-bold">User Dashboard</h2>
@@ -47,7 +45,7 @@ export default async function Page() {
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="space-y-8 lg:col-span-2">
             <OverviewCardsSkeleton />
-            <RecentTransactions />
+            <RecentTransactions userId={user.id} />
             <UserDataCard user={user} />
           </div>
           {/* UserActions */}
