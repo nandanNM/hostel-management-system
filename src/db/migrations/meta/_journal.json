@@ -8,6 +8,13 @@
       "when": 1752086669908,
       "tag": "0000_special_nomad",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1752164003679,
+      "tag": "0001_high_maelstrom",
+      "breakpoints": true
     }
   ]
 }

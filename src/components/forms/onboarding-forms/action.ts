@@ -49,7 +49,7 @@ export const CreateUserOnboarding = async (
         ...values.meal,
       })
       .onConflictDoUpdate({
-        target: meal.id,
+        target: user.id,
         set: {
           ...values.meal,
         },

@@ -13,7 +13,7 @@ export const guestmeal = table("guestmeals", {
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
   mealType: mealTypeEnum().notNull(),
-  nonVegType: nonVegTypeEnum().notNull(), // Default to "none" if veg
+  nonVegType: nonVegTypeEnum().notNull(),
   mealTime: mealTimeEnum().notNull(),
   numberOfMeals: t.integer("number_of_meals").default(1).notNull(),
   mealCharge: t.real("meal_charge").notNull(),
