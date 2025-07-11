@@ -65,7 +65,7 @@ const AuthForm = ({ action }: Props) => {
           ) : (
             <>
               Already have an account?{" "}
-              <Link href="/sign-in" className="link">
+              <Link href="/login" className="link">
                 Sign In
               </Link>
             </>

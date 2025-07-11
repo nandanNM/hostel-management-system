@@ -12,12 +12,14 @@ export const guestmeal = table("guestmeals", {
     .uuid("user_id")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
+  name: t.varchar("name", { length: 50 }).notNull(),
   mealType: mealTypeEnum().notNull(),
   nonVegType: nonVegTypeEnum().notNull(),
   mealTime: mealTimeEnum().notNull(),
   numberOfMeals: t.integer("number_of_meals").default(1).notNull(),
-  mealCharge: t.real("meal_charge").notNull(),
+  number: t.varchar("meal_charge", { length: 15 }).notNull(),
   mobileNumber: t.varchar("mobile_number", { length: 15 }),
+  massage: t.text("meal_massage"),
   createdAt: t
     .timestamp("created_at", { mode: "string" })
     .notNull()

@@ -1,0 +1,1 @@
+ALTER TABLE "guestmeals" ALTER COLUMN "meal_charge" SET DATA TYPE varchar(15);

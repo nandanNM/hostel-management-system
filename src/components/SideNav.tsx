@@ -45,7 +45,7 @@ export default function SideNav() {
       <div
         className={cn(
           isSidebarExpanded ? "w-[200px]" : "w-[68px]",
-          "bg-accent hidden h-full transform border-r transition-all duration-300 ease-in-out sm:flex",
+          "bg-sidebar hidden h-full transform border-r transition-all duration-300 ease-in-out sm:flex",
         )}
       >
         <aside className="flex h-full w-full columns-1 flex-col overflow-x-hidden px-4 break-words">

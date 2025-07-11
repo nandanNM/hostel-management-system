@@ -56,15 +56,18 @@ export const hostelSchema = z.object({
 });
 // meal validations
 export const baseMealFields = z.object({
+  mealType: z.enum(["veg", "non-veg"]),
   nonVegType: z.enum(["chicken", "fish", "egg", "none"]).optional(),
   mealTime: z.enum(["day", "night", "both"]),
+  massage: z.string().optional(),
 });
-
-export const createMealSchema = baseMealFields.extend({
-  mealType: z.enum(["veg", "non-veg"]),
-  mealMassage: z.string().optional(),
-});
+export const createMealSchema = baseMealFields;
 export type CreateMealValues = z.infer<typeof createMealSchema>;
+export const toggleMealStatusSchema = z.object({
+  isActive: z.boolean(),
+});
+export type ToggleMealValues = z.infer<typeof toggleMealStatusSchema>;
+
 export const editMealSchema = baseMealFields.extend({
   id: z.string().uuid(),
   mealType: z.enum(["veg", "non-veg"]),
@@ -72,10 +75,15 @@ export const editMealSchema = baseMealFields.extend({
   isActive: z.boolean(),
 });
 export type EditMealValues = z.infer<typeof editMealSchema>;
-export const toggleMealStatusSchema = z.object({
-  isActive: z.boolean(),
+export const createGuestMealSchema = baseMealFields.extend({
+  name: z.string().min(1, { message: "Name must be provided" }),
+  numberOfMeals: z
+    .number()
+    .min(1, { message: "Number of meals must be at least 1" }),
+  number: z.string().min(1, { message: "Mobile number must be provided" }),
+  mealCharge: z.number().min(1, { message: "Meal charge must be at least 1" }),
 });
-export type ToggleMealValues = z.infer<typeof toggleMealStatusSchema>;
+export type CreateGuestMealValues = z.infer<typeof createGuestMealSchema>;
 
 // user validations
 export const onboardingUserSchema = baseSchema.extend({

@@ -21,7 +21,7 @@ export const meal = table("meals", {
   nonVegType: nonVegTypeEnum(),
   mealTime: mealTimeEnum().default("both"),
   isActive: t.boolean("is_active").default(false).notNull(),
-  mealMassage: t.text("meal_massage"),
+  massage: t.text("meal_massage"),
   createdAt: t
     .timestamp("created_at", { mode: "string" })
     .notNull()

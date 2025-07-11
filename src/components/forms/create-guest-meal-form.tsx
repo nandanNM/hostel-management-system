@@ -2,8 +2,8 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  createMealSchema,
-  CreateMealValues as CreateMealFormValues,
+  createGuestMealSchema,
+  CreateGuestMealValues,
 } from "@/lib/validations";
 import {
   Form,
@@ -20,98 +20,61 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
+
 import {
   MEAL_TIME_OPTIONS,
   MEAL_TYPE_OPTIONS,
   NON_VEG_OPTIONS,
 } from "@/constants/form.constants";
-import { ArrowLeft } from "lucide-react";
-import { redirect, useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
-import { useOnboardingStore } from "@/app/(root)/onboarding/store";
-import { useEffect, useTransition } from "react";
-import { tryCatch } from "@/hooks/try-catch";
-import { createUserOnboarding } from "./action";
-import { toast } from "sonner";
 import LoadingButton from "@/components/LoadingButton";
-
-export default function OnboardingMealForm() {
-  const router = useRouter();
-  const [isPanding, startTransition] = useTransition();
-  const name = useOnboardingStore((state) => state.name);
-  const selfPhNo = useOnboardingStore((state) => state.selfPhNo);
-  const dob = useOnboardingStore((state) => state.dob);
-  const gender = useOnboardingStore((state) => state.gender);
-  const religion = useOnboardingStore((state) => state.religion);
-  const address = useOnboardingStore((state) => state.address);
-  const hostel = useOnboardingStore((state) => state.hostel);
-  const education = useOnboardingStore((state) => state.education);
-  const form = useForm<CreateMealFormValues>({
-    resolver: zodResolver(createMealSchema),
+export default function CreateGuestMealForm() {
+  const form = useForm<CreateGuestMealValues>({
+    resolver: zodResolver(createGuestMealSchema),
     defaultValues: {
-      mealType: "non-veg",
-      nonVegType: "none",
-      mealTime: "both",
       massage: "",
     },
   });
-
-  function onSubmit(values: CreateMealFormValues) {
-    startTransition(async () => {
-      if (
-        name &&
-        gender &&
-        religion &&
-        dob &&
-        selfPhNo &&
-        address &&
-        hostel &&
-        education
-      ) {
-        const { data: result, error } = await tryCatch(
-          createUserOnboarding({
-            name,
-            gender,
-            religion,
-            dob,
-            selfPhNo,
-            address,
-            hostel,
-            education,
-            meal: values,
-          }),
-        );
-        if (error) {
-          toast.error("A Unexpected error occurred. Please try again later.");
-          return;
-        }
-        if (result.status === "success") {
-          useOnboardingStore.persist.clearStorage();
-          form.reset();
-          toast.success(result.message);
-          redirect("/dashboard");
-        } else if (result.status === "error") {
-          toast.error(result.message);
-        }
-      } else {
-        toast.error("Please fill all the fields");
-      }
-    });
+  async function onSubmit(values: CreateGuestMealValues) {
+    console.log(values);
   }
 
-  useEffect(() => {
-    if (!useOnboardingStore.persist.hasHydrated) return;
-    if (!hostel) {
-      router.push("/onboarding/identity");
-    }
-  }, [name, selfPhNo, dob, address, hostel, education, router]);
   return (
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
         className="mx-auto max-w-xl space-y-6"
       >
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel> Guest Name</FormLabel>
+              <FormControl>
+                <Input placeholder="Enter guest name" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="number"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Guest Number</FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  placeholder="Enter guest phone number"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <div className="flex flex-wrap gap-4">
           <FormField
             control={form.control}
@@ -212,12 +175,22 @@ export default function OnboardingMealForm() {
           )}
         />
 
+        <FormField
+          control={form.control}
+          name="mealCharge"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel> Meal Charge</FormLabel>
+              <FormControl>
+                <Input type="number" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <div className="flex w-full justify-end gap-3 p-4">
-          <Button type="button" variant="ghost" onClick={() => router.back()}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back
-          </Button>
-          <LoadingButton loading={isPanding} type="submit">
+          <LoadingButton loading={false} type="submit">
             Submit
           </LoadingButton>
         </div>

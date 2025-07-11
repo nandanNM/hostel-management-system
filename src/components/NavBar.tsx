@@ -14,7 +14,7 @@ export default function NavBar() {
   const navItems = NavItems();
   const [isOpen, setIsOpen] = useState(false);
   return (
-    <header className="border-grid bg-accent supports-[backdrop-filter]:bg-accent/60 sticky top-0 z-50 w-full border-b backdrop-blur">
+    <header className="border-grid bg-sidebar supports-[backdrop-filter]:bg-sidebar/60 sticky top-0 z-50 w-full border-b backdrop-blur">
       <nav className="mx-auto flex h-14 w-full max-w-7xl shrink-0 items-center justify-between gap-3">
         <div className="ml-4 flex items-center gap-3">
           <button onClick={() => setIsOpen(true)} className="block sm:hidden">

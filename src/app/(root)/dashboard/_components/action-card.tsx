@@ -1,8 +1,9 @@
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CalendarDays, CreditCard, DollarSign, Users } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { SelectUserModel } from "@/db/schemas/user";
+import Link from "next/link";
 interface ActionSidebarProps {
   user: SelectUserModel;
 }
@@ -21,14 +22,16 @@ export default function ActionSidebar({ user }: ActionSidebarProps) {
           <CardTitle className="text-xl">Quick Actions</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3 p-6">
-          <Button
-            variant="outline"
-            className="w-full justify-start bg-transparent"
-            size="lg"
+          <Link
+            href="/guest-meal/create"
+            className={buttonVariants({
+              variant: "outline",
+              className: "w-full justify-start bg-transparent",
+            })}
           >
             <Users className="mr-3 h-5 w-5" />
             Add Guest Meal
-          </Button>
+          </Link>
           <Button
             variant="outline"
             className="w-full justify-start bg-transparent"
