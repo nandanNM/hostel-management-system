@@ -25,6 +25,7 @@ export async function toggleMealStatus(
       .where(eq(meal.userId, session.user.id));
     return { status: "success", message: "Meal status updated successfully" };
   } catch (error) {
+    console.log("error", error);
     return {
       status: "error",
       message: "An unexpected error occurred. Please try again later.",

@@ -26,7 +26,8 @@ export default function MealTogleButton() {
         kyInstance.get("/api/user/meal/status").json<{ isActive: boolean }>(),
       );
       if (error) {
-        toast.error("An unexpected error occurred. Please try again later.");
+        console.log(error);
+        toast.error(error.message);
         return;
       }
       setValue("isActive", data.isActive);

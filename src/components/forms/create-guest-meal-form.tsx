@@ -28,15 +28,38 @@ import {
 } from "@/constants/form.constants";
 import { Input } from "@/components/ui/input";
 import LoadingButton from "@/components/LoadingButton";
+import { tryCatch } from "@/hooks/try-catch";
+import { createGuestMeal } from "./action";
+import { toast } from "sonner";
+import { useTransition } from "react";
 export default function CreateGuestMealForm() {
+  const [isPanding, startTransition] = useTransition();
   const form = useForm<CreateGuestMealValues>({
     resolver: zodResolver(createGuestMealSchema),
     defaultValues: {
+      name: "",
+      number: "",
+      mealType: "non-veg",
+      nonVegType: "chicken",
+      mealTime: "both",
+      numberOfMeals: 1,
+      mealCharge: 0,
       massage: "",
     },
   });
-  async function onSubmit(values: CreateGuestMealValues) {
-    console.log(values);
+  function onSubmit(values: CreateGuestMealValues) {
+    startTransition(async () => {
+      const { data: result, error } = await tryCatch(createGuestMeal(values));
+      if (error) {
+        toast.error("A Unexpected error occurred. Please try again later.");
+        return;
+      }
+      if (result.status === "success") {
+        toast.success(result.message);
+      } else if (result.status === "error") {
+        toast.error(result.message);
+      }
+    });
   }
 
   return (
@@ -160,6 +183,28 @@ export default function CreateGuestMealForm() {
             )}
           />
         </div>
+        <FormField
+          control={form.control}
+          name="numberOfMeals"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Number of Meals</FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  placeholder="Enter number of meals required by guest"
+                  {...field}
+                  onChange={(e) =>
+                    field.onChange(
+                      e.target.value === "" ? "" : Number(e.target.value),
+                    )
+                  }
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <FormField
           control={form.control}
@@ -174,7 +219,6 @@ export default function CreateGuestMealForm() {
             </FormItem>
           )}
         />
-
         <FormField
           control={form.control}
           name="mealCharge"
@@ -182,7 +226,15 @@ export default function CreateGuestMealForm() {
             <FormItem>
               <FormLabel> Meal Charge</FormLabel>
               <FormControl>
-                <Input type="number" {...field} />
+                <Input
+                  type="number"
+                  {...field}
+                  onChange={(e) =>
+                    field.onChange(
+                      e.target.value === "" ? "" : Number(e.target.value),
+                    )
+                  }
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -190,7 +242,7 @@ export default function CreateGuestMealForm() {
         />
 
         <div className="flex w-full justify-end gap-3 p-4">
-          <LoadingButton loading={false} type="submit">
+          <LoadingButton loading={isPanding} type="submit">
             Submit
           </LoadingButton>
         </div>

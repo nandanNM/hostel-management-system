@@ -1,0 +1,1 @@
+ALTER TABLE "guestmeals" ADD COLUMN "meal_charge" real NOT NULL;
