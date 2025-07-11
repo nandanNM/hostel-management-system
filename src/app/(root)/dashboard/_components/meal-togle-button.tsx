@@ -35,7 +35,6 @@ export default function MealTogleButton() {
 
   const handleSwitchChange = async () => {
     setIsSwitching(true);
-    console.log("isSwitching", !isActive);
     const { data: result, error } = await tryCatch(toggleMealStatus(!isActive));
     setIsSwitching(false);
     if (error) {

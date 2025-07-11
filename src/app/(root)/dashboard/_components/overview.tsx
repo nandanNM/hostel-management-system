@@ -1,27 +1,83 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TrendingUp, Utensils } from "lucide-react";
-import React from "react";
+import {
+  Card,
+  CardAction,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Gavel, LucideIcon, TrendingUp, Utensils, Wallet } from "lucide-react";
+import { getUserDeshboardStats } from "../action";
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 
-export default function OverviewCards() {
+export default async function OverviewCards() {
+  const { totalGuestMeals, totalPayedAmount, totalFines } =
+    await getUserDeshboardStats();
+  const cards = [
+    {
+      title: "Total Guest Meals",
+      icon: Utensils,
+      value: totalGuestMeals,
+      color: "blue",
+      subtitle: "This month",
+    },
+    {
+      title: "Total Paid Amount",
+      icon: Wallet,
+      value: `₹${totalPayedAmount}`,
+      color: "green",
+      subtitle: "Till date",
+    },
+    {
+      title: "Total Fines",
+      icon: Gavel,
+      value: `₹${totalFines}`,
+      color: "red",
+      subtitle: "All time",
+    },
+  ];
   return (
-    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-      <Card className="gap-4">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-blue-700">
-            Total Meals
-          </CardTitle>
-          <div className="rounded-lg bg-blue-500 p-2">
-            <Utensils className="h-4 w-4 text-white" />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="text-3xl font-bold text-blue-900">85</div>
-          <p className="mt-1 flex items-center text-xs text-blue-600">
-            <TrendingUp className="mr-1 h-3 w-3" />
-            This month
-          </p>
-        </CardContent>
-      </Card>
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {cards.map((card, idx) => (
+        <StatsCard key={idx} {...card} />
+      ))}
     </div>
+  );
+}
+
+interface StatsCardProps {
+  title: string;
+  icon: LucideIcon;
+  value: number | string;
+  color: string;
+  subtitle?: string;
+}
+
+export function StatsCard({
+  title,
+  icon: Icon,
+  value,
+  subtitle,
+}: StatsCardProps) {
+  return (
+    <Card className="@container/card">
+      <CardHeader>
+        <CardDescription>{title}</CardDescription>
+        <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+          {value}
+        </CardTitle>
+        <CardAction>
+          <Badge variant="outline" className="h-full w-full rounded-full p-1">
+            <Icon className={cn("size-5")} />
+          </Badge>
+        </CardAction>
+      </CardHeader>
+      <CardFooter className="flex-col items-start gap-1.5 text-sm">
+        <div className="line-clamp-1 flex gap-2 font-medium">
+          {subtitle} <TrendingUp className="size-4" />
+        </div>
+      </CardFooter>
+    </Card>
   );
 }

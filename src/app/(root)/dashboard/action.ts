@@ -1,16 +1,16 @@
 "use server";
 
 import { db } from "@/db";
-import { meal } from "@/db/schemas";
+import { fine, guestmeal, meal, payment } from "@/db/schemas";
 import getSession from "@/lib/getSession";
 import { ApiResponse } from "@/types";
 import { eq } from "drizzle-orm";
 
 // switch user status
 
-export const toggleMealStatus = async (
+export async function toggleMealStatus(
   isActive: boolean,
-): Promise<ApiResponse> => {
+): Promise<ApiResponse> {
   const session = await getSession();
   if (!session?.user.id) {
     return {
@@ -30,4 +30,24 @@ export const toggleMealStatus = async (
       message: "An unexpected error occurred. Please try again later.",
     };
   }
-};
+}
+
+export async function getUserDeshboardStats() {
+  const session = await getSession();
+  if (!session?.user.id) throw new Error("Unauthorized");
+  const [totalGuestMeals, totalPayments, totalFines] = await Promise.all([
+    await db.$count(guestmeal),
+    await db.query.payment.findMany({
+      where: eq(payment.userId, session.user.id),
+      columns: {
+        amount: true,
+      },
+    }),
+    await db.$count(fine),
+  ]);
+  const totalPayedAmount = totalPayments.reduce(
+    (acc, payment) => acc + payment.amount,
+    0,
+  );
+  return { totalGuestMeals, totalPayedAmount, totalFines };
+}

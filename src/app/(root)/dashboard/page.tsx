@@ -1,5 +1,4 @@
 import { Separator } from "@/components/ui/separator";
-import OverviewCardsSkeleton from "./_components/overview-cards-skeleton";
 import MealTogleButton from "./_components/meal-togle-button";
 import getSession from "@/lib/getSession";
 import { db } from "@/db";
@@ -11,6 +10,7 @@ import { Metadata } from "next";
 import RecentTransactions from "./_components/recent-transactions";
 import ActionSidebar from "./_components/action-card";
 import UserDataCard from "./_components/user-data-card";
+import OverviewCards from "./_components/overview";
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -44,7 +44,7 @@ export default async function Page() {
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="space-y-8 lg:col-span-2">
-            <OverviewCardsSkeleton />
+            <OverviewCards />
             <RecentTransactions userId={user.id} />
             <UserDataCard user={user} />
           </div>
