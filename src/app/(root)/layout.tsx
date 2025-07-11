@@ -1,12 +1,17 @@
 import AuthProvider from "@/context/AuthProvider";
 import NavBar from "@/components/NavBar";
 import SideNav from "@/components/SideNav";
+import getSession from "@/lib/getSession";
+import { redirect } from "next/navigation";
 
 export default async function Layout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const session = await getSession();
+  if (!session?.user.id) return redirect("/login");
+  if (!session.user.onboarding) return redirect("/onboarding/identity");
   return (
     <AuthProvider>
       <NavBar />

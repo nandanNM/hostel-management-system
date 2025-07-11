@@ -1,20 +1,13 @@
-import getSession from "@/lib/getSession";
-export default async function Home() {
-  const session = await getSession();
+export default function Home() {
   return (
     <div className="">
       <p>
         {" "}
-        Lorem ipsum dolor sit amet consectetur adipisicing elit. Consequatur ab
-        incidunt dolorem molestiae nihil ad quos nemo, illo, alias accusantium,
-        sint blanditiis unde. Tempora dolor ab quos illum in dignissimos
-        laudantium, doloremque delectus nam repellendus ex perspiciatis
-        consequatur accusamus incidunt cumque ad doloribus voluptatibus aut!
+        Lorem ipsum dolor sit amet consectetur adipisicing elit. Quae ea
+        veritatis unde, dignissimos hic cupiditate obcaecati ad dolore, quasi
+        mollitia nihil delectus ex corrupti quisquam suscipit, harum cum maxime
+        aliquam?{" "}
       </p>
-      <p>{session?.user.name}</p>
-      <p>{session?.user.role}</p>
-      <p>{session?.user.id}</p>
-      <p>{session?.user.image}</p>
     </div>
   );
 }

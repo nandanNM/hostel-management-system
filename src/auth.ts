@@ -18,6 +18,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
       if (user) {
         session.user.role = user.role;
         session.user.isBoader = user.isBoader;
+        session.user.onboarding = user.onboarding;
       }
 
       return session;

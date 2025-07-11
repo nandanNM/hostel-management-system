@@ -18,12 +18,21 @@ export async function toggleMealStatus(
       message: "Unauthorized",
     };
   }
+  if (session?.user.isBoader) {
+    return {
+      status: "error",
+      message: "Unauthorized - You are not a boarder member",
+    };
+  }
   try {
     await db
       .update(meal)
       .set({ isActive })
       .where(eq(meal.userId, session.user.id));
-    return { status: "success", message: "Meal status updated successfully" };
+    return {
+      status: "success",
+      message: "Meal status updated successfully",
+    };
   } catch (error) {
     console.log("error", error);
     return {

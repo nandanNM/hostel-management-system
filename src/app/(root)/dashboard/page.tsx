@@ -11,6 +11,7 @@ import RecentTransactions from "./_components/recent-transactions";
 import ActionSidebar from "./_components/action-card";
 import UserDataCard from "./_components/user-data-card";
 import OverviewCards from "./_components/overview";
+import { P } from "@/components/custom/p";
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -27,6 +28,23 @@ export default async function Page() {
   const session = await getSession();
   if (!session?.user.id) return null;
   const user = await getUserById(session.user.id);
+  if (!user.isBoader)
+    return (
+      <div className="w-full md:mx-8 lg:mx-auto">
+        <P className="text-destructive text-center text-balance">
+          You are not a boarder member and cannot access this page please
+          contact the admin or a boarder member
+        </P>
+      </div>
+    );
+  if (user.isBanned)
+    return (
+      <div className="w-full md:mx-8 lg:mx-auto">
+        <P className="text-destructive text-center text-balance">
+          You are banned and cannot access this page please contact the admin
+        </P>
+      </div>
+    );
   return (
     <div className="w-full md:mx-8 lg:mx-auto">
       <h2 className="mb-4 font-bold">User Dashboard</h2>
