@@ -20,7 +20,7 @@ export default async function OverviewCards() {
       icon: Utensils,
       value: totalGuestMeals,
       color: "blue",
-      subtitle: "This month",
+      subtitle: "All time",
     },
     {
       title: "Total Paid Amount",

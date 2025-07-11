@@ -104,7 +104,7 @@ export default async function RecentTransactions({
       <CardContent className="p-2">
         <Table>
           <TableHeader>
-            <TableRow className="bg-gray-50">
+            <TableRow>
               <TableHead className="font-semibold">Date</TableHead>
               <TableHead className="font-semibold">Type</TableHead>
               <TableHead className="font-semibold">Description</TableHead>

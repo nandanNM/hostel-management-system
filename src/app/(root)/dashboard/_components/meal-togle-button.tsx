@@ -23,11 +23,21 @@ export default function MealTogleButton() {
   useEffect(() => {
     startTransition(async () => {
       const { data, error } = await tryCatch(
-        kyInstance.get("/api/user/meal/status").json<{ isActive: boolean }>(),
+        kyInstance
+          .get("/api/user/meal/status", {
+            retry: {
+              limit: 2,
+            },
+          })
+          .json<{ isActive: boolean }>(),
       );
       if (error) {
-        console.log(error);
-        toast.error(error.message);
+        //console.log(error);
+        toast.error(
+          error.name === "TimeoutError"
+            ? "Request timed out. Please try again."
+            : "A Unexpected error occurred. Please try again later.",
+        );
         return;
       }
       setValue("isActive", data.isActive);

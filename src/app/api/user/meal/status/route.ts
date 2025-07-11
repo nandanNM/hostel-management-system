@@ -6,8 +6,10 @@ import { eq } from "drizzle-orm";
 export async function GET() {
   try {
     const session = await getSession();
+
     if (!session?.user.id)
       return Response.json({ error: "Unauthorized" }, { status: 401 });
+
     const data = await db.query.meal.findFirst({
       where: eq(meal.userId, session.user.id),
       columns: {
