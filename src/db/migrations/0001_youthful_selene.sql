@@ -1,0 +1,1 @@
+ALTER TABLE "guestmeals" ADD COLUMN "meal_date" date NOT NULL;

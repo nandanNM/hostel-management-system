@@ -23,6 +23,7 @@ export const guestmeal = table("guestmeals", {
   number: t.varchar("phone_number", { length: 15 }).notNull(),
   mealType: mealTypeEnum().notNull(),
   nonVegType: nonVegTypeEnum(),
+  date: t.date("meal_date").notNull(),
   mealTime: mealTimeEnum().notNull(),
   numberOfMeals: t.integer("number_of_meals").default(1).notNull(),
   mealCharge: t.real("meal_charge").notNull(),
