@@ -58,7 +58,6 @@ export const hostelSchema = z.object({
 export const baseMealFields = z.object({
   mealType: z.enum(["veg", "non-veg"]),
   nonVegType: z.enum(["chicken", "fish", "egg", "none"]).optional(),
-  mealTime: z.enum(["day", "night"]),
   massage: z.string().optional(),
 });
 export const createMealSchema = baseMealFields;
@@ -77,6 +76,7 @@ export const editMealSchema = baseMealFields.extend({
 export type EditMealValues = z.infer<typeof editMealSchema>;
 export const createGuestMealSchema = baseMealFields.extend({
   name: z.string().min(1, { message: "Name must be provided" }),
+  mealTime: z.enum(["day", "night"]),
   numberOfMeals: z
     .number()
     .min(1, { message: "Number of meals must be at least 1" }),

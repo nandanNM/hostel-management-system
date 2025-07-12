@@ -31,6 +31,7 @@ import { tryCatch } from "@/hooks/try-catch";
 import { createUserOnboarding } from "./action";
 import { toast } from "sonner";
 import LoadingButton from "@/components/LoadingButton";
+import { P } from "@/components/custom/p";
 
 export default function OnboardingMealForm() {
   const router = useRouter();
@@ -48,10 +49,10 @@ export default function OnboardingMealForm() {
     defaultValues: {
       mealType: "non-veg",
       nonVegType: "none",
-
       massage: "",
     },
   });
+  console.log(form.formState.errors);
 
   function onSubmit(values: CreateMealFormValues) {
     startTransition(async () => {
@@ -179,6 +180,11 @@ export default function OnboardingMealForm() {
             </FormItem>
           )}
         />
+        {form.formState.errors && (
+          <P className="text-center" variant="lead">
+            {form.formState.errors.massage?.message}
+          </P>
+        )}
 
         <div className="flex w-full justify-end gap-3 p-4">
           <Button type="button" variant="ghost" onClick={() => router.back()}>
