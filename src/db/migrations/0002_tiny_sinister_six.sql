@@ -1,0 +1,1 @@
+ALTER TABLE "daily_meal_activity" ADD COLUMN "massages" json DEFAULT '[]'::json NOT NULL;

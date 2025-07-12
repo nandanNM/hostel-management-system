@@ -18,6 +18,7 @@ export const dailyMealActivity = table("daily_meal_activity", {
   totalNonvegChicken: t.integer("total_nonveg_chicken").default(0),
   totalNonvegFish: t.integer("total_nonveg_fish").default(0),
   totalNonvegEgg: t.integer("total_nonveg_egg").default(0),
+  massages: t.json("massages").$type<string[]>().notNull().default([]),
   createdAt: t
     .timestamp("created_at", { mode: "string", withTimezone: true })
     .notNull()
