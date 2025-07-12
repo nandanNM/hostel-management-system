@@ -69,6 +69,7 @@ export async function GET() {
         egg: 0,
         none: 0,
       },
+      totalGuestMeals: 0,
     };
     // clasic java script loop
     for (const m of activeUserMeals) {
@@ -83,24 +84,16 @@ export async function GET() {
       }
     }
 
-    const groupedGuestMeals = {
-      totalGuestMeals: 0,
-      veg: 0,
-      "non-veg": {
-        chicken: 0,
-        fish: 0,
-        egg: 0,
-        none: 0,
-      },
-    };
     for (const g of activeGuestMeals) {
+      if (g.massage && g.massage.length >= 6)
+        groupedUserMeals.massages.add(g.massage);
       const count = g.numberOfMeals ?? 1;
-      groupedGuestMeals.totalGuestMeals += count;
+      groupedUserMeals.totalGuestMeals += count;
       if (g.mealType === "veg") {
-        groupedGuestMeals.veg += count;
+        groupedUserMeals.veg += count;
       } else if (g.mealType === "non-veg" && g.nonVegType) {
         const type = g.nonVegType as NonVegType;
-        groupedGuestMeals["non-veg"][type] += count;
+        groupedUserMeals["non-veg"][type] += count;
       }
     }
 
@@ -113,7 +106,8 @@ export async function GET() {
         totalNonvegChicken: groupedUserMeals["non-veg"].chicken,
         totalNonvegFish: groupedUserMeals["non-veg"].fish,
         totalNonvegEgg: groupedUserMeals["non-veg"].egg,
-        totalGuestMeals: groupedGuestMeals.totalGuestMeals,
+        totalGuestMeals: groupedUserMeals.totalGuestMeals,
+        massages: Array.from(groupedUserMeals.massages),
       })
       .returning();
 
