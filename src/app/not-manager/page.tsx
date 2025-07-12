@@ -15,7 +15,7 @@ export default function NotManagerRoute() {
     <div className="flex min-h-screen items-center justify-center">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="bg-destructive/10 ms-auto rounded-full p-4">
+          <div className="bg-destructive/10 mx-auto rounded-full p-4">
             <ShieldX className="text-destructive size-16" />
           </div>
           <CardTitle className="text-2xl">Access Restricted</CardTitle>

@@ -4,7 +4,6 @@ import { RiDashboardLine, RiToolsFill } from "@remixicon/react";
 
 export const NavItems = () => {
   const pathname = usePathname();
-
   function isNavItemActive(pathname: string, nav: string) {
     return pathname.includes(nav);
   }

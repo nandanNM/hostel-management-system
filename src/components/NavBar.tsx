@@ -1,16 +1,12 @@
 "use client";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
-import { signIn, useSession } from "next-auth/react";
 import Link from "next/link";
 import UserButton from "./UserButton";
-import { Button } from "./ui/button";
 import { useState } from "react";
 import { NavItems } from "@/data/nav-data";
 import { Menu } from "lucide-react";
 
 export default function NavBar() {
-  const session = useSession();
-  const user = session.data?.user;
   const navItems = NavItems();
   const [isOpen, setIsOpen] = useState(false);
   return (
@@ -29,15 +25,10 @@ export default function NavBar() {
             Next-PG1 v5
           </Link>
         </div>
-        {user && <UserButton user={user} />}
-        {!user && session.status !== "loading" && <SignInButton />}
+        <UserButton />
       </nav>
     </header>
   );
-}
-
-function SignInButton() {
-  return <Button onClick={() => signIn()}>Sign in</Button>;
 }
 
 interface MobileNavProps {
