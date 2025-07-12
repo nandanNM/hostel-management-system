@@ -15,11 +15,7 @@ export default async function Page() {
   }
 
   if (user.role !== "admin") {
-    return (
-      <main className="mx-auto my-10">
-        <p className="text-center">You are not authorized to view this page</p>
-      </main>
-    );
+    return redirect("/not-admin");
   }
 
   return (

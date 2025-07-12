@@ -1,5 +1,5 @@
 {
-  "id": "3de381cc-29aa-45dd-84a7-b1d4a96e59df",
+  "id": "2d06b92c-fef2-4d32-bfc8-b8950e51f5e0",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -316,6 +316,89 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.daily_meal_activity": {
+      "name": "daily_meal_activity",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "mealTime": {
+          "name": "mealTime",
+          "type": "meal_time",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "meal_on_users": {
+          "name": "meal_on_users",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
+        },
+        "total_guest_meals": {
+          "name": "total_guest_meals",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "total_veg": {
+          "name": "total_veg",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "total_nonveg_chicken": {
+          "name": "total_nonveg_chicken",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "total_nonveg_fish": {
+          "name": "total_nonveg_fish",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "total_nonveg_egg": {
+          "name": "total_nonveg_egg",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.fines": {
       "name": "fines",
       "schema": "",
@@ -406,6 +489,18 @@
           "primaryKey": false,
           "notNull": true
         },
+        "name": {
+          "name": "name",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "phone_number": {
+          "name": "phone_number",
+          "type": "varchar(15)",
+          "primaryKey": false,
+          "notNull": true
+        },
         "mealType": {
           "name": "mealType",
           "type": "meal_type",
@@ -418,7 +513,7 @@
           "type": "non_veg_type",
           "typeSchema": "public",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "mealTime": {
           "name": "mealTime",
@@ -440,9 +535,17 @@
           "primaryKey": false,
           "notNull": true
         },
-        "mobile_number": {
-          "name": "mobile_number",
-          "type": "varchar(15)",
+        "status": {
+          "name": "status",
+          "type": "guest_meal_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'pending'"
+        },
+        "meal_massage": {
+          "name": "meal_massage",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
@@ -514,14 +617,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "mealTime": {
-          "name": "mealTime",
-          "type": "meal_time",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "'both'"
-        },
         "is_active": {
           "name": "is_active",
           "type": "boolean",
@@ -566,6 +661,51 @@
           "onUpdate": "no action"
         }
       },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.posr_media": {
+      "name": "posr_media",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "audit_id": {
+          "name": "audit_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "url": {
+          "name": "url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -646,16 +786,7 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "payment_ak_1": {
-          "name": "payment_ak_1",
-          "nullsNotDistinct": false,
-          "columns": [
-            "user_id",
-            "audit_id"
-          ]
-        }
-      },
+      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -964,13 +1095,21 @@
         "other"
       ]
     },
+    "public.guest_meal_status": {
+      "name": "guest_meal_status",
+      "schema": "public",
+      "values": [
+        "pending",
+        "accepted",
+        "rejected"
+      ]
+    },
     "public.meal_time": {
       "name": "meal_time",
       "schema": "public",
       "values": [
         "day",
-        "night",
-        "both"
+        "night"
       ]
     },
     "public.meal_type": {

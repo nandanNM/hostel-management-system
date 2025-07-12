@@ -1,5 +1,6 @@
 CREATE TYPE "public"."gender" AS ENUM('male', 'female', 'other');--> statement-breakpoint
-CREATE TYPE "public"."meal_time" AS ENUM('day', 'night', 'both');--> statement-breakpoint
+CREATE TYPE "public"."guest_meal_status" AS ENUM('pending', 'accepted', 'rejected');--> statement-breakpoint
+CREATE TYPE "public"."meal_time" AS ENUM('day', 'night');--> statement-breakpoint
 CREATE TYPE "public"."meal_type" AS ENUM('veg', 'non-veg');--> statement-breakpoint
 CREATE TYPE "public"."non_veg_type" AS ENUM('chicken', 'fish', 'egg', 'none');--> statement-breakpoint
 CREATE TYPE "public"."religion" AS ENUM('hindu', 'muslim', 'christian', 'sikh', 'jain', 'buddhist', 'jewish', 'other');--> statement-breakpoint
@@ -48,6 +49,19 @@ CREATE TABLE "authenticator" (
 	CONSTRAINT "authenticator_credentialID_unique" UNIQUE("credentialID")
 );
 --> statement-breakpoint
+CREATE TABLE "daily_meal_activity" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"mealTime" "meal_time",
+	"meal_on_users" jsonb DEFAULT '[]'::jsonb NOT NULL,
+	"total_guest_meals" integer DEFAULT 0,
+	"total_veg" integer DEFAULT 0,
+	"total_nonveg_chicken" integer DEFAULT 0,
+	"total_nonveg_fish" integer DEFAULT 0,
+	"total_nonveg_egg" integer DEFAULT 0,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "fines" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"user_id" uuid NOT NULL,
@@ -61,12 +75,15 @@ CREATE TABLE "fines" (
 CREATE TABLE "guestmeals" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"user_id" uuid NOT NULL,
+	"name" varchar(50) NOT NULL,
+	"phone_number" varchar(15) NOT NULL,
 	"mealType" "meal_type" NOT NULL,
-	"nonVegType" "non_veg_type" NOT NULL,
+	"nonVegType" "non_veg_type",
 	"mealTime" "meal_time" NOT NULL,
 	"number_of_meals" integer DEFAULT 1 NOT NULL,
 	"meal_charge" real NOT NULL,
-	"mobile_number" varchar(15),
+	"status" "guest_meal_status" DEFAULT 'pending' NOT NULL,
+	"meal_massage" text,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
@@ -76,11 +93,18 @@ CREATE TABLE "meals" (
 	"user_id" uuid NOT NULL,
 	"mealType" "meal_type" NOT NULL,
 	"nonVegType" "non_veg_type",
-	"mealTime" "meal_time" DEFAULT 'both',
 	"is_active" boolean DEFAULT false NOT NULL,
 	"meal_massage" text,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "posr_media" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"audit_id" text,
+	"type" text NOT NULL,
+	"url" text NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "payments" (
@@ -89,8 +113,7 @@ CREATE TABLE "payments" (
 	"audit_id" uuid NOT NULL,
 	"amount" integer NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
-	"updated_at" timestamp DEFAULT now() NOT NULL,
-	CONSTRAINT "payment_ak_1" UNIQUE("user_id","audit_id")
+	"updated_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "sessions" (

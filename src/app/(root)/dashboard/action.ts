@@ -12,13 +12,14 @@ export async function toggleMealStatus(
   isActive: boolean,
 ): Promise<ApiResponse> {
   const session = await getSession();
+  console.log(session);
   if (!session?.user.id) {
     return {
       status: "error",
       message: "Unauthorized",
     };
   }
-  if (session?.user.isBoader) {
+  if (!session?.user.isBoader) {
     return {
       status: "error",
       message: "Unauthorized - You are not a boarder member",

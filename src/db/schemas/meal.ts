@@ -10,7 +10,6 @@ export const nonVegTypeEnum = pgEnum("non_veg_type", [
   "egg",
   "none",
 ]);
-export const mealTimeEnum = pgEnum("meal_time", ["day", "night", "both"]);
 export const meal = table("meals", {
   id: t.uuid("id").primaryKey().defaultRandom(),
   userId: t
@@ -19,7 +18,6 @@ export const meal = table("meals", {
     .references(() => user.id, { onDelete: "cascade" }),
   mealType: mealTypeEnum().notNull(),
   nonVegType: nonVegTypeEnum(),
-  mealTime: mealTimeEnum().default("both"),
   isActive: t.boolean("is_active").default(false).notNull(),
   massage: t.text("meal_massage"),
   createdAt: t

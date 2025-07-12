@@ -1,1 +1,0 @@
-ALTER TABLE "guestmeals" ADD COLUMN "name" varchar(50) NOT NULL;

@@ -41,7 +41,6 @@ export default function CreateGuestMealForm() {
       number: "",
       mealType: "non-veg",
       nonVegType: "chicken",
-      mealTime: "both",
       numberOfMeals: 1,
       mealCharge: 0,
       massage: "",

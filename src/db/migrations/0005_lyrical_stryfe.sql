@@ -1,1 +1,0 @@
-ALTER TABLE "guestmeals" ALTER COLUMN "nonVegType" DROP NOT NULL;

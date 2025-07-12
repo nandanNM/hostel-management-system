@@ -21,11 +21,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import {
-  MEAL_TIME_OPTIONS,
-  MEAL_TYPE_OPTIONS,
-  NON_VEG_OPTIONS,
-} from "@/constants/form.constants";
+import { MEAL_TYPE_OPTIONS, NON_VEG_OPTIONS } from "@/constants/form.constants";
 import { ArrowLeft } from "lucide-react";
 import { redirect, useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
@@ -52,7 +48,7 @@ export default function OnboardingMealForm() {
     defaultValues: {
       mealType: "non-veg",
       nonVegType: "none",
-      mealTime: "both",
+
       massage: "",
     },
   });
@@ -160,34 +156,6 @@ export default function OnboardingMealForm() {
                     {NON_VEG_OPTIONS.map((type) => (
                       <SelectItem key={type} value={type}>
                         {type}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="mealTime"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Meal Time</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select meal time" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {MEAL_TIME_OPTIONS.map((time) => (
-                      <SelectItem key={time} value={time}>
-                        {time}
                       </SelectItem>
                     ))}
                   </SelectContent>

@@ -5,64 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1752086669908,
-      "tag": "0000_special_nomad",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1752164003679,
-      "tag": "0001_high_maelstrom",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1752223278276,
-      "tag": "0002_boring_retro_girl",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1752223481919,
-      "tag": "0003_misty_multiple_man",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1752224154790,
-      "tag": "0004_famous_greymalkin",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1752227603388,
-      "tag": "0005_lyrical_stryfe",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1752228646342,
-      "tag": "0006_greedy_miss_america",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "7",
-      "when": 1752228754008,
-      "tag": "0007_kind_blink",
-      "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "7",
-      "when": 1752228969492,
-      "tag": "0008_useful_colossus",
+      "when": 1752333199804,
+      "tag": "0000_pretty_orphan",
       "breakpoints": true
     }
   ]

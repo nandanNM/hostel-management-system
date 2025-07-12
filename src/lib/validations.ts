@@ -58,7 +58,7 @@ export const hostelSchema = z.object({
 export const baseMealFields = z.object({
   mealType: z.enum(["veg", "non-veg"]),
   nonVegType: z.enum(["chicken", "fish", "egg", "none"]).optional(),
-  mealTime: z.enum(["day", "night", "both"]),
+  mealTime: z.enum(["day", "night"]),
   massage: z.string().optional(),
 });
 export const createMealSchema = baseMealFields;

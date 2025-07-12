@@ -32,7 +32,6 @@ export default function MealTogleButton() {
           .json<{ isActive: boolean }>(),
       );
       if (error) {
-        //console.log(error);
         toast.error(
           error.name === "TimeoutError"
             ? "Request timed out. Please try again."
@@ -56,7 +55,7 @@ export default function MealTogleButton() {
       setValue("isActive", !isActive);
       toast.success(`Meal status turned ${!isActive ? "On" : "Off"}.`);
     } else if (result.status === "error") {
-      toast.error("An unexpected error occurred. Please try again later.");
+      toast.error(result.message);
     }
   };
 
