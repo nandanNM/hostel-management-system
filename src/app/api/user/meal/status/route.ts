@@ -1,11 +1,11 @@
 import { db } from "@/db";
 import { meal } from "@/db/schemas";
-import getSession from "@/lib/getSession";
+import { requireUser } from "@/lib/require-user";
 import { eq } from "drizzle-orm";
 
 export async function GET() {
   try {
-    const session = await getSession();
+    const session = await requireUser();
 
     if (!session?.user.id)
       return Response.json({ error: "Unauthorized" }, { status: 401 });

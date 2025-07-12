@@ -2,7 +2,7 @@
 
 import { db } from "@/db";
 import { meal, user } from "@/db/schemas";
-import getSession from "@/lib/getSession";
+import { requireUser } from "@/lib/require-user";
 import {
   onboardingUserSchema,
   OnboardingUserSchemaUserValues,
@@ -15,7 +15,7 @@ export const createUserOnboarding = async (
 ): Promise<ApiResponse> => {
   try {
     const validation = await onboardingUserSchema.safeParseAsync(values);
-    const session = await getSession();
+    const session = await requireUser();
     if (!session?.user.id) {
       return {
         status: "error",

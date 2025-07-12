@@ -2,7 +2,8 @@
 
 import { db } from "@/db";
 import { fine, guestmeal, meal, payment } from "@/db/schemas";
-import getSession from "@/lib/getSession";
+
+import { requireUser } from "@/lib/require-user";
 import { ApiResponse } from "@/types";
 import { eq } from "drizzle-orm";
 
@@ -11,15 +12,14 @@ import { eq } from "drizzle-orm";
 export async function toggleMealStatus(
   isActive: boolean,
 ): Promise<ApiResponse> {
-  const session = await getSession();
-  console.log(session);
+  const session = await requireUser();
   if (!session?.user.id) {
     return {
       status: "error",
       message: "Unauthorized",
     };
   }
-  if (!session?.user.isBoader) {
+  if (!session.user.isBoader) {
     return {
       status: "error",
       message: "Unauthorized - You are not a boarder member",
@@ -44,8 +44,13 @@ export async function toggleMealStatus(
 }
 
 export async function getUserDeshboardStats() {
-  const session = await getSession();
-  if (!session?.user.id) throw new Error("Unauthorized");
+  const session = await requireUser();
+  if (!session?.user.id) {
+    return {
+      status: "error",
+      message: "Unauthorized",
+    };
+  }
   const [totalGuestMeals, totalPayments, totalFines] = await Promise.all([
     await db.$count(guestmeal),
     await db.query.payment.findMany({

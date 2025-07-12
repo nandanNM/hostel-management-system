@@ -2,7 +2,7 @@
 
 import { db } from "@/db";
 import { guestmeal } from "@/db/schemas";
-import getSession from "@/lib/getSession";
+import { requireUser } from "@/lib/require-user";
 import {
   createGuestMealSchema,
   CreateGuestMealValues,
@@ -20,7 +20,7 @@ export async function createGuestMeal(
     };
   }
   try {
-    const session = await getSession();
+    const session = await requireUser();
     if (!session?.user.id) {
       return {
         status: "error",

@@ -1,5 +1,5 @@
 "use server";
-import getSession from "@/lib/getSession";
+import getSession from "@/lib/get-session";
 import { redirect } from "next/navigation";
 
 export default async function requireAdmin() {

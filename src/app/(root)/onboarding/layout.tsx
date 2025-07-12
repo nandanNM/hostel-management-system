@@ -1,4 +1,4 @@
-import getSession from "@/lib/getSession";
+import { requireUser } from "@/lib/require-user";
 import { redirect } from "next/navigation";
 
 export default async function Layout({
@@ -6,7 +6,7 @@ export default async function Layout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getSession();
+  const session = await requireUser();
   if (session?.user.onboarding) return redirect("/");
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-4">

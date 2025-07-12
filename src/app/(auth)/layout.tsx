@@ -1,14 +1,10 @@
-import getSession from "@/lib/getSession";
 import { GalleryVerticalEnd } from "lucide-react";
-import { redirect } from "next/navigation";
 
 export default async function Layout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getSession();
-  if (!session?.user.id) return redirect("/");
   return (
     <main className="grid min-h-svh lg:grid-cols-2">
       <div className="flex flex-col gap-4 p-6 md:p-10">

@@ -1,4 +1,4 @@
-import getSession from "@/lib/getSession";
+import { requireUser } from "@/lib/require-user";
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
 
@@ -7,14 +7,9 @@ export const metadata: Metadata = {
 };
 
 export default async function Page() {
-  const session = await getSession();
-  const user = session?.user;
+  const session = await requireUser();
 
-  if (!user) {
-    redirect("/");
-  }
-
-  if (user.role !== "admin") {
+  if (session.user.role !== "admin") {
     return redirect("/not-admin");
   }
 

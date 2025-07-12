@@ -1,6 +1,5 @@
 import { Separator } from "@/components/ui/separator";
 import MealTogleButton from "./_components/meal-togle-button";
-import getSession from "@/lib/getSession";
 import { db } from "@/db";
 import { eq } from "drizzle-orm";
 import { user } from "@/db/schemas";
@@ -12,6 +11,7 @@ import ActionSidebar from "./_components/action-card";
 import UserDataCard from "./_components/user-data-card";
 import OverviewCards from "./_components/overview";
 import { P } from "@/components/custom/p";
+import { requireUser } from "@/lib/require-user";
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -25,9 +25,8 @@ const getUserById = cache(async (userId: string) => {
 });
 
 export default async function Page() {
-  const session = await getSession();
-  if (!session?.user.id) return null;
-  const user = await getUserById(session.user.id);
+  const session = await requireUser();
+  const user = await getUserById(session.user.id as string);
   if (!user.isBoader)
     return (
       <div className="w-full md:mx-8 lg:mx-auto">
