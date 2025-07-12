@@ -1,4 +1,5 @@
 export const GENDER_OPTIONS = ["male", "female", "other"] as const;
+export type NonVegType = (typeof NON_VEG_OPTIONS)[number];
 export const RELIGION_OPTIONS = [
   "hindu",
   "muslim",

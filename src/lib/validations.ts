@@ -76,6 +76,7 @@ export const editMealSchema = baseMealFields.extend({
 export type EditMealValues = z.infer<typeof editMealSchema>;
 export const createGuestMealSchema = baseMealFields.extend({
   name: z.string().min(1, { message: "Name must be provided" }),
+  date: z.date({ message: "Meal date must provided" }),
   mealTime: z.enum(["day", "night"]),
   numberOfMeals: z
     .number()
