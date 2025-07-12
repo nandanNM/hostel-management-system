@@ -7,7 +7,8 @@ export default async function Layout({
   children: React.ReactNode;
 }) {
   const session = await requireUser();
-  if (session?.user.onboarding) return redirect("/");
+  if (session.user.onboarding) return redirect("/");
+
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-4">
       <div className="text-center">
