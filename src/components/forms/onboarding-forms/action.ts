@@ -8,6 +8,7 @@ import {
   OnboardingUserSchemaUserValues,
 } from "@/lib/validations";
 import { ApiResponse } from "@/types";
+import { format } from "date-fns";
 import { eq } from "drizzle-orm";
 
 export const createUserOnboarding = async (
@@ -29,6 +30,7 @@ export const createUserOnboarding = async (
         message: "Invalid Form Data",
       };
     }
+    const formattedDate = format(values.dob, "yyyy-MM-dd");
     const dataToInsert = {
       name: values.name,
       gender: values.gender,
@@ -37,10 +39,10 @@ export const createUserOnboarding = async (
       address: values.address,
       hostel: values.hostel,
       education: values.education,
-      dob: values.dob instanceof Date ? values.dob.toISOString() : values.dob,
+      dob: values.dob instanceof Date ? formattedDate : values.dob,
       onboarding: true,
     };
-    console.log(dataToInsert);
+
     await db.update(user).set(dataToInsert).where(eq(user.id, session.user.id));
     await db
       .insert(meal)

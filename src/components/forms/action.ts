@@ -8,6 +8,7 @@ import {
   CreateGuestMealValues,
 } from "@/lib/validations";
 import { ApiResponse } from "@/types";
+import { format } from "date-fns";
 
 export async function createGuestMeal(
   values: CreateGuestMealValues,
@@ -27,8 +28,11 @@ export async function createGuestMeal(
         message: "Unauthorized",
       };
     }
+
+    const formattedDate = format(values.date, "yyyy-MM-dd");
     await db.insert(guestmeal).values({
       ...values,
+      date: formattedDate,
       userId: session.user.id,
     });
     return {

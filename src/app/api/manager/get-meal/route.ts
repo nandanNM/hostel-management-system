@@ -11,6 +11,11 @@ export async function GET() {
 
     if (!session?.user.id)
       return Response.json({ error: "Unauthorized" }, { status: 401 });
+    if (session.user.role !== "manager")
+      return Response.json(
+        { error: "Unauthorized - You are not a manager" },
+        { status: 401 },
+      );
     const timeOfDay = getTimeOfDay();
     const todayStart = startOfDay(new Date()).toISOString();
     const todayEnd = endOfDay(new Date()).toISOString();
