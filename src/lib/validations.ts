@@ -104,7 +104,6 @@ export type OnboardingUserSchemaUserValues = z.infer<
 >;
 
 export const banUserSchema = z.object({
-  mode: z.literal("banned"),
   id: z.string().uuid(),
   banReason: z.string().min(1, { message: "Ban reason must be provided" }),
   bannedBy: z.string().min(1, { message: "Banned by must be provided" }),
