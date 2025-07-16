@@ -1,0 +1,320 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Hostel {
+  id        String   @id @default(cuid())
+  name      String
+  tag       String
+  address   String
+  capacity  Int
+  managerId String   @map("manager_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  manager User   @relation("HostelManager", fields: [managerId], references: [id])
+  users   User[] @relation("HostelUsers")
+  rooms   Room[]
+
+  @@map("hostels")
+}
+
+model Room {
+  id         String   @id @default(cuid())
+  hostelId   String   @map("hostel_id")
+  roomNumber String   @map("room_number")
+  floor      Int
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  hostel Hostel @relation(fields: [hostelId], references: [id])
+  users  User[]
+
+  @@map("rooms")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime? @map("email_verified")
+  image         String?
+
+  // Custom fields - Optional during registration, required for onboarding
+  displayName         String?    @map("display_name")
+  hashedPassword      String?    @map("hashed_password")
+  hostelId            String?    @map("hostel_id")
+  roomId              String?    @map("room_id")
+  gender              String?
+  religion            String?
+  dob                 DateTime?
+  education           Json?
+  selfPhNo            String?    @map("self_ph_no")
+  guardianPhNo        String?    @map("guardian_ph_no")
+  address             String?
+  bio                 String?
+  role                UserRole   @default(STUDENT)
+  status              UserStatus @default(PENDING_ONBOARDING)
+  joinDate            DateTime?  @map("join_date")
+  onboardingCompleted Boolean    @default(false) @map("onboarding_completed")
+
+  // JSON fields with defaults
+  message        String[] @default([])
+  mealPreference Json     @default("{}") @map("meal_preference")
+  paymentRecord  Json[]   @default([]) @map("payment_record")
+  mealInfoList   Json[]   @default([]) @map("meal_info_list")
+  newChargelist  Json[]   @default([]) @map("new_charge_list")
+  helpSection    Json[]   @default([]) @map("help_section")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations - Optional during registration
+  hostel         Hostel?          @relation("HostelUsers", fields: [hostelId], references: [id])
+  room           Room?            @relation(fields: [roomId], references: [id])
+  managedHostels Hostel[]         @relation("HostelManager")
+  meals          Meal[]
+  guestMeals     GuestMeal[]
+  payments       UserPayment[]
+  fines          UserFine[]       @relation("UserFines")
+  issuedFines    UserFine[]       @relation("FineIssuer")
+  audits         Audit[]
+  attendances    MealAttendance[]
+  notifications  Notification[]
+
+  // NextAuth relations
+  accounts Account[]
+  sessions Session[]
+
+  @@map("users")
+}
+
+// NextAuth required models
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+}
+
+model Meal {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  mealType   String   @map("meal_type")
+  nonVegType String   @map("non_veg_type")
+  mealTime   String   @map("meal_time")
+  isActive   Boolean  @default(true) @map("is_active")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("meals")
+}
+
+model Audit {
+  id                    String   @id @default(cuid())
+  auditorId             String   @map("auditor_id")
+  date                  DateTime
+  riceExpenditure       Float    @map("rice_expenditure")
+  vegetableExpenditure  Float    @map("vegetable_expenditure")
+  fishExpenditure       Float    @map("fish_expenditure")
+  dailyExpenditure      Float    @map("daily_expenditure")
+  grandTotalExpenditure Float    @map("grand_total_expenditure")
+  adjustment            Float
+  otherExpenditure      Float    @map("other_expenditure")
+  totalBoarders         Int      @map("total_boarders")
+  mealCharge            Float    @map("meal_charge")
+  totalPayments         Json[]   @map("total_payments")
+  createdAt             DateTime @default(now()) @map("created_at")
+
+  // Relations
+  auditor  User          @relation(fields: [auditorId], references: [id])
+  payments UserPayment[]
+
+  @@map("audits")
+}
+
+model UserPayment {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  auditId    String   @map("audit_id")
+  paidAmount Float    @map("paid_amount")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user  User  @relation(fields: [userId], references: [id])
+  audit Audit @relation(fields: [auditId], references: [id])
+
+  @@map("user_payments")
+}
+
+model GuestMeal {
+  id            String   @id @default(cuid())
+  userId        String   @map("user_id")
+  numberOfMeals Int      @map("number_of_meals")
+  mealCharge    Float    @map("meal_charge")
+  mealType      String   @map("meal_type")
+  nonVegType    String   @map("non_veg_type")
+  mealTime      String   @map("meal_time")
+  mobileNumber  String   @map("mobile_number")
+  status        String
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("guest_meals")
+}
+
+model UserFine {
+  id        String     @id @default(cuid())
+  userId    String     @map("user_id")
+  amount    Float
+  reason    String
+  status    FineStatus @default(PENDING)
+  issuedBy  String     @map("issued_by")
+  dueDate   DateTime   @map("due_date")
+  paidDate  DateTime?  @map("paid_date")
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+
+  // Relations
+  user   User @relation("UserFines", fields: [userId], references: [id])
+  issuer User @relation("FineIssuer", fields: [issuedBy], references: [id])
+
+  @@map("user_fines")
+}
+
+model DailyMealActivity {
+  id                 String   @id @default(cuid())
+  mealTime           MealTime @map("meal_time")
+  totalGuestMeals    Int      @map("total_guest_meals")
+  totalVeg           Int      @map("total_veg")
+  totalNonvegChicken Int      @map("total_nonveg_chicken")
+  totalNonvegFish    Int      @map("total_nonveg_fish")
+  totalNonvegEgg     Int      @map("total_nonveg_egg")
+  messages           String[]
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  @@map("daily_meal_activities")
+}
+
+model MealAttendance {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  date      DateTime
+  mealTime  MealTime @map("meal_time")
+  present   Boolean
+  mealType  String   @map("meal_type")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("meal_attendances")
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String           @map("user_id")
+  title     String
+  message   String
+  type      NotificationType
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("notifications")
+}
+
+// Enums
+enum UserRole {
+  STUDENT
+  MANAGER
+  ADMIN
+  STAFF
+}
+
+enum UserStatus {
+  PENDING_ONBOARDING
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum FineStatus {
+  PENDING
+  PAID
+  WAIVED
+  OVERDUE
+}
+
+enum MealType {
+  VEG
+  NON_VEG
+}
+
+enum NonVegType {
+  CHICKEN
+  FISH
+  EGG
+  NONE
+}
+
+enum MealTime {
+  LUNCH
+  DINNER
+}
+
+enum NotificationType {
+  PAYMENT
+  MEAL
+  FINE
+  ANNOUNCEMENT
+  SYSTEM
+}

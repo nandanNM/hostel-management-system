@@ -1,12 +1,6 @@
 import { Separator } from "@/components/ui/separator";
 import MealTogleButton from "./_components/meal-togle-button";
-import { db } from "@/db";
-import { eq } from "drizzle-orm";
-import { user } from "@/db/schemas";
-import { notFound } from "next/navigation";
-import { cache } from "react";
 import { Metadata } from "next";
-import RecentTransactions from "./_components/recent-transactions";
 import ActionSidebar from "./_components/action-card";
 import UserDataCard from "./_components/user-data-card";
 import OverviewCards from "./_components/overview";
@@ -16,17 +10,24 @@ import { requireUser } from "@/lib/require-user";
 export const metadata: Metadata = {
   title: "Dashboard",
 };
-const getUserById = cache(async (userId: string) => {
-  const foundUser = await db.query.user.findFirst({
-    where: eq(user.id, userId),
-  });
-  if (!foundUser) notFound();
-  return foundUser;
-});
+// const getUserById = cache(async (userId: string) => {
+//   const foundUser = await db.query.user.findFirst({
+//     where: eq(user.id, userId),
+//   });
+//   if (!foundUser) notFound();
+//   return foundUser;
+// });
 
 export default async function Page() {
   const session = await requireUser();
-  const user = await getUserById(session.user.id as string);
+  // const user = await getUserById(session.user.id as string);
+  const user = {
+    //dumy data
+    isBoader: true,
+    isBanned: false,
+    name: session.user.name,
+    role: session.user.role,
+  };
   if (!user.isBoader)
     return (
       <div className="w-full md:mx-8 lg:mx-auto">
@@ -62,7 +63,7 @@ export default async function Page() {
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="space-y-8 lg:col-span-2">
             <OverviewCards />
-            <RecentTransactions userId={user.id} />
+            {/* <RecentTransactions userId={user.id} /> */}
             <UserDataCard user={user} />
           </div>
           {/* UserActions */}
