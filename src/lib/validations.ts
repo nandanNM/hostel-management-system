@@ -1,119 +1,103 @@
 import { z } from "zod";
-// user validations
-const baseSchema = z.object({
-  name: z.string().min(1, { message: "Name must be provided" }),
-  gender: z.enum(["male", "female", "other"], {
-    message: "Gender must be provided",
-  }),
-  religion: z.enum(
-    [
-      "hindu",
-      "muslim",
-      "christian",
-      "sikh",
-      "jain",
-      "buddhist",
-      "jewish",
-      "other",
-    ],
-    { message: "Religion must be provided" },
-  ),
+
+// Basic user info
+const userSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  gender: z.enum(["male", "female", "other"]),
+  religion: z.enum([
+    "hindu",
+    "muslim",
+    "christian",
+    "sikh",
+    "jain",
+    "buddhist",
+    "jewish",
+    "other",
+  ]),
+  dob: z.date(),
+  phone: z
+    .string()
+    .length(10, "Phone must be 10 digits")
+    .regex(/^\d+$/, "Phone must be numbers only"),
+  address: z.string().min(1, "Address is required"),
 });
-export const educationSchema = z
+
+// Education info
+const educationSchema = z
   .object({
     degree: z
       .string()
-      .min(2, { message: "Degree name must be at least 2 characters" })
-      .max(100, { message: "Degree name must be less than 100 characters" }),
-    admissionYear: z
-      .number({ invalid_type_error: "Admission year must be a number" })
-      .int({ message: "Admission year must be an integer" })
-      .min(1900, { message: "Admission year must be after 1900" })
-      .max(new Date().getFullYear(), {
-        message: `Admission year cannot be in the future`,
-      }),
+      .min(2, "Degree name too short")
+      .max(100, "Degree name too long"),
+    admissionYear: z.number().int().min(1900).max(new Date().getFullYear()),
     passingYear: z
-      .number({ invalid_type_error: "Passing year must be a number" })
-      .int({ message: "Passing year must be an integer" })
-      .min(1900, { message: "Passing year must be after 1900" })
-      .max(new Date().getFullYear() + 10, {
-        message: `Passing year looks too far in the future`,
-      }),
+      .number()
+      .int()
+      .min(1900)
+      .max(new Date().getFullYear() + 10),
     institute: z
       .string()
-      .min(3, { message: "Institute name must be at least 3 characters" })
-      .max(255, { message: "Institute name must be less than 255 characters" }),
+      .min(3, "Institute name too short")
+      .max(255, "Institute name too long"),
   })
   .refine((data) => data.passingYear >= data.admissionYear, {
-    message: "Passing year must be after or same as admission year",
+    message: "Passing year must be after admission year",
     path: ["passingYear"],
   });
-export const hostelSchema = z.object({
-  hostelName: z.string().min(1, { message: "Hostel name must be provided" }),
-  hostelTag: z.string().min(1, { message: "Hostel tag must be provided" }),
-  hostelId: z.string().min(1, { message: "Hostel ID must be provided" }),
-  roomNo: z.string().min(1, { message: "Room number must be provided" }),
+
+// Hostel info
+const hostelSchema = z.object({
+  name: z.string().min(1, "Hostel name required"),
+  tag: z.string().min(1, "Hostel tag required"),
+  id: z.string().min(1, "Hostel ID required"),
+  roomNo: z.string().min(1, "Room number required"),
 });
-// meal validations
-export const baseMealFields = z.object({
-  mealType: z.enum(["veg", "non-veg"]),
+
+// Meal preferences
+const mealSchema = z.object({
+  type: z.enum(["veg", "non-veg"]),
   nonVegType: z.enum(["chicken", "fish", "egg", "none"]).optional(),
-  massage: z.string().optional(),
+  message: z.string().optional(),
 });
-export const createMealSchema = baseMealFields;
-export type CreateMealValues = z.infer<typeof createMealSchema>;
-export const toggleMealStatusSchema = z.object({
-  isActive: z.boolean(),
-});
-export type ToggleMealValues = z.infer<typeof toggleMealStatusSchema>;
 
-export const editMealSchema = baseMealFields.extend({
-  id: z.string().uuid(),
-  mealType: z.enum(["veg", "non-veg"]),
-  mealMassage: z.string().optional(),
-  isActive: z.boolean(),
-});
-export type EditMealValues = z.infer<typeof editMealSchema>;
-export const createGuestMealSchema = baseMealFields.extend({
-  name: z.string().min(1, { message: "Name must be provided" }),
-  date: z.date({ message: "Meal date must provided" }),
-  mealTime: z.enum(["day", "night"]),
-  numberOfMeals: z
-    .number()
-    .min(1, { message: "Number of meals must be at least 1" }),
-  number: z.string().min(1, { message: "Mobile number must be provided" }),
-  mealCharge: z.number().min(1, { message: "Meal charge must be at least 1" }),
-});
-export type CreateGuestMealValues = z.infer<typeof createGuestMealSchema>;
-
-// user validations
-export const onboardingUserSchema = baseSchema.extend({
-  dob: z.date({ message: "Date of birth must be a date" }),
-  selfPhNo: z
-    .string()
-    .min(1, { message: "Phone number must be provided" })
-    .max(10, { message: "Phone number must be less than 10 characters" })
-    .regex(/^\d+$/, { message: "Phone number must be a number" }),
-  address: z.string().min(1, { message: "Address must be provided" }),
+// Complete onboarding form
+export const onboardingSchema = z.object({
+  ...userSchema.shape,
   hostel: hostelSchema,
   education: educationSchema,
-  meal: createMealSchema,
+  meal: mealSchema,
 });
-export type OnboardingUserSchemaUserValues = z.infer<
-  typeof onboardingUserSchema
->;
 
+// Guest meal booking
+export const guestMealSchema = z.object({
+  name: z.string().min(1, "Name required"),
+  date: z.date(),
+  mealTime: z.enum(["day", "night"]),
+  numberOfMeals: z.number().min(1, "At least 1 meal required"),
+  phone: z.string().min(1, "Phone required"),
+  charge: z.number().min(1, "Charge must be positive"),
+  ...mealSchema.shape,
+});
+
+// Admin actions
 export const banUserSchema = z.object({
   id: z.string().uuid(),
-  banReason: z.string().min(1, { message: "Ban reason must be provided" }),
-  bannedBy: z.string().min(1, { message: "Banned by must be provided" }),
+  reason: z.string().min(1, "Ban reason required"),
+  bannedBy: z.string().min(1, "Banned by required"),
 });
-export type BanUserValues = z.infer<typeof banUserSchema>;
 
 export const changeRoleSchema = z.object({
-  mode: z.literal("changeRole"),
   id: z.string().uuid(),
   role: z.enum(["guest", "user", "manager", "staff", "admin", "superadmin"]),
 });
 
-export type ChangeRoleValues = z.infer<typeof changeRoleSchema>;
+// Simple meal toggle
+export const toggleMealSchema = z.object({
+  isActive: z.boolean(),
+});
+
+// Types for TypeScript
+export type User = z.infer<typeof onboardingSchema>;
+export type GuestMeal = z.infer<typeof guestMealSchema>;
+export type BanUser = z.infer<typeof banUserSchema>;
+export type ChangeRole = z.infer<typeof changeRoleSchema>;
