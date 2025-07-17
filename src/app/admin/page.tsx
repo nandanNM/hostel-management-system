@@ -1,22 +1,22 @@
-import { requireUser } from "@/lib/require-user";
 import { Metadata } from "next";
-import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
   title: "Admin",
 };
 
 export default async function Page() {
-  const session = await requireUser();
-
-  if (session.user.role !== "admin") {
-    return redirect("/not-admin");
-  }
-
   return (
-    <main className="mx-auto my-10 space-y-3">
-      <h1 className="text-center text-xl font-bold">Admin Page</h1>
-      <p className="text-center">Welcome, admin!</p>
-    </main>
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 2xl:grid-cols-4">
+      <div className="bg-primary-foreground rounded-lg p-4 lg:col-span-2 xl:col-span-1 2xl:col-span-2">
+        Test
+      </div>
+      <div className="bg-primary-foreground rounded-lg p-4">Test</div>
+      <div className="bg-primary-foreground rounded-lg p-4">Test</div>
+      <div className="bg-primary-foreground rounded-lg p-4">Test</div>
+      <div className="bg-primary-foreground rounded-lg p-4 lg:col-span-2 xl:col-span-1 2xl:col-span-2">
+        Test
+      </div>
+      <div className="bg-primary-foreground rounded-lg p-4">Test</div>
+    </div>
   );
 }

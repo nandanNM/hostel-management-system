@@ -1,4 +1,4 @@
-import avatarPlaceholder from "@/assets/images/avatar_placeholder.png";
+import avatarPlaceholder from "@/assets/avatar-placeholder.png";
 import { ChefHatIcon, Lock, LogOut } from "lucide-react";
 import { RiUserSettingsLine as Settings } from "@remixicon/react";
 import { signOut, useSession } from "next-auth/react";
