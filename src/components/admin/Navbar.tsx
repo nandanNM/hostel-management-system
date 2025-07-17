@@ -1,8 +1,6 @@
 "use client";
 
 import { LogOut, Moon, Settings, Sun, User } from "lucide-react";
-import Link from "next/link";
-
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,11 +15,10 @@ import UserAvatar from "../UserAvatar";
 
 const Navbar = () => {
   return (
-    <nav className="bg-background sticky top-0 z-10 flex items-center justify-between p-4">
+    <nav className="bg-background sticky top-0 z-10 mx-auto flex h-16 w-full max-w-7xl items-center justify-between p-4">
       {/* LEFT */}
       <SidebarTrigger />
       <div className="flex items-center gap-4">
-        <Link href="/">Dashboard</Link>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="icon">
@@ -30,17 +27,6 @@ const Navbar = () => {
               <span className="sr-only">Toggle theme</span>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {/* <DropdownMenuItem onClick={() => setTheme("light")}>
-              Light
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setTheme("dark")}>
-              Dark
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setTheme("system")}>
-              System
-            </DropdownMenuItem> */}
-          </DropdownMenuContent>
         </DropdownMenu>
         {/* USER MENU */}
         <DropdownMenu>

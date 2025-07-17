@@ -9,13 +9,11 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String    @unique
-  emailVerified DateTime? @map("email_verified")
-  image         String?
-
-  displayName         String?        @map("display_name")
+  id                  String         @id @default(cuid())
+  name                String?
+  email               String         @unique
+  emailVerified       DateTime?      @map("email_verified")
+  image               String?
   hashedPassword      String?        @map("hashed_password")
   hostelId            String?        @map("hostel_id")
   roomId              String?        @map("room_id")
@@ -31,25 +29,27 @@ model User {
   status              UserStatusType @default(PENDING_ONBOARDING)
   joinDate            DateTime?      @map("join_date")
   onboardingCompleted Boolean        @default(false) @map("onboarding_completed")
+  message             String[]       @default([])
+  mealPreference      Json           @default("{}") @map("meal_preference")
+  mealInfoList        Json[]         @default([]) @map("meal_info_list") // Good for user-specific meal notes/history
+  newChargelist       Json[]         @default([]) @map("new_charge_list") // Good for one-off, flexible charges
+  helpSection         Json[]         @default([]) @map("help_section") // Good for user-specific help content/links
 
-  // JSON fields with defaults
-  message        String[] @default([])
-  mealPreference Json     @default("{}") @map("meal_preference")
-  mealInfoList   Json[]   @default([]) @map("meal_info_list")
-  newChargelist  Json[]   @default([]) @map("new_charge_list")
-  helpSection    Json[]   @default([]) @map("help_section")
+  deletedAt DateTime? @map("deleted_at")
 
-  hostel         Hostel?          @relation("HostelUsers", fields: [hostelId], references: [id])
-  room           Room?            @relation(fields: [roomId], references: [id])
-  managedHostels Hostel[]         @relation("HostelManager")
-  meals          Meal[]
-  guestMeals     GuestMeal[]
-  payments       UserPayment[]
-  fines          UserFine[]       @relation("UserFines")
-  issuedFines    UserFine[]       @relation("FineIssuer")
-  audits         Audit[]
-  attendances    MealAttendance[]
-  notifications  Notification[]
+  hostel                Hostel?          @relation("HostelUsers", fields: [hostelId], references: [id])
+  room                  Room?            @relation(fields: [roomId], references: [id])
+  meals                 Meal[]
+  guestMeals            GuestMeal[]
+  payments              UserPayment[]
+  fines                 UserFine[]       @relation("UserFines")
+  issuedFines           UserFine[]       @relation("FineIssuer")
+  audits                Audit[]
+  attendances           MealAttendance[]
+  receivedNotifications Notification[]   @relation("Recipient")
+  issuedNotifications   Notification[]   @relation("Issuer")
+
+  activityLogs ActivityLog[] @relation("UserActivity")
 
   accounts Account[]
   sessions Session[]
@@ -57,36 +57,38 @@ model User {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  @@index([name])
   @@map("users")
 }
 
 model Hostel {
-  id        String   @id @default(cuid())
-  name      String
-  tag       String
-  address   String
-  capacity  Int
-  managerId String   @map("manager_id")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id       String  @id @default(cuid())
+  name     String
+  tag      String
+  address  String?
+  capacity Int?
 
-  manager User   @relation("HostelManager", fields: [managerId], references: [id])
-  users   User[] @relation("HostelUsers")
-  rooms   Room[]
+  deletedAt DateTime? @map("deleted_at")
+  users     User[]    @relation("HostelUsers")
+  rooms     Room[]
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
 
   @@map("hostels")
 }
 
 model Room {
-  id         String   @id @default(cuid())
-  hostelId   String   @map("hostel_id")
-  roomNumber String   @map("room_number")
+  id         String  @id @default(cuid())
+  hostelId   String  @map("hostel_id")
+  roomNumber String? @map("room_number")
   floor      Int
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
 
-  hostel Hostel @relation(fields: [hostelId], references: [id])
-  users  User[]
+  deletedAt DateTime? @map("deleted_at")
+
+  hostel    Hostel   @relation(fields: [hostelId], references: [id])
+  users     User[]
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("rooms")
 }
@@ -110,6 +112,7 @@ model Account {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([provider, providerAccountId])
+  @@map("accounts")
 }
 
 model Session {
@@ -120,6 +123,8 @@ model Session {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@map("sessions")
 }
 
 model VerificationToken {
@@ -128,11 +133,12 @@ model VerificationToken {
   expires    DateTime
 
   @@id([identifier, token])
+  @@map("verification_tokens")
 }
 
 model Meal {
   id         String         @id @default(cuid())
-  userId     String         @map("user_id")
+  userId     String         @unique @map("user_id")
   mealType   MealType
   nonVegType NonVegType
   status     MealStatusType
@@ -145,55 +151,55 @@ model Meal {
 }
 
 model Audit {
-  id                    String   @id @default(cuid())
-  auditorId             String   @map("auditor_id")
-  date                  DateTime
-  riceExpenditure       Float    @map("rice_expenditure")
-  vegetableExpenditure  Float    @map("vegetable_expenditure")
-  fishExpenditure       Float    @map("fish_expenditure")
-  dailyExpenditure      Float    @map("daily_expenditure")
-  grandTotalExpenditure Float    @map("grand_total_expenditure")
-  adjustment            Float
-  otherExpenditure      Float    @map("other_expenditure")
-  totalBoarders         Int      @map("total_boarders")
-  mealCharge            Float    @map("meal_charge")
-  totalPayments         Json[]   @map("total_payments")
-  createdAt             DateTime @default(now()) @map("created_at")
+  id                 String   @id @default(cuid())
+  auditorId          String   @map("auditor_id")
+  date               DateTime
+  riceExpenses       Float    @map("rice_expenses")
+  vegetableExpenses  Float    @map("vegetable_expenses")
+  fishExpenses       Float    @map("fish_expenses")
+  dailyExpenses      Float    @map("daily_expenses")
+  grandTotalExpenses Float    @map("grand_total_expenses")
+  adjustment         Float
+  otherExpenses      Float    @map("other_expenses")
+  totalBoarders      Int      @map("total_boarders")
+  mealCharge         Float    @map("meal_charge")
+  createdAt          DateTime @default(now()) @map("created_at")
 
-  // Relations
-  auditor  User          @relation(fields: [auditorId], references: [id])
-  payments UserPayment[]
+  auditor     User          @relation(fields: [auditorId], references: [id])
+  payments    UserPayment[]
+  attachments Media[]
 
   @@map("audits")
 }
 
 model UserPayment {
-  id         String   @id @default(cuid())
-  userId     String   @map("user_id")
-  auditId    String   @map("audit_id")
-  paidAmount Float    @map("paid_amount")
-  createdAt  DateTime @default(now()) @map("created_at")
+  id         String            @id @default(cuid())
+  userId     String            @map("user_id")
+  auditId    String            @map("audit_id")
+  paidAmount Float             @map("paid_amount")
+  starus     PaymentStatusType
 
-  // Relations
   user  User  @relation(fields: [userId], references: [id])
   audit Audit @relation(fields: [auditId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
 
   @@map("user_payments")
 }
 
 model GuestMeal {
-  id            String       @id @default(cuid())
-  userId        String       @map("user_id")
-  numberOfMeals Int          @map("number_of_meals")
-  mealCharge    Float        @map("meal_charge")
+  id            String              @id @default(cuid())
+  userId        String              @map("user_id")
+  numberOfMeals Int                 @map("number_of_meals")
+  mealCharge    Float               @map("meal_charge")
+  date          DateTime
   mealType      MealType
   nonVegType    NonVegType
   mealTime      MealTimeType
-  mobileNumber  String       @map("mobile_number")
-  status        String
-  createdAt     DateTime     @default(now()) @map("created_at")
+  mobileNumber  String              @map("mobile_number")
+  status        GuestMealStatusType
+  createdAt     DateTime            @default(now()) @map("created_at")
 
-  // Relations
   user User @relation(fields: [userId], references: [id])
 
   @@map("guest_meals")
@@ -211,9 +217,8 @@ model UserFine {
   createdAt DateTime       @default(now()) @map("created_at")
   updatedAt DateTime       @updatedAt @map("updated_at")
 
-  // Relations
   user   User @relation("UserFines", fields: [userId], references: [id])
-  issuer User @relation("FineIssuer", fields: [issuedBy], references: [id])
+  issuer User @relation("FineIssuer", fields: [issuedBy], references: [id]) // The user (e.g., manager, admin) who issued this fine
 
   @@map("user_fines")
 }
@@ -242,25 +247,60 @@ model MealAttendance {
   mealType  MealType
   createdAt DateTime     @default(now()) @map("created_at")
 
-  // Relations
   user User @relation(fields: [userId], references: [id])
 
   @@map("meal_attendances")
 }
 
 model Notification {
-  id        String           @id @default(cuid())
-  userId    String           @map("user_id")
-  title     String
-  message   String
-  type      NotificationType
-  read      Boolean          @default(false)
-  createdAt DateTime         @default(now()) @map("created_at")
-
-  // Relations
-  user User @relation(fields: [userId], references: [id])
+  id          String           @id @default(cuid())
+  userId      String           @map("user_id")
+  title       String
+  message     String
+  recipientId String
+  user        User             @relation("Recipient", fields: [recipientId], references: [id], onDelete: Cascade)
+  issuerId    String
+  issuer      User             @relation("Issuer", fields: [issuerId], references: [id], onDelete: Cascade)
+  type        NotificationType
+  read        Boolean          @default(false)
+  createdAt   DateTime         @default(now()) @map("created_at")
 
   @@map("notifications")
+}
+
+model ActivityLog {
+  id         String   @id @default(cuid())
+  userId     String?  @map("user_id") // Nullable if system actions or anonymous actions are logged
+  actionType String   @map("action_type") // e.g., "CREATE", "UPDATE", "DELETE", "LOGIN", "VIEW_PROFILE"
+  entityType String?  @map("entity_type") // e.g., "User", "Meal", "Room", "Payment"
+  entityId   String?  @map("entity_id") // The ID of the record that was affected (e.g., "user_id", "meal_id")
+  oldData    Json?    @map("old_data") // JSON representation of the data before the change
+  newData    Json?    @map("new_data") // JSON representation of the data after the change
+  timestamp  DateTime @default(now())
+  details    String? // A human-readable description of the action
+  ipAddress  String?  @map("ip_address") // Optional: for security/origin tracking
+  userAgent  String?  @map("user_agent") // Optional: browser/device info
+
+  user User? @relation("UserActivity", fields: [userId], references: [id]) // Optional relation
+
+  @@map("activity_logs")
+}
+
+model Media {
+  id     String    @id @default(cuid())
+  postId String?
+  post   Audit?    @relation(fields: [postId], references: [id], onDelete: SetNull)
+  entry  EntryType
+  url    String
+
+  createdAt DateTime @default(now())
+
+  @@map("posr_media")
+}
+
+enum EntryType {
+  AUDIT
+  DAILY
 }
 
 // Enums
@@ -293,6 +333,7 @@ enum UserStatusType {
   ACTIVE
   INACTIVE
   SUSPENDED
+  FORMER
 }
 
 enum FineStatusType {
@@ -300,6 +341,12 @@ enum FineStatusType {
   PAID
   WAIVED
   OVERDUE
+}
+
+enum PaymentStatusType {
+  PENDING
+  PAID
+  FAILED
 }
 
 enum MealType {
@@ -325,10 +372,10 @@ enum MealStatusType {
   SUSPENDED
 }
 
-enum GuestMealStatusTupe {
+enum GuestMealStatusType {
   ACTIVE
   PENDING
-  REJACTED
+  REJECTED
 }
 
 enum NotificationType {

@@ -261,7 +261,7 @@ export default async function PaymentsPage() {
   const data = await getData();
   return (
     <div className="">
-      <div className="mb-4 rounded-md px-4 py-2">
+      <div className="mb-4 rounded-md">
         <h2 className="font-semibold">All Payments</h2>
       </div>
       <DataTable columns={columns} data={data} />

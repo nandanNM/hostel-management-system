@@ -8,8 +8,6 @@ import {
   Plus,
   Projector,
   Users,
-  User,
-  Wallet2,
   FileCheck,
 } from "lucide-react";
 
@@ -44,17 +42,17 @@ const items = [
   },
   {
     title: "Inbox",
-    url: "#",
+    url: "inbox",
     icon: Inbox,
   },
   {
     title: "Calendar",
-    url: "#",
+    url: "calander",
     icon: Calendar,
   },
   {
     title: "Settings",
-    url: "#",
+    url: "settings",
     icon: Settings,
   },
 ];
@@ -86,7 +84,11 @@ export default function AppSideBar({ state }: AppSideBarProps) {
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <Link href={`${state}/${item.url}`}>
+                    <Link
+                      href={
+                        item.url === "/" ? `/${state}` : `/${state}/${item.url}`
+                      }
+                    >
                       <item.icon />
                       <span>{item.title}</span>
                     </Link>
@@ -103,15 +105,12 @@ export default function AppSideBar({ state }: AppSideBarProps) {
           <>
             {/* users */}
             <SidebarGroup>
-              <SidebarGroupLabel>
-                <User className="mr-2" />
-                Users
-              </SidebarGroupLabel>
+              <SidebarGroupLabel>Users</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
                     <SidebarMenuButton asChild>
-                      <Link href={`${state}/payments`}>
+                      <Link href={`/${state}/users`}>
                         <Users />
                         See All Users
                       </Link>
@@ -127,7 +126,7 @@ export default function AppSideBar({ state }: AppSideBarProps) {
                 <SidebarMenu>
                   <SidebarMenuItem>
                     <SidebarMenuButton asChild>
-                      <Link href={`${state}/payments`}>
+                      <Link href={`/${state}/payments`}>
                         <Projector />
                         See All Payments
                       </Link>
@@ -146,16 +145,13 @@ export default function AppSideBar({ state }: AppSideBarProps) {
             </SidebarGroup>
             {/* audits */}
             <SidebarGroup>
-              <SidebarGroupLabel>
-                <FileCheck className="mr-2" />
-                Audits
-              </SidebarGroupLabel>
+              <SidebarGroupLabel>Audits</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
                     <SidebarMenuButton asChild>
-                      <Link href={`${state}/audits`}>
-                        <Wallet2 />
+                      <Link href={`/${state}/audits`}>
+                        <FileCheck />
                         See All Audits
                       </Link>
                     </SidebarMenuButton>
