@@ -52,7 +52,7 @@ export const hostelSchema = z.object({
 // Meal preferences
 export const mealSchema = z.object({
   type: z.enum(["VEG", "NON_VEG"]),
-  nonVegType: z.enum(["CHICKEN", "FISH", "EGG", "NONE"]).optional(),
+  nonVegType: z.enum(["CHICKEN", "FISH", "EGG", "NONE"]).default("NONE"),
   message: z.string().optional(),
 });
 

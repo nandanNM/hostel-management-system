@@ -23,15 +23,27 @@ export const createUserOnboarding = async (
         message: "Invalid Form Data",
       };
     }
-    await prisma.user.update({
-      where: {
-        id: session.user.id,
-      },
-      data: {
-        ...values,
-        hostelId: values.hostel.hostelId,
-      },
-    });
+    console.log("values", values);
+    Promise.all([
+      await prisma.user.update({
+        where: {
+          id: session.user.id,
+        },
+        data: {
+          ...values,
+          hostelId: values.hostel.hostelId,
+          onboardingCompleted: true,
+          status: "INACTIVE",
+        },
+      }),
+      await prisma.meal.create({
+        data: {
+          userId: session.user.id,
+          mealType: values.meal.type,
+          ...values.meal,
+        },
+      }),
+    ]);
     return {
       status: "success",
       message: "Boader onboarding successfully.🎉",
