@@ -1,16 +1,12 @@
 "use server";
 
-import { db } from "@/db";
-import { fine, guestmeal, meal, payment } from "@/db/schemas";
-
+import { BillEntryType, MealStatusType } from "@/generated/prisma";
+import prisma from "@/lib/prisma";
 import { requireUser } from "@/lib/require-user";
 import { ApiResponse } from "@/types";
-import { eq } from "drizzle-orm";
-
-// switch user status
 
 export async function toggleMealStatus(
-  isActive: boolean,
+  status: MealStatusType,
 ): Promise<ApiResponse> {
   const session = await requireUser();
   if (!session?.user.id) {
@@ -19,17 +15,21 @@ export async function toggleMealStatus(
       message: "Unauthorized",
     };
   }
-  if (!session.user.isBoader) {
+  if (session.user.status !== "ACTIVE") {
     return {
       status: "error",
       message: "Unauthorized - You are not a boarder member",
     };
   }
   try {
-    await db
-      .update(meal)
-      .set({ isActive })
-      .where(eq(meal.userId, session.user.id));
+    await prisma.meal.update({
+      where: {
+        userId: session.user.id,
+      },
+      data: {
+        status,
+      },
+    });
     return {
       status: "success",
       message: "Meal status updated successfully",
@@ -51,19 +51,49 @@ export async function getUserDeshboardStats() {
       message: "Unauthorized",
     };
   }
-  const [totalGuestMeals, totalPayments, totalFines] = await Promise.all([
-    await db.$count(guestmeal),
-    await db.query.payment.findMany({
-      where: eq(payment.userId, session.user.id),
-      columns: {
-        amount: true,
+  if (session.user.status !== "ACTIVE") {
+    return {
+      status: "error",
+      message: "Unauthorized - You are not a boarder member",
+    };
+  }
+  const [
+    balanceRemainingSumResult,
+    totalPaymentsResult,
+    totalMealAttendanceCount,
+  ] = await Promise.all([
+    prisma.userBill.aggregate({
+      _sum: {
+        balanceRemaining: true,
+      },
+      where: {
+        userId: session.user.id,
+        balanceRemaining: { gt: 0 },
       },
     }),
-    await db.$count(fine),
+    prisma.userBill.aggregate({
+      _sum: {
+        amount: true,
+      },
+      where: {
+        userId: session.user.id,
+        type: BillEntryType.PAYMENT,
+      },
+    }),
+    prisma.mealAttendance.count({
+      where: {
+        userId: session.user.id,
+      },
+    }),
   ]);
-  const totalPayedAmount = totalPayments.reduce(
-    (acc, payment) => acc + payment.amount,
-    0,
-  );
-  return { totalGuestMeals, totalPayedAmount, totalFines };
+  const totalBalanceRemaining =
+    balanceRemainingSumResult._sum.balanceRemaining ?? 0;
+  const totalPayments = totalPaymentsResult._sum.amount ?? 0;
+  const totalAttendance = totalMealAttendanceCount ?? 0;
+
+  return {
+    totalBalanceRemaining,
+    totalPayments,
+    totalAttendance,
+  };
 }

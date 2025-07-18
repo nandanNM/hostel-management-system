@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Outfit } from "next/font/google";
 import { cn } from "@/lib/utils";
+import AuthProvider from "@/context/AuthProvider";
 import { Toaster } from "@/components/ui/sonner";
+import { ThemeProvider } from "@/context/theme-provider";
 const outfit = Outfit({
   variable: "--font-outfit-sans",
   subsets: ["latin"],
@@ -24,10 +26,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={cn(outfit.variable, "antialiased")}>
-        {children}
-        <Toaster />
-      </body>
+      <AuthProvider>
+        <body className={cn(outfit.variable, "antialiased")}>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+          </ThemeProvider>
+
+          <Toaster />
+        </body>
+      </AuthProvider>
     </html>
   );
 }

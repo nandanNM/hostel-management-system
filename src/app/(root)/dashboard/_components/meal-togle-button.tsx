@@ -3,57 +3,71 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { tryCatch } from "@/hooks/try-catch";
 import kyInstance from "@/lib/ky";
-import { toggleMealStatusSchema } from "@/lib/validations";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useId, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { toggleMealStatus } from "../action";
+import z from "zod";
+import { MealStatusType } from "@/generated/prisma";
+import { cn } from "@/lib/utils";
 
-export default function MealTogleButton() {
+const toggleMealStatusSchema = z.object({
+  status: z.enum(["ACTIVE", "INACTIVE", "SUSPENDED"]),
+});
+type ToggleMealStatusForm = z.infer<typeof toggleMealStatusSchema>;
+
+export default function MealToggleButton() {
   const [isPending, startTransition] = useTransition();
-  const [isSwitching, setIsSwitching] = useState<boolean>(false);
+  const [isSwitching, setIsSwitching] = useState(false);
   const id = useId();
-  const form = useForm({
+
+  const form = useForm<ToggleMealStatusForm>({
     resolver: zodResolver(toggleMealStatusSchema),
-    defaultValues: { isActive: false },
+    defaultValues: { status: "INACTIVE" },
   });
+
   const { watch, register, setValue } = form;
-  const isActive = watch("isActive");
+  const currentStatus = watch("status");
+
   useEffect(() => {
     startTransition(async () => {
       const { data, error } = await tryCatch(
         kyInstance
           .get("/api/user/meal/status", {
-            retry: {
-              limit: 2,
-            },
+            retry: { limit: 2 },
           })
-          .json<{ isActive: boolean }>(),
+          .json<{ status: MealStatusType }>(),
       );
+
       if (error) {
         toast.error(
           error.name === "TimeoutError"
             ? "Request timed out. Please try again."
-            : "A Unexpected error occurred. Please try again later.",
+            : "An unexpected error occurred. Please try again later.",
         );
         return;
       }
-      setValue("isActive", data.isActive);
+
+      setValue("status", data.status);
     });
   }, [setValue]);
 
   const handleSwitchChange = async () => {
+    const newStatus = currentStatus === "ACTIVE" ? "INACTIVE" : "ACTIVE";
     setIsSwitching(true);
-    const { data: result, error } = await tryCatch(toggleMealStatus(!isActive));
+    const { data: result, error } = await tryCatch(toggleMealStatus(newStatus));
     setIsSwitching(false);
     if (error) {
       toast.error("Failed to update meal status.");
       return;
     }
+
     if (result.status === "success") {
-      setValue("isActive", !isActive);
-      toast.success(`Meal status turned ${!isActive ? "On" : "Off"}.`);
+      setValue("status", newStatus);
+      toast.success(
+        `Meal status turned ${newStatus === "ACTIVE" ? "ON" : "OFF"}.`,
+      );
     } else if (result.status === "error") {
       toast.error(result.message);
     }
@@ -64,17 +78,31 @@ export default function MealTogleButton() {
       <div className="inline-flex items-center gap-2 [--primary:var(--color-indigo-500)] [--ring:var(--color-indigo-300)] in-[.dark]:[--primary:var(--color-indigo-500)] in-[.dark]:[--ring:var(--color-indigo-900)]">
         <Switch
           id={id}
-          {...register("isActive")}
-          checked={isActive}
+          {...register("status")}
+          checked={currentStatus === "ACTIVE"}
           onCheckedChange={handleSwitchChange}
-          disabled={isSwitching || isPending}
+          disabled={isSwitching || isPending || currentStatus === "SUSPENDED"}
           className="cursor-pointer"
         />
         <Label htmlFor={id} className="sr-only">
-          Colored switch
+          Meal status toggle
         </Label>
       </div>
-      <span className="ml-2">Meal status: {isActive ? "On" : "Off"}</span>
+
+      <span
+        className={cn(
+          "ml-2 rounded px-2 py-1 text-sm font-medium transition-colors",
+          {
+            "bg-green-100 text-green-800": currentStatus === "ACTIVE",
+            "bg-red-100 text-red-800": currentStatus === "INACTIVE",
+            "bg-yellow-100 text-yellow-800": currentStatus === "SUSPENDED",
+          },
+        )}
+      >
+        {currentStatus === "SUSPENDED"
+          ? "Meal status: Suspended "
+          : `Meal status: ${currentStatus === "ACTIVE" ? "ON" : "OFF"}`}
+      </span>
     </div>
   );
 }

@@ -1,24 +1,15 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { User, MapPin, Utensils } from "lucide-react";
-import { SelectUserModel } from "@/db/schemas/user";
-import { cache } from "react";
-import { db } from "@/db";
-import { eq } from "drizzle-orm";
-import { meal } from "@/db/schemas";
+import { User as UserIcon, MapPin, Utensils } from "lucide-react";
 import { formatDate } from "date-fns";
+import { User } from "@/generated/prisma";
+import { MealPreference } from "@/types";
+
 interface UserDataCardProps {
-  user: SelectUserModel;
+  user: User;
 }
-const getUserMeal = cache(async (userId: string) => {
-  const foundMeal = await db.query.meal.findFirst({
-    where: eq(meal.userId, userId),
-  });
-  return foundMeal;
-});
 
 export default async function UserDataCard({ user }: UserDataCardProps) {
-  const meal = await getUserMeal(user.id);
   return (
     <Card className="shadow-lg">
       <CardContent className="p-0">
@@ -26,7 +17,7 @@ export default async function UserDataCard({ user }: UserDataCardProps) {
           {/* Personal Info */}
           <div className="border-r border-gray-200 p-4">
             <div className="mb-3 flex items-center gap-2">
-              <User className="h-4 w-4 text-gray-600" />
+              <UserIcon className="h-4 w-4 text-gray-600" />
               <span className="text-sm font-semibold text-gray-700">
                 Personal Info
               </span>
@@ -38,7 +29,9 @@ export default async function UserDataCard({ user }: UserDataCardProps) {
               </div>
               <div>
                 <p className="text-xs text-gray-500">Date of Birth</p>
-                <p className="text-sm font-medium">{user.dob}</p>
+                <p className="text-sm font-medium">
+                  {formatDate(user.dob ?? new Date(), "dd/MM/yyyy")}
+                </p>
               </div>
               <div>
                 <p className="text-xs text-gray-500">Phone</p>
@@ -75,48 +68,52 @@ export default async function UserDataCard({ user }: UserDataCardProps) {
           </div>
 
           {/* Meal Info */}
-          {meal && (
-            <div className="p-4">
-              <div className="mb-3 flex items-center gap-2">
-                <Utensils className="h-4 w-4 text-gray-600" />
-                <span className="text-sm font-semibold text-gray-700">
-                  Meal Plan
-                </span>
-              </div>
-              <div className="space-y-2">
-                <div>
-                  <p className="text-xs text-gray-500">Meal Type</p>
-                  <Badge variant="secondary" className="text-xs">
-                    {meal.mealType}
-                  </Badge>
-                </div>
-                {meal.mealType === "non-veg" && (
-                  <div>
-                    <p className="text-xs text-gray-500">Non Veg Type</p>
-                    <p className="text-sm font-medium">{meal.nonVegType}</p>
+          {user.mealPreference &&
+            typeof user.mealPreference === "object" &&
+            !Array.isArray(user.mealPreference) &&
+            (() => {
+              const meal = user.mealPreference as unknown as MealPreference;
+              return (
+                <div className="p-4">
+                  <div className="mb-3 flex items-center gap-2">
+                    <Utensils className="h-4 w-4 text-gray-600" />
+                    <span className="text-sm font-semibold text-gray-700">
+                      Meal Plan
+                    </span>
                   </div>
-                )}
-                <div>
-                  <p className="text-xs text-gray-500">Meal Time</p>
-                  <p className="text-sm font-medium">{meal.mealTime}</p>
+                  <div className="space-y-2">
+                    <div>
+                      <p className="text-xs text-gray-500">Meal Type</p>
+                      <Badge variant="secondary" className="text-xs">
+                        {meal.type}
+                      </Badge>
+                    </div>
+
+                    {meal.type === "NON_VEG" && (
+                      <div>
+                        <p className="text-xs text-gray-500">Non Veg Type</p>
+                        <p className="text-sm font-medium">{meal.nonVegType}</p>
+                      </div>
+                    )}
+
+                    <div>
+                      <p className="text-xs text-gray-500">Meal Message</p>
+                      <p className="text-sm font-medium">
+                        {meal.message || "No meal message yet"}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-xs text-gray-500">Joined Date</p>
+                      <p className="text-sm font-medium">
+                        Boarder since{" "}
+                        {formatDate(user.createdAt, "MMM d, yyyy")}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs text-gray-500">Meal Massage</p>
-                  <p className="text-sm font-medium">
-                    {meal.mealMassage
-                      ? meal.mealMassage
-                      : "No meal massage yeat"}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">Joined Date</p>
-                  <p className="text-sm font-medium">
-                    Border since {formatDate(user.createdAt, "MMM d, yyyy")}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
+              );
+            })()}
         </div>
       </CardContent>
     </Card>

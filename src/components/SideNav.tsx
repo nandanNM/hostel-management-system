@@ -13,7 +13,7 @@ import {
   RiArrowLeftDoubleLine,
   RiArrowRightDoubleLine,
 } from "@remixicon/react";
-// import { ThemeToggle } from "./ThemeToggle";
+import { ThemeToggle } from "./ThemeToggle";
 
 export default function SideNav() {
   const navItems = NavItems();
@@ -73,7 +73,7 @@ export default function SideNav() {
           </div>
           {/* Bottom */}
           <div className="sticky bottom-0 mt-auto mb-4 block whitespace-nowrap transition duration-200">
-            {/* <ThemeToggle isDropDown={true} /> */}
+            <ThemeToggle isDropDown={true} />
             {navItems.map((item, idx) => {
               if (item.position === "bottom") {
                 return (

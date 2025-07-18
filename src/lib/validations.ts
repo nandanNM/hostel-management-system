@@ -52,7 +52,10 @@ export const hostelSchema = z.object({
 // Meal preferences
 export const mealSchema = z.object({
   type: z.enum(["VEG", "NON_VEG"]),
-  nonVegType: z.enum(["CHICKEN", "FISH", "EGG", "NONE"]).default("NONE"),
+  nonVegType: z
+    .enum(["CHICKEN", "FISH", "EGG", "NONE"])
+    .default("NONE")
+    .optional(),
   message: z.string().optional(),
 });
 
@@ -61,7 +64,7 @@ export const onboardingSchema = z.object({
   ...userSchema.shape,
   hostel: hostelSchema,
   education: educationSchema,
-  meal: mealSchema,
+  mealPreference: mealSchema,
 });
 
 // Guest meal booking
@@ -85,11 +88,6 @@ export const banUserSchema = z.object({
 export const changeRoleSchema = z.object({
   id: z.string().uuid(),
   role: z.enum(["guest", "user", "manager", "staff", "admin", "superadmin"]),
-});
-
-// Simple meal toggle
-export const toggleMealSchema = z.object({
-  isActive: z.boolean(),
 });
 
 // Types for TypeScript

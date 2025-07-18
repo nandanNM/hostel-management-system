@@ -49,11 +49,10 @@ export default function OnboardingMealForm() {
     resolver: zodResolver(mealSchema),
     defaultValues: {
       type: "NON_VEG",
-      nonVegType: "CHICKEN",
+      nonVegType: "NONE",
       message: "",
     },
   });
-  console.log(form.formState.errors);
 
   function onSubmit(values: CreateMealFormValues) {
     startTransition(async () => {
@@ -78,7 +77,7 @@ export default function OnboardingMealForm() {
             address,
             hostel,
             education,
-            meal: values,
+            mealPreference: values,
           }),
         );
         if (error) {

@@ -6,29 +6,24 @@ import UserDataCard from "./_components/user-data-card";
 import OverviewCards from "./_components/overview";
 import { P } from "@/components/custom/p";
 import { requireUser } from "@/lib/require-user";
+import { cache } from "react";
+import prisma from "@/lib/prisma";
+import { notFound } from "next/navigation";
+import RecentTransactions from "./_components/recent-transactions";
 
 export const metadata: Metadata = {
   title: "Dashboard",
 };
-// const getUserById = cache(async (userId: string) => {
-//   const foundUser = await db.query.user.findFirst({
-//     where: eq(user.id, userId),
-//   });
-//   if (!foundUser) notFound();
-//   return foundUser;
-// });
+const getUserById = cache(async (userId: string) => {
+  const foundUser = await prisma.user.findUnique({ where: { id: userId } });
+  if (!foundUser) notFound();
+  return foundUser;
+});
 
 export default async function Page() {
-  const session = await requireUser();
-  // const user = await getUserById(session.user.id as string);
-  const user = {
-    //dumy data
-    isBoader: true,
-    isBanned: false,
-    name: session.user.name,
-    role: session.user.role,
-  };
-  if (!user.isBoader)
+  const { user: sessionUser } = await requireUser();
+
+  if (sessionUser.status === "INACTIVE")
     return (
       <div className="w-full md:mx-8 lg:mx-auto">
         <P className="text-destructive text-center text-balance">
@@ -37,7 +32,7 @@ export default async function Page() {
         </P>
       </div>
     );
-  if (user.isBanned)
+  if (sessionUser.status === "BANNED")
     return (
       <div className="w-full md:mx-8 lg:mx-auto">
         <P className="text-destructive text-center text-balance">
@@ -45,6 +40,7 @@ export default async function Page() {
         </P>
       </div>
     );
+  const user = await getUserById(sessionUser.id as string);
   return (
     <div className="w-full md:mx-8 lg:mx-auto">
       <h2 className="mb-4 font-bold">User Dashboard</h2>
@@ -53,7 +49,7 @@ export default async function Page() {
       <div className="mx-auto max-w-7xl px-2 py-8 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900">
-            Welcome back, {session.user.name}! 👋
+            Welcome back, {user.name}! 👋
           </h2>
           <p className="text-gray-600">
             Here&apos;s your mess account overview
@@ -63,7 +59,7 @@ export default async function Page() {
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="space-y-8 lg:col-span-2">
             <OverviewCards />
-            {/* <RecentTransactions userId={user.id} /> */}
+            <RecentTransactions userId={user.id} />
             <UserDataCard user={user} />
           </div>
           {/* UserActions */}

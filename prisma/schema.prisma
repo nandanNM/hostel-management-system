@@ -22,7 +22,6 @@ model User {
   dob                 DateTime?
   education           Json?
   hostel              Json?
-  meal                Json?
   selfPhNo            String?        @map("self_ph_no")
   guardianPhNo        String?        @map("guardian_ph_no")
   address             String?
@@ -33,7 +32,6 @@ model User {
   onboardingCompleted Boolean        @default(false) @map("onboarding_completed")
   message             String[]       @default([])
   mealPreference      Json           @default("{}") @map("meal_preference")
-  mealInfoList        Json[]         @default([]) @map("meal_info_list")
   newChargelist       Json[]         @default([]) @map("new_charge_list")
   helpSection         Json[]         @default([]) @map("help_section")
 
@@ -107,7 +105,7 @@ model VerificationToken {
 model Meal {
   id         String         @id @default(cuid())
   userId     String         @unique @map("user_id")
-  mealType   MealType
+  type       MealType
   nonVegType NonVegType     @default(NONE)
   message    String?
   status     MealStatusType @default(INACTIVE)
@@ -247,8 +245,9 @@ model MealAttendance {
   mealType  MealType
   createdAt DateTime     @default(now()) @map("created_at")
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade) // Added onDelete: Cascade
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@unique([date, mealTime])
   @@map("meal_attendances")
 }
 

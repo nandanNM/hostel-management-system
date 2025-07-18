@@ -2,21 +2,17 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CalendarDays, CreditCard, DollarSign, Users } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import { SelectUserModel } from "@/db/schemas/user";
+
 import Link from "next/link";
+import { User } from "@/generated/prisma";
 interface ActionSidebarProps {
-  user: SelectUserModel;
+  user: User;
 }
 
 export default function ActionSidebar({ user }: ActionSidebarProps) {
   return (
     <div className="space-y-8">
-      <FinancialCard
-        carryForwardAmount={user.totalCarryForwardAmount}
-        dueAmount={user.totalDueAmount}
-      />
-
-      {/* Quick Actions */}
+      <FinancialCard carryForwardAmount={30} dueAmount={50} />
       <Card className="gap-3">
         <CardHeader className="">
           <CardTitle className="text-xl">Quick Actions</CardTitle>

@@ -1,4 +1,7 @@
-export default function Home() {
+import { requireUser } from "@/lib/require-user";
+
+export default async function Home() {
+  await requireUser();
   return (
     <div className="">
       <p>

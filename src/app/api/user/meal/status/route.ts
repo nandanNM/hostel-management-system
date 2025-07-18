@@ -1,7 +1,5 @@
-import { db } from "@/db";
-import { meal } from "@/db/schemas";
 import getSession from "@/lib/get-session";
-import { eq } from "drizzle-orm";
+import prisma from "@/lib/prisma";
 
 export async function GET() {
   try {
@@ -10,15 +8,16 @@ export async function GET() {
     if (!session?.user.id)
       return Response.json({ error: "Unauthorized" }, { status: 401 });
 
-    const data = await db.query.meal.findFirst({
-      where: eq(meal.userId, session.user.id),
-      columns: {
-        isActive: true,
+    const data = await prisma.meal.findUnique({
+      where: {
+        userId: session.user.id,
+      },
+      select: {
+        status: true,
       },
     });
     return Response.json(data);
   } catch (error) {
-    console.log(error);
     return Response.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

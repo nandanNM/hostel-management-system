@@ -1,12 +1,10 @@
-// next-auth.d.ts
 import { DefaultSession, DefaultUser } from "next-auth";
-import { UserRoleType, UserStatusType } from "@prisma/client"; // Import your enums
+import { UserRoleType, UserStatusType } from "@prisma/client";
 
 declare module "next-auth" {
   interface Session {
     user: {
       role: UserRoleType;
-
       onboardingCompleted: boolean;
     } & DefaultSession["user"];
   }

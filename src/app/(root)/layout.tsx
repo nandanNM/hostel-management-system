@@ -1,4 +1,3 @@
-import AuthProvider from "@/context/AuthProvider";
 import NavBar from "@/components/NavBar";
 import SideNav from "@/components/SideNav";
 import { requireUser } from "@/lib/require-user";
@@ -9,9 +8,8 @@ export default async function Layout({
   children: React.ReactNode;
 }) {
   await requireUser();
-
   return (
-    <AuthProvider>
+    <>
       <NavBar />
       <div className="flex">
         <SideNav />
@@ -23,6 +21,6 @@ export default async function Layout({
           </div>
         </div>
       </div>
-    </AuthProvider>
+    </>
   );
 }

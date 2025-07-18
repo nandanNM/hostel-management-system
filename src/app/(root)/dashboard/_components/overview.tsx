@@ -12,31 +12,33 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 
 export default async function OverviewCards() {
-  const { totalGuestMeals, totalPayedAmount, totalFines } =
+  const { totalBalanceRemaining, totalPayments, totalAttendance } =
     await getUserDeshboardStats();
-  const cards = [
+
+  const cards: StatsCardProps[] = [
     {
-      title: "Total Guest Meals",
-      icon: Utensils,
-      value: totalGuestMeals,
-      color: "blue",
-      subtitle: "All time",
+      title: "Outstanding Dues",
+      icon: Gavel,
+      value: `₹${totalBalanceRemaining}`,
+      color: "red",
+      subtitle: "Balance remaining",
     },
     {
       title: "Total Paid Amount",
       icon: Wallet,
-      value: `₹${totalPayedAmount}`,
+      value: `₹${totalPayments}`,
       color: "green",
       subtitle: "Till date",
     },
     {
-      title: "Total Fines",
-      icon: Gavel,
-      value: `₹${totalFines}`,
-      color: "red",
-      subtitle: "All time",
+      title: "Meal Attendances",
+      icon: Utensils,
+      value: totalAttendance ?? 0,
+      color: "blue",
+      subtitle: "Total meals taken",
     },
   ];
+
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
       {cards.map((card, idx) => (

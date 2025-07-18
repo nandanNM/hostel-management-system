@@ -23,7 +23,6 @@ export const createUserOnboarding = async (
         message: "Invalid Form Data",
       };
     }
-    console.log("values", values);
     Promise.all([
       await prisma.user.update({
         where: {
@@ -38,9 +37,8 @@ export const createUserOnboarding = async (
       }),
       await prisma.meal.create({
         data: {
+          ...values.mealPreference,
           userId: session.user.id,
-          mealType: values.meal.type,
-          ...values.meal,
         },
       }),
     ]);

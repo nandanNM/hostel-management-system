@@ -14,85 +14,115 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { db } from "@/db";
-import { fine, guestmeal, payment } from "@/db/schemas";
-import { desc, eq } from "drizzle-orm";
-import { compareDesc } from "date-fns";
+import { compareDesc, format } from "date-fns";
 import { P } from "@/components/custom/p";
+import prisma from "@/lib/prisma";
+import { BillEntryType } from "@/generated/prisma";
 interface RecentTransactionsProps {
   userId: string;
 }
 export default async function RecentTransactions({
   userId,
 }: RecentTransactionsProps) {
-  const userPayments = await db.query.payment.findMany({
-    where: eq(payment.userId, userId),
-    orderBy: [desc(payment.createdAt)],
-    limit: 2,
-    columns: {
-      id: true,
-      amount: true,
-      createdAt: true,
+  const transactions = await prisma.userBill.findMany({
+    where: {
+      userId: userId,
+    },
+    orderBy: {
+      issueDate: "desc",
+    },
+    take: 5,
+    include: {
+      fine: {
+        select: {
+          reason: true,
+          status: true,
+        },
+      },
+      guestMeal: {
+        select: {
+          numberOfMeals: true,
+          mealTime: true,
+        },
+      },
+      audit: {
+        select: {
+          date: true,
+        },
+      },
+      payment: {
+        select: {
+          paidAmount: true,
+        },
+      },
     },
   });
-  const userGuestMeals = await db.query.guestmeal.findMany({
-    where: eq(guestmeal.userId, userId),
-    orderBy: [desc(guestmeal.createdAt)],
-    limit: 2,
-    columns: {
-      id: true,
-      mealType: true,
-      mealCharge: true,
-      createdAt: true,
-    },
-  });
-  const userFine = await db.query.fine.findMany({
-    where: eq(fine.userId, userId),
-    orderBy: [desc(fine.createdAt)],
-    limit: 2,
-    columns: {
-      id: true,
-      reason: true,
-      amount: true,
-      createdAt: true,
-    },
-  });
-
-  const formattedPayments = userPayments.map((p) => ({
-    id: p.id,
-    date: p.createdAt,
-    type: "Payment",
-    amount: p.amount,
-    description: `User Payment`,
-  }));
-
-  const formattedGuestMeals = userGuestMeals.map((g) => ({
-    id: g.id,
-    date: g.createdAt,
-    type: "Guest Meal",
-    amount: -g.mealCharge,
-    description: `${g.mealType} - 1 Guest`,
-  }));
-
-  const formattedFines = userFine.map((f) => ({
-    id: f.id,
-    date: f.createdAt,
-    type: "Fine",
-    amount: -f.amount,
-    description: f.reason,
-  }));
-
-  const recentTransactions = [
-    ...formattedPayments,
-    ...formattedGuestMeals,
-    ...formattedFines,
-  ];
-  const sortedRecentTransactions = recentTransactions.sort((a, b) =>
-    compareDesc(a.date, b.date),
-  );
-  if (!sortedRecentTransactions.length) {
+  if (!transactions.length) {
     return <P className="text-center">No recent transactions found .</P>;
   }
+
+  const formattedTransactions = transactions.map((transaction) => {
+    let statusText = "";
+    let badgeClass = "";
+    if (
+      transaction.type === BillEntryType.PAYMENT ||
+      transaction.type === BillEntryType.ADJUSTMENT_CREDIT
+    ) {
+      statusText = "Completed";
+    } else {
+      statusText = transaction.isPaid ? "Paid" : "Outstanding";
+    }
+
+    let detail = transaction.description;
+    if (
+      transaction.type === BillEntryType.FINE_CHARGE &&
+      transaction.fine?.reason
+    ) {
+      detail = `Fine: ${transaction.fine.reason}`;
+      statusText = transaction.fine.status;
+    } else if (
+      transaction.type === BillEntryType.GUEST_MEAL_CHARGE &&
+      transaction.guestMeal
+    ) {
+      detail = `Guest Meal (${transaction.guestMeal.numberOfMeals} meals, ${transaction.guestMeal.mealTime})`;
+    } else if (
+      transaction.type === BillEntryType.MEAL_CHARGE &&
+      transaction.audit?.date
+    ) {
+      detail = `Monthly Meal Charge for ${format(new Date(transaction.audit.date), "MMMM yyyy")}`;
+    }
+    switch (transaction.type) {
+      case "PAYMENT":
+        badgeClass = "bg-green-100 text-green-800 hover:bg-green-200";
+        break;
+      case "GUEST_MEAL_CHARGE":
+        badgeClass = "bg-red-100 text-red-800 hover:bg-red-200";
+        break;
+      case "FINE_CHARGE":
+        badgeClass = "bg-blue-100 text-blue-800 hover:bg-blue-200";
+        break;
+      case "MEAL_CHARGE":
+        badgeClass = "bg-blue-100 text-blue-800 hover:bg-blue-200";
+        break;
+      default:
+        badgeClass = "bg-gray-100 text-gray-800 hover:bg-gray-200";
+        break;
+    }
+    return {
+      id: transaction.id,
+      date: format(transaction.issueDate, "dd/MM/yyyy"),
+      type: transaction.type.replace(/_/g, " "),
+      description: detail,
+      amount: transaction.amount,
+      balanceRemaining: transaction.balanceRemaining,
+      status: statusText,
+      badgeClass,
+    };
+  });
+
+  const sortedRecentTransactions = formattedTransactions.sort((a, b) =>
+    compareDesc(a.date, b.date),
+  );
   return (
     <Card className="gap-4">
       <CardHeader>
@@ -121,31 +151,16 @@ export default async function RecentTransactions({
                   {transaction.date}
                 </TableCell>
                 <TableCell>
-                  <Badge
-                    variant={
-                      transaction.type === "Payment"
-                        ? "default"
-                        : transaction.type === "Guest Meal"
-                          ? "destructive"
-                          : "secondary"
-                    }
-                    className={
-                      transaction.type === "Payment"
-                        ? "bg-green-100 text-green-800 hover:bg-green-200"
-                        : transaction.type === "Guest Meal"
-                          ? "bg-red-100 text-red-800 hover:bg-red-200"
-                          : "bg-blue-100 text-blue-800 hover:bg-blue-200"
-                    }
-                  >
+                  <Badge className={transaction.badgeClass}>
                     {transaction.type}
                   </Badge>
                 </TableCell>
                 <TableCell>{transaction.description}</TableCell>
                 <TableCell
-                  className={`text-right font-bold ${transaction.amount > 0 ? "text-green-600" : transaction.amount < 0 ? "text-red-600" : "text-gray-600"}`}
+                  className={`text-right font-bold ${transaction.amount > 0 ? "text-red-600" : "text-green-600"}`}
                 >
                   {transaction.amount > 0 ? "+" : ""}₹
-                  {Math.abs(transaction.amount)}
+                  {Math.abs(transaction.amount).toFixed(2)}
                 </TableCell>
               </TableRow>
             ))}
