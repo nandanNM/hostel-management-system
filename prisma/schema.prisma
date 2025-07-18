@@ -108,13 +108,13 @@ model Meal {
   id         String         @id @default(cuid())
   userId     String         @unique @map("user_id")
   mealType   MealType
-  nonVegType NonVegType
+  nonVegType NonVegType     @default(NONE)
   message    String?
   status     MealStatusType @default(INACTIVE)
   createdAt  DateTime       @default(now()) @map("created_at")
   updatedAt  DateTime       @updatedAt @map("updated_at")
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade) // Added onDelete: Cascade
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("meals")
 }
