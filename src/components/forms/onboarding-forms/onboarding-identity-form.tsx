@@ -3,7 +3,6 @@ import { ArrowRight, Calendar as CalendarIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { onboardingUserSchema } from "@/lib/validations";
 import {
   Form,
   FormControl,
@@ -33,13 +32,15 @@ import { GENDER_OPTIONS, RELIGION_OPTIONS } from "@/constants/form.constants";
 import { useRouter } from "next/navigation";
 import { Calendar } from "@/components/ui/calendar";
 import { useOnboardingStore } from "@/app/(root)/onboarding/store";
-const identitySchema = onboardingUserSchema.pick({
+import { onboardingSchema } from "@/lib/validations";
+const identitySchema = onboardingSchema.pick({
   name: true,
   gender: true,
   religion: true,
   address: true,
   dob: true,
   selfPhNo: true,
+  guardianPhNo: true,
 });
 type OnboardingIdentityFormValues = z.infer<typeof identitySchema>;
 export default function OnboardingIdentityForm() {
@@ -49,9 +50,12 @@ export default function OnboardingIdentityForm() {
     resolver: zodResolver(identitySchema),
     defaultValues: {
       name: "",
-      selfPhNo: "",
-      dob: new Date(),
+      gender: "MALE",
+      religion: "HINDU",
       address: "",
+      dob: new Date(),
+      selfPhNo: "",
+      guardianPhNo: "",
     },
   });
   function onSubmit(values: OnboardingIdentityFormValues) {
@@ -190,6 +194,23 @@ export default function OnboardingIdentityForm() {
                 <Input
                   type="number"
                   placeholder="Enter your phone number."
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="guardianPhNo"
+          render={({ field }) => (
+            <FormItem className="flex flex-col items-start">
+              <FormLabel>Parant phone number</FormLabel>
+              <FormControl className="w-full">
+                <Input
+                  type="number"
+                  placeholder="Enter your Parant phone number."
                   {...field}
                 />
               </FormControl>

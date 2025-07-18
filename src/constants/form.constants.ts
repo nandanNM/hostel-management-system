@@ -1,13 +1,13 @@
-export const GENDER_OPTIONS = ["male", "female", "other"] as const;
+export const GENDER_OPTIONS = ["MALE", "FEMALE", "OTHER"] as const;
 export type NonVegType = (typeof NON_VEG_OPTIONS)[number];
 export const RELIGION_OPTIONS = [
-  "hindu",
-  "muslim",
-  "christian",
-  "other",
+  "HINDU",
+  "MUSLIM",
+  "CHRISTIAN",
+  "OTHER",
 ] as const;
 export const HOSTAL_TAG = ["PG1"] as const;
-export const HOSTAL_ID = ["1"] as const;
-export const MEAL_TYPE_OPTIONS = ["veg", "non-veg"] as const;
-export const MEAL_TIME_OPTIONS = ["day", "night"] as const;
-export const NON_VEG_OPTIONS = ["chicken", "fish", "egg", "none"] as const;
+export const HOSTAL_ID = ["PG1", "PG2"] as const;
+export const MEAL_TYPE_OPTIONS = ["VEG", "NON_VEG"] as const;
+export const MEAL_TIME_OPTIONS = ["DAY", "NIGHT"] as const;
+export const NON_VEG_OPTIONS = ["CHICKEN", "FISH", "EGG", "NONE"] as const;

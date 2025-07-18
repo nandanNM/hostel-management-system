@@ -3,7 +3,7 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { hostelSchema } from "@/lib/validations";
+
 import {
   Form,
   FormControl,
@@ -25,6 +25,7 @@ import {
 import { HOSTAL_ID, HOSTAL_TAG } from "@/constants/form.constants";
 import { useOnboardingStore } from "@/app/(root)/onboarding/store";
 import { useEffect } from "react";
+import { hostelSchema } from "@/lib/validations";
 
 type OnboardingHostelFormValues = z.infer<typeof hostelSchema>;
 export default function OnboardingHostelForm() {
@@ -41,10 +42,10 @@ export default function OnboardingHostelForm() {
   const form = useForm<OnboardingHostelFormValues>({
     resolver: zodResolver(hostelSchema),
     defaultValues: {
-      hostelName: "",
-      hostelTag: "",
       hostelId: "",
-      roomNo: "",
+      name: "",
+      tag: HOSTAL_TAG[0],
+      address: "",
     },
   });
   function onSubmit(values: OnboardingHostelFormValues) {
@@ -68,7 +69,7 @@ export default function OnboardingHostelForm() {
       >
         <FormField
           control={form.control}
-          name="hostelName"
+          name="name"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Hostel Name</FormLabel>
@@ -79,82 +80,70 @@ export default function OnboardingHostelForm() {
             </FormItem>
           )}
         />
-        <div className="flex flex-wrap gap-4">
-          <FormField
-            control={form.control}
-            name="hostelTag"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Hostel Tag</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue
-                        className="w-full"
-                        placeholder="Select your hostel tag"
-                      />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {HOSTAL_TAG.map((tag) => (
-                      <SelectItem key={tag} value={tag}>
-                        {tag}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="hostelId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Hostel ID</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue
-                        className="w-full"
-                        placeholder="Select your hostel id"
-                      />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {HOSTAL_ID.map((id) => (
-                      <SelectItem key={id} value={id}>
-                        {id}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
 
         <FormField
           control={form.control}
-          name="roomNo"
+          name="tag"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Room Number</FormLabel>
+              <FormLabel>Hostel Tag</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue
+                      className="w-full"
+                      placeholder="Select your hostel tag"
+                    />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {HOSTAL_TAG.map((tag) => (
+                    <SelectItem key={tag} value={tag}>
+                      {tag}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="hostelId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Hostel ID</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue
+                      className="w-full"
+                      placeholder="Select your hostel ID"
+                    />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {HOSTAL_ID.map((tag) => (
+                    <SelectItem key={tag} value={tag}>
+                      {tag}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="address"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Address</FormLabel>
               <FormControl>
-                <Input
-                  type="number"
-                  placeholder="Enter room number"
-                  {...field}
-                />
+                <Input placeholder="Enter your hostel address" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

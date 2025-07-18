@@ -1,9 +1,9 @@
-import { OnboardingUserSchemaUserValues as OnboardingSchema } from "@/lib/validations";
+import { User } from "@/lib/validations";
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 
-type OnboardingState = Partial<OnboardingSchema> & {
-  setData: (data: Partial<OnboardingSchema>) => void;
+type OnboardingState = Partial<User> & {
+  setData: (data: Partial<User>) => void;
   clearData: () => void;
 };
 

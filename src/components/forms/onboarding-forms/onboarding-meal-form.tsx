@@ -2,10 +2,6 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  createMealSchema,
-  CreateMealValues as CreateMealFormValues,
-} from "@/lib/validations";
-import {
   Form,
   FormField,
   FormItem,
@@ -32,24 +28,29 @@ import { createUserOnboarding } from "./action";
 import { toast } from "sonner";
 import LoadingButton from "@/components/LoadingButton";
 import { P } from "@/components/custom/p";
+import { mealSchema } from "@/lib/validations";
+import z from "zod";
 
 export default function OnboardingMealForm() {
   const router = useRouter();
   const [isPanding, startTransition] = useTransition();
   const name = useOnboardingStore((state) => state.name);
   const selfPhNo = useOnboardingStore((state) => state.selfPhNo);
+  const guardianPhNo = useOnboardingStore((state) => state.guardianPhNo);
   const dob = useOnboardingStore((state) => state.dob);
   const gender = useOnboardingStore((state) => state.gender);
   const religion = useOnboardingStore((state) => state.religion);
   const address = useOnboardingStore((state) => state.address);
   const hostel = useOnboardingStore((state) => state.hostel);
   const education = useOnboardingStore((state) => state.education);
+
+  type CreateMealFormValues = z.infer<typeof mealSchema>;
   const form = useForm<CreateMealFormValues>({
-    resolver: zodResolver(createMealSchema),
+    resolver: zodResolver(mealSchema),
     defaultValues: {
-      mealType: "non-veg",
-      nonVegType: "none",
-      massage: "",
+      type: "NON_VEG",
+      nonVegType: "CHICKEN",
+      message: "",
     },
   });
   console.log(form.formState.errors);
@@ -73,6 +74,7 @@ export default function OnboardingMealForm() {
             religion,
             dob,
             selfPhNo,
+            guardianPhNo,
             address,
             hostel,
             education,
@@ -112,7 +114,7 @@ export default function OnboardingMealForm() {
         <div className="flex flex-wrap gap-4">
           <FormField
             control={form.control}
-            name="mealType"
+            name="type"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Meal Type</FormLabel>
@@ -169,7 +171,7 @@ export default function OnboardingMealForm() {
 
         <FormField
           control={form.control}
-          name="massage"
+          name="message"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Meal Message</FormLabel>
@@ -182,7 +184,7 @@ export default function OnboardingMealForm() {
         />
         {form.formState.errors && (
           <P className="text-center" variant="lead">
-            {form.formState.errors.massage?.message}
+            {form.formState.errors.message?.message}
           </P>
         )}
 

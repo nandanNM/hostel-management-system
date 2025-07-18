@@ -3,27 +3,23 @@ import { z } from "zod";
 // Basic user info
 const userSchema = z.object({
   name: z.string().min(1, "Name is required"),
-  gender: z.enum(["male", "female", "other"]),
-  religion: z.enum([
-    "hindu",
-    "muslim",
-    "christian",
-    "sikh",
-    "jain",
-    "buddhist",
-    "jewish",
-    "other",
-  ]),
+  gender: z.enum(["MALE", "FEMALE", "OTHER"]),
+  religion: z.enum(["HINDU", "MUSLIM", "CHRISTIAN", "OTHER"]),
   dob: z.date(),
-  phone: z
+  selfPhNo: z
     .string()
     .length(10, "Phone must be 10 digits")
     .regex(/^\d+$/, "Phone must be numbers only"),
+  guardianPhNo: z
+    .string()
+    .length(10, "Phone must be 10 digits")
+    .regex(/^\d+$/, "Phone must be numbers only")
+    .optional(),
   address: z.string().min(1, "Address is required"),
 });
 
 // Education info
-const educationSchema = z
+export const educationSchema = z
   .object({
     degree: z
       .string()
@@ -46,17 +42,17 @@ const educationSchema = z
   });
 
 // Hostel info
-const hostelSchema = z.object({
+export const hostelSchema = z.object({
+  hostelId: z.string().min(1, "Hostel ID required"),
   name: z.string().min(1, "Hostel name required"),
   tag: z.string().min(1, "Hostel tag required"),
-  id: z.string().min(1, "Hostel ID required"),
-  roomNo: z.string().min(1, "Room number required"),
+  address: z.string().min(1, "Address is required"),
 });
 
 // Meal preferences
-const mealSchema = z.object({
-  type: z.enum(["veg", "non-veg"]),
-  nonVegType: z.enum(["chicken", "fish", "egg", "none"]).optional(),
+export const mealSchema = z.object({
+  type: z.enum(["VEG", "NON_VEG"]),
+  nonVegType: z.enum(["CHICKEN", "FISH", "EGG", "NONE"]).optional(),
   message: z.string().optional(),
 });
 

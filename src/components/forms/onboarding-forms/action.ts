@@ -1,21 +1,15 @@
 "use server";
 
-import { db } from "@/db";
-import { meal, user } from "@/db/schemas";
+import prisma from "@/lib/prisma";
 import { requireUser } from "@/lib/require-user";
-import {
-  onboardingUserSchema,
-  OnboardingUserSchemaUserValues,
-} from "@/lib/validations";
+import { onboardingSchema, User } from "@/lib/validations";
 import { ApiResponse } from "@/types";
-import { format } from "date-fns";
-import { eq } from "drizzle-orm";
 
 export const createUserOnboarding = async (
-  values: OnboardingUserSchemaUserValues,
+  values: User,
 ): Promise<ApiResponse> => {
   try {
-    const validation = await onboardingUserSchema.safeParseAsync(values);
+    const validation = await onboardingSchema.safeParseAsync(values);
     const session = await requireUser();
     if (!session?.user.id) {
       return {
@@ -23,40 +17,21 @@ export const createUserOnboarding = async (
         message: "Unauthorized",
       };
     }
-
     if (!validation.success) {
       return {
         status: "error",
         message: "Invalid Form Data",
       };
     }
-    const formattedDate = format(values.dob, "yyyy-MM-dd");
-    const dataToInsert = {
-      name: values.name,
-      gender: values.gender,
-      religion: values.religion,
-      selfPhNo: values.selfPhNo,
-      address: values.address,
-      hostel: values.hostel,
-      education: values.education,
-      dob: values.dob instanceof Date ? formattedDate : values.dob,
-      onboarding: true,
-    };
-
-    await db.update(user).set(dataToInsert).where(eq(user.id, session.user.id));
-    await db
-      .insert(meal)
-      .values({
-        userId: session.user.id,
-        ...values.meal,
-      })
-      .onConflictDoUpdate({
-        target: user.id,
-        set: {
-          ...values.meal,
-        },
-      });
-
+    await prisma.user.update({
+      where: {
+        id: session.user.id,
+      },
+      data: {
+        ...values,
+        hostelId: values.hostel.hostelId,
+      },
+    });
     return {
       status: "success",
       message: "Boader onboarding successfully.🎉",

@@ -18,9 +18,11 @@ model User {
   hostelId            String?        @map("hostel_id")
   roomId              String?        @map("room_id")
   gender              GenderType?
-  religion            ReligionType?
+  religion            String?
   dob                 DateTime?
   education           Json?
+  hostel              Json?
+  meal                Json?
   selfPhNo            String?        @map("self_ph_no")
   guardianPhNo        String?        @map("guardian_ph_no")
   address             String?
@@ -31,17 +33,15 @@ model User {
   onboardingCompleted Boolean        @default(false) @map("onboarding_completed")
   message             String[]       @default([])
   mealPreference      Json           @default("{}") @map("meal_preference")
-  mealInfoList        Json[]         @default([]) @map("meal_info_list") // Good for user-specific meal notes/history
-  newChargelist       Json[]         @default([]) @map("new_charge_list") // Good for one-off, flexible charges
-  helpSection         Json[]         @default([]) @map("help_section") // Good for user-specific help content/links
+  mealInfoList        Json[]         @default([]) @map("meal_info_list")
+  newChargelist       Json[]         @default([]) @map("new_charge_list")
+  helpSection         Json[]         @default([]) @map("help_section")
 
-  deletedAt DateTime? @map("deleted_at")
-
-  hostel                Hostel?          @relation("HostelUsers", fields: [hostelId], references: [id])
-  room                  Room?            @relation(fields: [roomId], references: [id])
+  deletedAt             DateTime?        @map("deleted_at")
   meals                 Meal[]
   guestMeals            GuestMeal[]
   payments              UserPayment[]
+  userBills             UserBill[]
   fines                 UserFine[]       @relation("UserFines")
   issuedFines           UserFine[]       @relation("FineIssuer")
   audits                Audit[]
@@ -57,40 +57,8 @@ model User {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@index([name])
+  @@index([name, hostelId])
   @@map("users")
-}
-
-model Hostel {
-  id       String  @id @default(cuid())
-  name     String
-  tag      String
-  address  String?
-  capacity Int?
-
-  deletedAt DateTime? @map("deleted_at")
-  users     User[]    @relation("HostelUsers")
-  rooms     Room[]
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-
-  @@map("hostels")
-}
-
-model Room {
-  id         String  @id @default(cuid())
-  hostelId   String  @map("hostel_id")
-  roomNumber String? @map("room_number")
-  floor      Int
-
-  deletedAt DateTime? @map("deleted_at")
-
-  hostel    Hostel   @relation(fields: [hostelId], references: [id])
-  users     User[]
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@map("rooms")
 }
 
 model Account {
@@ -141,11 +109,12 @@ model Meal {
   userId     String         @unique @map("user_id")
   mealType   MealType
   nonVegType NonVegType
-  status     MealStatusType
+  message    String?
+  status     MealStatusType @default(INACTIVE)
   createdAt  DateTime       @default(now()) @map("created_at")
   updatedAt  DateTime       @updatedAt @map("updated_at")
 
-  user User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade) // Added onDelete: Cascade
 
   @@map("meals")
 }
@@ -165,7 +134,8 @@ model Audit {
   mealCharge         Float    @map("meal_charge")
   createdAt          DateTime @default(now()) @map("created_at")
 
-  auditor     User          @relation(fields: [auditorId], references: [id])
+  auditor     User          @relation(fields: [auditorId], references: [id], onDelete: Restrict) // Changed from default (Restrict) to explicit Restrict
+  userBills   UserBill[]
   payments    UserPayment[]
   attachments Media[]
 
@@ -179,12 +149,39 @@ model UserPayment {
   paidAmount Float             @map("paid_amount")
   starus     PaymentStatusType
 
-  user  User  @relation(fields: [userId], references: [id])
-  audit Audit @relation(fields: [auditId], references: [id])
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  audit Audit @relation(fields: [auditId], references: [id], onDelete: Cascade)
 
-  createdAt DateTime @default(now()) @map("created_at")
+  createdAt DateTime   @default(now()) @map("created_at")
+  userBill  UserBill[]
 
   @@map("user_payments")
+}
+
+model UserBill {
+  id               String        @id @default(cuid())
+  userId           String        @map("user_id")
+  auditId          String?       @map("audit_id")
+  fineId           String?       @map("fine_id")
+  guestMealId      String?       @map("guest_meal_id")
+  paymentId        String?       @map("payment_id")
+  type             BillEntryType
+  amount           Float
+  description      String?
+  issueDate        DateTime      @default(now()) @map("issue_date")
+  dueDate          DateTime?     @map("due_date")
+  isPaid           Boolean       @default(false) @map("is_paid")
+  balanceRemaining Float         @map("balance_remaining")
+  createdAt        DateTime      @default(now()) @map("created_at")
+  updatedAt        DateTime      @updatedAt @map("updated_at")
+
+  user      User         @relation(fields: [userId], references: [id])
+  audit     Audit?       @relation(fields: [auditId], references: [id])
+  fine      UserFine?    @relation(fields: [fineId], references: [id])
+  guestMeal GuestMeal?   @relation(fields: [guestMealId], references: [id])
+  payment   UserPayment? @relation(fields: [paymentId], references: [id])
+
+  @@map("user_bills")
 }
 
 model GuestMeal {
@@ -200,7 +197,8 @@ model GuestMeal {
   status        GuestMealStatusType
   createdAt     DateTime            @default(now()) @map("created_at")
 
-  user User @relation(fields: [userId], references: [id])
+  user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userBill UserBill[]
 
   @@map("guest_meals")
 }
@@ -217,8 +215,10 @@ model UserFine {
   createdAt DateTime       @default(now()) @map("created_at")
   updatedAt DateTime       @updatedAt @map("updated_at")
 
-  user   User @relation("UserFines", fields: [userId], references: [id])
-  issuer User @relation("FineIssuer", fields: [issuedBy], references: [id]) // The user (e.g., manager, admin) who issued this fine
+  userBill UserBill[]
+
+  user   User @relation("UserFines", fields: [userId], references: [id], onDelete: Cascade)
+  issuer User @relation("FineIssuer", fields: [issuedBy], references: [id], onDelete: Cascade)
 
   @@map("user_fines")
 }
@@ -247,14 +247,14 @@ model MealAttendance {
   mealType  MealType
   createdAt DateTime     @default(now()) @map("created_at")
 
-  user User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade) // Added onDelete: Cascade
 
   @@map("meal_attendances")
 }
 
 model Notification {
   id          String           @id @default(cuid())
-  userId      String           @map("user_id")
+  userId      String           @map("user_id") // Consider if this is needed or if recipientId is sufficient
   title       String
   message     String
   recipientId String
@@ -281,7 +281,7 @@ model ActivityLog {
   ipAddress  String?  @map("ip_address") // Optional: for security/origin tracking
   userAgent  String?  @map("user_agent") // Optional: browser/device info
 
-  user User? @relation("UserActivity", fields: [userId], references: [id]) // Optional relation
+  user User? @relation("UserActivity", fields: [userId], references: [id], onDelete: SetNull) // Added onDelete: SetNull for nullable userId
 
   @@map("activity_logs")
 }
@@ -298,26 +298,15 @@ model Media {
   @@map("posr_media")
 }
 
+// Enums
 enum EntryType {
   AUDIT
   DAILY
 }
 
-// Enums
 enum GenderType {
   MALE
   FEMALE
-  OTHER
-  PREFER_NOT_TO_SAY
-}
-
-enum ReligionType {
-  HINDU
-  MUSLIM
-  CHRISTIAN
-  SIKH
-  BUDDHIST
-  JAIN
   OTHER
 }
 
@@ -333,7 +322,7 @@ enum UserStatusType {
   ACTIVE
   INACTIVE
   SUSPENDED
-  FORMER
+  FORMA
 }
 
 enum FineStatusType {
@@ -384,4 +373,13 @@ enum NotificationType {
   FINE
   ANNOUNCEMENT
   SYSTEM
+}
+
+enum BillEntryType {
+  MEAL_CHARGE // Monthly meal charge derived from Audit
+  FINE_CHARGE // Fine incurred by the user
+  GUEST_MEAL_CHARGE // Charge for guest meals
+  PAYMENT // Payment made by the user (recorded as a negative amount in UserBill)
+  ADJUSTMENT_CREDIT // Any credit/refund given to the user
+  ADJUSTMENT_DEBIT // Any extra charge/debit
 }
