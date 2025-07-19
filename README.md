@@ -1,36 +1,46 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Hostel Management System
 
-## Getting Started
+A digital platform for hostel meal management, billing, and user administration.
 
-First, run the development server:
+## Features
+
+- **Meal Management**: Daily meal planning, attendance tracking, guest meals
+- **Financial System**: Automated billing, payment tracking, expense audits
+- **User Management**: Role-based access (Students, Managers, Auditors)
+- **Communication**: Notifications, announcements, messaging
+
+## Tech Stack
+
+- **Frontend**: Next.js, TypeScript, Tailwind CSS
+- **Backend**: Node.js, Prisma ORM
+- **Database**: PostgreSQL
+- **Auth**: NextAuth.js
+
+## Quick Start
 
 ```bash
+git clone https://github.com/nandanNM/hostel-management-system
+cd hostel-management-system
+npm install
+cp .env.example .env.local
+npx prisma generate
+npx prisma db push
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Documentation
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **[Database Schema](https://app.eraser.io/workspace/UYt1ajLijIDzJuIRwWMY?origin=share)** - Interactive ER diagram
+- **[PRD](https://app.eraser.io/workspace/UYt1ajLijIDzJuIRwWMY?origin=share)** - Product requirements
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Database Design
 
-## Learn More
+Core entities: Users, Meals, Bills, Payments, Audits, Notifications
 
-To learn more about Next.js, take a look at the following resources:
+- User-centric design with role-based access
+- Complete audit trails for financial transactions
+- Optimized relationships for performance
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## License
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+MIT
