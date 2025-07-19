@@ -1,110 +1,57 @@
 "use client";
-
-import React, { useEffect, useState } from "react";
-
+import { Moon, Sun } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Monitor, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 
-import { Button } from "./ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
+interface ThemeToggleProps {
+  className?: string;
+}
 
-export function ThemeToggle({ isDropDown = false }: { isDropDown?: boolean }) {
-  const [mounted, setMounted] = useState(false);
-  const { theme, setTheme } = useTheme();
+export function ThemeToggle({ className }: ThemeToggleProps) {
+  const { resolvedTheme, setTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return null;
-  }
-  if (isDropDown) {
-    return (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            className="font-base mb-2 inline-flex h-9 w-full items-center justify-start gap-2 rounded-md px-2 text-sm whitespace-nowrap transition-colors focus:outline-none disabled:pointer-events-none disabled:opacity-50"
-          >
-            <Sun
-              className={cn(
-                "h-[1.2rem] w-[1.2rem] scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90",
-              )}
-            />
-            <Moon
-              className={cn(
-                "absolute h-[1.2rem] w-[1.2rem] scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0",
-              )}
-            />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start">
-          <DropdownMenuItem
-            className="cursor-pointer"
-            onClick={() => setTheme("light")}
-          >
-            Light
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            className="cursor-pointer"
-            onClick={() => setTheme("dark")}
-          >
-            Dark
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            className="cursor-pointer"
-            onClick={() => setTheme("system")}
-          >
-            System
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    );
-  }
   return (
-    <>
-      <div className="flex flex-row items-center space-x-2 rounded-full border p-1">
-        <button
+    <div
+      className={cn(
+        "flex h-8 w-16 cursor-pointer rounded-full p-1 transition-all duration-300",
+        isDark
+          ? "border border-zinc-800 bg-zinc-950"
+          : "border border-zinc-200 bg-white",
+        className,
+      )}
+      onClick={() => setTheme(isDark ? "light" : "dark")}
+      role="button"
+      tabIndex={0}
+    >
+      <div className="flex w-full items-center justify-between">
+        <div
           className={cn(
-            theme === "light"
-              ? "rounded-full bg-neutral-200"
-              : "bg-transparent",
-            "p-1",
+            "flex h-6 w-6 items-center justify-center rounded-full transition-transform duration-300",
+            isDark
+              ? "translate-x-0 transform bg-zinc-800"
+              : "translate-x-8 transform bg-gray-200",
           )}
-          onClick={() => setTheme("light")}
         >
-          <Sun size={18} className="stroke-1" />
-        </button>
-
-        <button
+          {isDark ? (
+            <Moon className="h-4 w-4 text-white" strokeWidth={1.5} />
+          ) : (
+            <Sun className="h-4 w-4 text-gray-700" strokeWidth={1.5} />
+          )}
+        </div>
+        <div
           className={cn(
-            theme === "system"
-              ? "rounded-full bg-neutral-200 dark:bg-neutral-700"
-              : "bg-transparent",
-            "p-1",
+            "flex h-6 w-6 items-center justify-center rounded-full transition-transform duration-300",
+            isDark ? "bg-transparent" : "-translate-x-8 transform",
           )}
-          onClick={() => setTheme("system")}
         >
-          <Monitor size={18} className="stroke-1" />
-        </button>
-
-        <button
-          className={cn(
-            theme === "dark" ? "rounded-full bg-neutral-700" : "bg-transparent",
-            "p-1",
+          {isDark ? (
+            <Sun className="h-4 w-4 text-gray-500" strokeWidth={1.5} />
+          ) : (
+            <Moon className="h-4 w-4 text-black" strokeWidth={1.5} />
           )}
-          onClick={() => setTheme("dark")}
-        >
-          <Moon size={18} className="stroke-1" />
-        </button>
+        </div>
       </div>
-    </>
+    </div>
   );
 }

@@ -5,6 +5,7 @@ import UserButton from "./UserButton";
 import { useState } from "react";
 import { NavItems } from "@/data/nav-data";
 import { Menu } from "lucide-react";
+import { ThemeToggle } from "./ThemeToggle";
 
 export default function NavBar() {
   const navItems = NavItems();
@@ -25,7 +26,10 @@ export default function NavBar() {
             Next-PG1 v5
           </Link>
         </div>
-        <UserButton />
+        <div className="flex items-center justify-center gap-2">
+          <ThemeToggle />
+          <UserButton />
+        </div>
       </nav>
     </header>
   );

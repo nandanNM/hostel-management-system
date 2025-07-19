@@ -9,9 +9,11 @@ import { Bell, Check, Filter } from "lucide-react";
 import { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 import Notification from "./_components/notification";
+import { useNotificationStore } from "./store";
 
 export default function NotificationsList() {
   const [isPending, startTransition] = useTransition();
+  const setUnreadCount = useNotificationStore((state) => state.setUnreadCount);
   const [notifications, setNotifications] = useState<
     GetNotificationWithIssuer[]
   >([]);
@@ -34,6 +36,20 @@ export default function NotificationsList() {
       setNotifications(result ?? []);
     });
   }, []);
+
+  useEffect(() => {
+    async function makeAsRead() {
+      const { data: result } = await tryCatch(
+        kyInstance
+          .patch("/api/user/notification/mark-as-read")
+          .json<GetNotificationWithIssuer[]>(),
+      );
+      if (result) {
+        setUnreadCount(0);
+      }
+    }
+    makeAsRead();
+  }, [setUnreadCount]);
 
   if (isPending)
     return <RiLoader3Fill size={30} className="mx-auto my-10 animate-spin" />;

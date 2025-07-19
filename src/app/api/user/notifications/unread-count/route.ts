@@ -11,7 +11,7 @@ export async function GET() {
         read: false,
       },
     });
-    return Response.json(notifications.length ?? 0);
+    return Response.json(notifications.length);
   } catch (error) {
     console.log(error);
     return Response.json({ error: "Internal Server Error" }, { status: 500 });

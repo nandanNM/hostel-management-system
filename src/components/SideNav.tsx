@@ -13,12 +13,16 @@ import {
   RiArrowLeftDoubleLine,
   RiArrowRightDoubleLine,
 } from "@remixicon/react";
-import { ThemeToggle } from "./ThemeToggle";
 import { useNotificationStore } from "@/app/(root)/notification/store";
 
 export default function SideNav() {
   const navItems = NavItems();
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
+  const unreadCount = useNotificationStore((state) => state.unreadCount);
+  const getUnreadCount = useNotificationStore((state) => state.getUnreadCount);
+  useEffect(() => {
+    getUnreadCount();
+  }, [getUnreadCount]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -65,6 +69,7 @@ export default function SideNav() {
                           path={item.href}
                           active={item.active}
                           isSidebarExpanded={isSidebarExpanded}
+                          unreadCount={unreadCount}
                         />
                       </div>
                     </Fragment>
@@ -75,7 +80,6 @@ export default function SideNav() {
           </div>
           {/* Bottom */}
           <div className="sticky bottom-0 mt-auto mb-4 block whitespace-nowrap transition duration-200">
-            <ThemeToggle isDropDown={true} />
             {navItems.map((item, idx) => {
               if (item.position === "bottom") {
                 return (
@@ -87,6 +91,7 @@ export default function SideNav() {
                         path={item.href}
                         active={item.active}
                         isSidebarExpanded={isSidebarExpanded}
+                        unreadCount={unreadCount}
                       />
                     </div>
                   </Fragment>
@@ -125,12 +130,9 @@ export const SideNavItem: React.FC<{
   path: string;
   active: boolean;
   isSidebarExpanded: boolean;
-}> = ({ label, icon, path, active, isSidebarExpanded }) => {
+  unreadCount?: number;
+}> = ({ label, icon, path, active, isSidebarExpanded, unreadCount = 0 }) => {
   // featch unread count
-  const { unreadCount, getUnreadCount } = useNotificationStore();
-  useEffect(() => {
-    getUnreadCount();
-  });
   return (
     <>
       {isSidebarExpanded ? (
