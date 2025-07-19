@@ -14,10 +14,12 @@ import {
   RiArrowRightDoubleLine,
 } from "@remixicon/react";
 import { ThemeToggle } from "./ThemeToggle";
+import { useNotificationStore } from "@/app/(root)/notification/store";
 
 export default function SideNav() {
   const navItems = NavItems();
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       const saved = window.localStorage.getItem("sidebarExpanded");
@@ -124,6 +126,11 @@ export const SideNavItem: React.FC<{
   active: boolean;
   isSidebarExpanded: boolean;
 }> = ({ label, icon, path, active, isSidebarExpanded }) => {
+  // featch unread count
+  const { unreadCount, getUnreadCount } = useNotificationStore();
+  useEffect(() => {
+    getUnreadCount();
+  });
   return (
     <>
       {isSidebarExpanded ? (
@@ -137,6 +144,11 @@ export const SideNavItem: React.FC<{
         >
           <div className="font-base relative flex flex-row items-center space-x-2 rounded-md px-2 py-1.5 text-sm duration-100">
             {icon}
+            {label === "Notifications" && unreadCount > 0 && (
+              <span className="bg-primary text-primary-foreground absolute -top-1 -right-1 rounded-full px-1 text-xs font-medium tabular-nums">
+                {unreadCount}
+              </span>
+            )}
             <span>{label}</span>
           </div>
         </Link>
@@ -154,6 +166,11 @@ export const SideNavItem: React.FC<{
               >
                 <div className="font-base relative flex flex-row items-center space-x-2 rounded-md p-2 text-sm duration-100">
                   {icon}
+                  {label === "Notifications" && unreadCount > 0 && (
+                    <span className="bg-primary text-primary-foreground absolute -top-1 -right-1 rounded-full px-1 text-xs font-medium tabular-nums">
+                      {unreadCount}
+                    </span>
+                  )}
                 </div>
               </Link>
             </TooltipTrigger>
