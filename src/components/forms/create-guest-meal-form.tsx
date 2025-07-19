@@ -1,10 +1,7 @@
 "use client";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  createGuestMealSchema,
-  CreateGuestMealValues,
-} from "@/lib/validations";
+import { guestMealSchema, GuestMeal } from "@/lib/validations";
 import {
   Form,
   FormField,
@@ -32,21 +29,29 @@ import { tryCatch } from "@/hooks/try-catch";
 import { createGuestMeal } from "./action";
 import { toast } from "sonner";
 import { useTransition } from "react";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { Button } from "../ui/button";
+import { cn } from "@/lib/utils";
+import { addDays, format, isAfter, isBefore, startOfDay } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import { Calendar } from "../ui/calendar";
 export default function CreateGuestMealForm() {
   const [isPanding, startTransition] = useTransition();
-  const form = useForm<CreateGuestMealValues>({
-    resolver: zodResolver(createGuestMealSchema),
+  const form = useForm<GuestMeal>({
+    resolver: zodResolver(guestMealSchema),
     defaultValues: {
       name: "",
-      number: "",
-      mealType: "non-veg",
-      nonVegType: "chicken",
+      type: "VEG",
+      nonVegType: "NONE",
+      mobileNumber: "",
+      mealTime: "LUNCH",
       numberOfMeals: 1,
+      date: new Date(),
       mealCharge: 0,
-      massage: "",
+      message: "",
     },
   });
-  function onSubmit(values: CreateGuestMealValues) {
+  function onSubmit(values: GuestMeal) {
     startTransition(async () => {
       const { data: result, error } = await tryCatch(createGuestMeal(values));
       if (error) {
@@ -80,27 +85,10 @@ export default function CreateGuestMealForm() {
             </FormItem>
           )}
         />
-        <FormField
-          control={form.control}
-          name="number"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Guest Number</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  placeholder="Enter guest phone number"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
         <div className="flex flex-wrap gap-4">
           <FormField
             control={form.control}
-            name="mealType"
+            name="type"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Meal Type</FormLabel>
@@ -134,7 +122,7 @@ export default function CreateGuestMealForm() {
                 <FormLabel>Non-Veg Type</FormLabel>
                 <Select
                   onValueChange={field.onChange}
-                  defaultValue={field.value ?? "none"}
+                  defaultValue={field.value}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -153,7 +141,54 @@ export default function CreateGuestMealForm() {
               </FormItem>
             )}
           />
+          <FormField
+            control={form.control}
+            name="date"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel>Date of birth</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-[240px] pl-3 text-left font-normal",
+                          !field.value && "text-muted-foreground",
+                        )}
+                      >
+                        {field.value ? (
+                          format(field.value, "PPP")
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      disabled={(date: Date) => {
+                        const today = startOfDay(new Date());
+                        const maxDate = startOfDay(addDays(today, 3));
+                        const targetDate = startOfDay(date);
 
+                        return (
+                          isBefore(targetDate, today) ||
+                          isAfter(targetDate, maxDate)
+                        );
+                      }}
+                      captionLayout="dropdown"
+                    />
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           <FormField
             control={form.control}
             name="mealTime"
@@ -184,6 +219,24 @@ export default function CreateGuestMealForm() {
         </div>
         <FormField
           control={form.control}
+          name="mobileNumber"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Guest Number</FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  placeholder="Enter guest phone number"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
           name="numberOfMeals"
           render={({ field }) => (
             <FormItem>
@@ -207,7 +260,7 @@ export default function CreateGuestMealForm() {
 
         <FormField
           control={form.control}
-          name="massage"
+          name="message"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Meal Message</FormLabel>

@@ -60,23 +60,47 @@ export const mealSchema = z.object({
 });
 
 // Complete onboarding form
-export const onboardingSchema = z.object({
-  ...userSchema.shape,
-  hostel: hostelSchema,
-  education: educationSchema,
-  mealPreference: mealSchema,
-});
+export const onboardingSchema = z
+  .object({
+    ...userSchema.shape,
+    hostel: hostelSchema,
+    education: educationSchema,
+    mealPreference: mealSchema,
+  })
+  .refine(
+    (data) =>
+      data.mealPreference.type === "VEG" ||
+      (data.mealPreference.type === "NON_VEG" &&
+        data.mealPreference.nonVegType !== "NONE"),
+    {
+      message: "nonVegType must be set if meal is NON_VEG",
+      path: ["nonVegType"],
+    },
+  );
 
 // Guest meal booking
-export const guestMealSchema = z.object({
-  name: z.string().min(1, "Name required"),
-  date: z.date(),
-  mealTime: z.enum(["day", "night"]),
-  numberOfMeals: z.number().min(1, "At least 1 meal required"),
-  phone: z.string().min(1, "Phone required"),
-  charge: z.number().min(1, "Charge must be positive"),
-  ...mealSchema.shape,
-});
+export const guestMealSchema = z
+  .object({
+    name: z.string().min(1, "Name required"),
+    date: z.date(),
+    mealTime: z.enum(["LUNCH", "DINNER"]),
+    numberOfMeals: z.number().int().min(1, "At least 1 meal required"),
+    mobileNumber: z
+      .string()
+      .length(10, "Phone must be 10 digits")
+      .regex(/^\d+$/, "Phone must be numbers only"),
+    mealCharge: z.number().positive("Charge must be positive"),
+    ...mealSchema.shape,
+  })
+  .refine(
+    (data) =>
+      data.type === "VEG" ||
+      (data.type === "NON_VEG" && data.nonVegType !== "NONE"),
+    {
+      message: "nonVegType must be set if meal is NON_VEG",
+      path: ["nonVegType"],
+    },
+  );
 
 // Admin actions
 export const banUserSchema = z.object({

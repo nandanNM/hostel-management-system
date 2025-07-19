@@ -185,14 +185,16 @@ model UserBill {
 model GuestMeal {
   id            String              @id @default(cuid())
   userId        String              @map("user_id")
+  name          String
   numberOfMeals Int                 @map("number_of_meals")
   mealCharge    Float               @map("meal_charge")
   date          DateTime
-  mealType      MealType
+  type          MealType
   nonVegType    NonVegType
   mealTime      MealTimeType
   mobileNumber  String              @map("mobile_number")
-  status        GuestMealStatusType
+  message       String?
+  status        GuestMealStatusType @default(PENDING)
   createdAt     DateTime            @default(now()) @map("created_at")
 
   user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)

@@ -1,5 +1,5 @@
 import { usePathname } from "next/navigation";
-import { Bell, Home } from "lucide-react";
+import { Bell, Home, Utensils } from "lucide-react";
 import { RiDashboardLine, RiToolsFill } from "@remixicon/react";
 
 export const NavItems = () => {
@@ -21,6 +21,13 @@ export const NavItems = () => {
       href: "/dashboard",
       icon: <RiDashboardLine size={20} />,
       active: isNavItemActive(pathname, "/dashboard"),
+      position: "top",
+    },
+    {
+      name: "Guest Meal",
+      href: "/guest-meal",
+      icon: <Utensils size={20} />,
+      active: isNavItemActive(pathname, "/guest-meal"),
       position: "top",
     },
     {
