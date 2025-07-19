@@ -1,21 +1,22 @@
 import getSession from "@/lib/get-session";
 import prisma from "@/lib/prisma";
-
-export async function GET() {
+export async function PATCH() {
   try {
     const session = await getSession();
-
     if (!session?.user.id)
       return Response.json({ error: "Unauthorized" }, { status: 401 });
-
-    const data = await prisma.guestMeal.findMany({
+    await prisma.notification.updateMany({
       where: {
-        userId: session.user.id,
-        status: "PENDING",
+        recipientId: session.user.id,
+        read: false,
+      },
+      data: {
+        read: true,
       },
     });
-    return Response.json(data);
+    return new Response();
   } catch (error) {
+    console.log(error);
     return Response.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

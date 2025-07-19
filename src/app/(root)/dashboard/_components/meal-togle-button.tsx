@@ -32,7 +32,7 @@ export default function MealToggleButton() {
 
   useEffect(() => {
     startTransition(async () => {
-      const { data, error } = await tryCatch(
+      const { data: result, error } = await tryCatch(
         kyInstance
           .get("/api/user/meal/status", {
             retry: { limit: 2 },
@@ -49,7 +49,7 @@ export default function MealToggleButton() {
         return;
       }
 
-      setValue("status", data.status);
+      setValue("status", result.status);
     });
   }, [setValue]);
 

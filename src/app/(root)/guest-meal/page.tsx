@@ -45,7 +45,7 @@ export default function GuestMealsPage() {
   useEffect(() => {
     startTransition(async () => {
       const { data, error } = await tryCatch(
-        kyInstance.get("/api/user/guest-meals", {}).json<GuestMeal[]>(),
+        kyInstance.get("/api/user/guest-meals").json<GuestMeal[]>(),
       );
 
       if (error) {
@@ -59,7 +59,6 @@ export default function GuestMealsPage() {
       setPendingRequests(data ?? []);
     });
   }, []);
-  console.log("pendingRequests", pendingRequests);
   const handleDeleteRequest = (id: string) => {
     startTransitionDelete(async () => {
       const { data: result, error } = await tryCatch(

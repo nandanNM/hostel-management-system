@@ -35,7 +35,6 @@ export async function toggleMealStatus(
       message: "Meal status updated successfully",
     };
   } catch (error) {
-    console.log("error", error);
     return {
       status: "error",
       message: "An unexpected error occurred. Please try again later.",

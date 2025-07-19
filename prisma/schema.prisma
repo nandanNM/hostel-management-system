@@ -255,7 +255,6 @@ model MealAttendance {
 
 model Notification {
   id          String           @id @default(cuid())
-  userId      String           @map("user_id") // Consider if this is needed or if recipientId is sufficient
   title       String
   message     String
   recipientId String
