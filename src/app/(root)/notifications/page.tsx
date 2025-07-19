@@ -1,6 +1,5 @@
 "use Client";
 
-import { Button } from "@/components/ui/button";
 import { tryCatch } from "@/hooks/try-catch";
 import kyInstance from "@/lib/ky";
 import { GetNotificationWithIssuer } from "@/types/prisma.type";
@@ -65,20 +64,6 @@ export default function NotificationsList() {
               Stay updated with hostel activities
             </p>
           </div>
-        </div>
-        <div className="flex items-center gap-2">
-          {/* {unreadCount > 0 && (
-            <Badge variant="destructive" className="px-2 py-1">
-              {unreadCount} new
-            </Badge>
-          )} */}
-          <Button variant="outline" size="sm">
-            <Check className="mr-2 size-4" />
-            Mark all read
-          </Button>
-          <Button variant="outline" size="sm">
-            <Filter className="size-4" />
-          </Button>
         </div>
       </div>
 

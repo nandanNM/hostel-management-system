@@ -13,7 +13,7 @@ import {
   RiArrowLeftDoubleLine,
   RiArrowRightDoubleLine,
 } from "@remixicon/react";
-import { useNotificationStore } from "@/app/(root)/notification/store";
+import { useNotificationStore } from "@/app/(root)/notifications/store";
 
 export default function SideNav() {
   const navItems = NavItems();
@@ -147,7 +147,7 @@ export const SideNavItem: React.FC<{
           <div className="font-base relative flex flex-row items-center space-x-2 rounded-md px-2 py-1.5 text-sm duration-100">
             {icon}
             {label === "Notifications" && unreadCount > 0 && (
-              <span className="bg-primary text-primary-foreground absolute -top-1 -right-1 rounded-full px-1 text-xs font-medium tabular-nums">
+              <span className="bg-primary text-primary-foreground absolute top-[11px] -right-12 rounded-full px-1 text-xs font-medium tabular-nums">
                 {unreadCount}
               </span>
             )}
@@ -169,7 +169,7 @@ export const SideNavItem: React.FC<{
                 <div className="font-base relative flex flex-row items-center space-x-2 rounded-md p-2 text-sm duration-100">
                   {icon}
                   {label === "Notifications" && unreadCount > 0 && (
-                    <span className="bg-primary text-primary-foreground absolute -top-1 -right-1 rounded-full px-1 text-xs font-medium tabular-nums">
+                    <span className="bg-primary text-primary-foreground absolute top-1 right-3 rounded-full px-1 text-xs font-medium tabular-nums">
                       {unreadCount}
                     </span>
                   )}
