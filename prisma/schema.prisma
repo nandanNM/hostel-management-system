@@ -314,6 +314,7 @@ enum UserRoleType {
   STUDENT
   MANAGER
   ADMIN
+  SUPER_ADMIN
   STAFF
 }
 

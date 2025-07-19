@@ -44,7 +44,7 @@ export default function UserButton() {
               <span>Settings</span>
             </Link>
           </DropdownMenuItem>
-          {user?.role === "admin" && (
+          {user?.role === "ADMIN" && (
             <DropdownMenuItem asChild>
               <Link href="/admin">
                 <Lock className="mr-2 h-4 w-4" />
@@ -52,7 +52,7 @@ export default function UserButton() {
               </Link>
             </DropdownMenuItem>
           )}
-          {user?.role === "manager" && (
+          {user?.role === "MANAGER" && (
             <DropdownMenuItem asChild>
               <Link href="/manager">
                 <ChefHatIcon className="mr-2 h-4 w-4" />
