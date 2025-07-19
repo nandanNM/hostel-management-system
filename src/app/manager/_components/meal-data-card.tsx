@@ -1,6 +1,5 @@
 "use client";
-
-import { useState } from "react";
+import { useEffect, useTransition } from "react";
 import {
   Card,
   CardContent,
@@ -8,44 +7,43 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { TrendingUp, Leaf, Utensils, ChefHat } from "lucide-react";
 import { toast } from "sonner";
+import { tryCatch } from "@/hooks/try-catch";
+import kyInstance from "@/lib/ky";
+import { DailyMealActivity } from "@/generated/prisma";
+import LoadingButton from "@/components/LoadingButton";
+import { useMealStore } from "../store";
+import { formatRelativeDate } from "@/lib/utils";
+import ManagerPageSkeleton from "./manager-page-skeleton";
 
-interface MealData {
-  date: string;
-  vegetarian: number;
-  nonVegetarian: number;
-  totalMeals: number;
-}
-interface MealDataCardProps {
-  mealData: MealData | null;
-  onGenerate: (data: MealData) => void;
-}
-
-export function MealDataCard({ mealData, onGenerate }: MealDataCardProps) {
-  const [isGenerating, setIsGenerating] = useState(false);
+export function MealDataCard() {
+  const [isPanding, startTransition] = useTransition();
+  const mealData = useMealStore((state) => state.mealData);
+  const setMealData = useMealStore((state) => state.setMealData);
+  const getMealData = useMealStore((state) => state.getMealData);
+  const loading = useMealStore((state) => state.loading);
 
   const generateMealData = () => {
-    setIsGenerating(true);
-
-    // Simulate API call
-    setTimeout(() => {
-      const newMealData: MealData = {
-        date: new Date().toISOString().split("T")[0],
-        vegetarian: Math.floor(Math.random() * 50) + 40,
-        nonVegetarian: Math.floor(Math.random() * 60) + 50,
-        totalMeals: 0,
-      };
-      newMealData.totalMeals =
-        newMealData.vegetarian + newMealData.nonVegetarian;
-
-      onGenerate(newMealData);
-      setIsGenerating(false);
-
-      toast.success(`Today's meal data has been generated successfully.`);
-    }, 2000);
+    startTransition(async () => {
+      const { data: result, error } = await tryCatch(
+        kyInstance.post("/api/manager/meal").json<DailyMealActivity>(),
+      );
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      setMealData(result);
+      toast.success("Successfully generated today's meal data.");
+    });
   };
+  useEffect(() => {
+    if (!mealData) {
+      getMealData();
+    }
+  }, [getMealData, mealData]);
+
+  if (loading && !mealData) return <ManagerPageSkeleton />;
 
   return (
     <Card>
@@ -55,17 +53,21 @@ export function MealDataCard({ mealData, onGenerate }: MealDataCardProps) {
           Today&apos;s Meal Data
         </CardTitle>
         <CardDescription>
-          Generate and view today&apos;s meal statistics and requirements
+          {mealData
+            ? `View today's meal statistics and requirements generated at ${formatRelativeDate(mealData.createdAt)}`
+            : " Generate and view today's meal statistics and requirements"}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <Button
-          onClick={generateMealData}
-          disabled={isGenerating}
-          className="w-full sm:w-auto"
-        >
-          {isGenerating ? "Generating..." : "Generate Today's Meal Data"}
-        </Button>
+        {!mealData && (
+          <LoadingButton
+            loading={isPanding}
+            onClick={generateMealData}
+            className="w-full sm:w-auto"
+          >
+            {"Generate Today's Meal Data"}
+          </LoadingButton>
+        )}
 
         {mealData && (
           <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -73,25 +75,44 @@ export function MealDataCard({ mealData, onGenerate }: MealDataCardProps) {
               <CardContent className="p-6 text-center">
                 <div className="mb-2 flex items-center justify-center gap-2">
                   <Leaf className="h-5 w-5 text-green-600" />
-                  <h3 className="font-semibold">Vegetarian</h3>
+                  <h4 className="font-semibold">Vegetarian</h4>
                 </div>
                 <p className="text-3xl font-bold text-green-600">
-                  {mealData.vegetarian}
+                  {mealData.totalVeg}
                 </p>
                 <p className="text-muted-foreground text-sm">meals today</p>
               </CardContent>
             </Card>
 
             <Card>
-              <CardContent className="p-6 text-center">
-                <div className="mb-2 flex items-center justify-center gap-2">
+              <CardContent className="p-6">
+                <div className="mb-4 flex items-center justify-center gap-2">
                   <Utensils className="h-5 w-5 text-orange-600" />
-                  <h3 className="font-semibold">Non-Vegetarian</h3>
+                  <h4 className="font-semibold text-orange-600">
+                    Non-Vegetarian Meals
+                  </h4>
                 </div>
-                <p className="text-3xl font-bold text-orange-600">
-                  {mealData.nonVegetarian}
-                </p>
-                <p className="text-muted-foreground text-sm">meals today</p>
+
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div>
+                    <p className="text-2xl font-bold text-orange-500">
+                      {mealData.totalNonvegEgg}
+                    </p>
+                    <p className="text-muted-foreground text-sm">Egg</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-orange-500">
+                      {mealData.totalNonvegFish}
+                    </p>
+                    <p className="text-muted-foreground text-sm">Fish</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-orange-500">
+                      {mealData.totalNonvegChicken}
+                    </p>
+                    <p className="text-muted-foreground text-sm">Chicken</p>
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
@@ -99,12 +120,21 @@ export function MealDataCard({ mealData, onGenerate }: MealDataCardProps) {
               <CardContent className="p-6 text-center">
                 <div className="mb-2 flex items-center justify-center gap-2">
                   <ChefHat className="text-primary h-5 w-5" />
-                  <h3 className="font-semibold">Total Meals</h3>
+                  <h3 className="text-primary font-semibold">Total Meals</h3>
                 </div>
                 <p className="text-primary text-3xl font-bold">
-                  {mealData.totalMeals}
+                  {mealData.totalMeal}
                 </p>
-                <p className="text-muted-foreground text-sm">meals today</p>
+                <p className="text-muted-foreground text-sm">
+                  including guest meals
+                </p>
+
+                <div className="mt-3 flex items-center justify-center gap-2 text-sm">
+                  <span className="text-muted-foreground">Guest Meals:</span>
+                  <span className="text-muted-foreground font-semibold">
+                    {mealData.totalGuestMeal}
+                  </span>
+                </div>
               </CardContent>
             </Card>
           </div>

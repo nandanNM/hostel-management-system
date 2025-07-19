@@ -39,7 +39,6 @@ export async function GET() {
   }
 }
 export async function POST() {
-  const startTime = process.hrtime();
   try {
     const session = await getSession();
 
@@ -200,11 +199,6 @@ export async function POST() {
         data: attendanceRecordsToCreate,
       }),
     ]);
-    //TODO: Remove console.log calcolations time
-    const [sec, nano] = process.hrtime(startTime);
-    const durationMs = (sec * 1e3 + nano / 1e6).toFixed(2);
-    console.log(`Daily meal activity generation took ${durationMs}ms`);
-
     return Response.json(mealActivity);
   } catch (error) {
     console.error(error);

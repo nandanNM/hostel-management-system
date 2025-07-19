@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export function ManagerPageSkeleton() {
+export default function ManagerPageSkeleton() {
   return (
     <div className="flex-1 space-y-6 p-6">
       {/* Header */}

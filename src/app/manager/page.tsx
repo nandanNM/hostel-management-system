@@ -1,13 +1,14 @@
 import { format } from "date-fns";
 import { Calendar } from "lucide-react";
+import { MealDataCard } from "./_components/meal-data-card";
+
 export default function Page() {
-  // const [mealData, setMealData] = useState(dummyMealData);
   return (
     <div className="flex-1 space-y-6 p-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">
+          <h1 className="text-2xl font-bold tracking-tight">
             Manager Dashboard
           </h1>
           <p className="text-muted-foreground mt-2">
@@ -21,8 +22,7 @@ export default function Page() {
       </div>
 
       {/* Meal Data Generation */}
-      {/* <MealDataCard mealData={mealData} onGenerate={setMealData} /> */}
-
+      <MealDataCard />
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Today's Recipes */}
         {/* <RecipesList recipes={todayRecipes} /> */}
