@@ -114,6 +114,8 @@ model Meal {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  attendances MealAttendance[]
+
   @@map("meals")
 }
 
@@ -226,7 +228,8 @@ model UserFine {
 model DailyMealActivity {
   id                 String       @id @default(cuid())
   mealTime           MealTimeType
-  totalGuestMeals    Int          @map("total_guest_meals")
+  totalMeal          Int          @map("total_meals")
+  totalGuestMeal     Int          @map("total_guest_meals")
   totalVeg           Int          @map("total_veg")
   totalNonvegChicken Int          @map("total_nonveg_chicken")
   totalNonvegFish    Int          @map("total_nonveg_fish")
@@ -235,21 +238,24 @@ model DailyMealActivity {
   createdAt          DateTime     @default(now()) @map("created_at")
   updatedAt          DateTime     @updatedAt @map("updated_at")
 
+  @@unique([mealTime, createdAt])
   @@map("daily_meal_activities")
 }
 
 model MealAttendance {
   id        String       @id @default(cuid())
   userId    String       @map("user_id")
+  mealTime  MealTimeType @map("meal_time")
   date      DateTime
-  mealTime  MealTimeType
-  present   Boolean
-  mealType  MealType
+  isPresent Boolean      @map("is_present")
+  mealId    String?      @map("meal_id")
   createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User  @relation(fields: [userId], references: [id])
+  meal Meal? @relation(fields: [mealId], references: [id])
 
-  @@unique([date, mealTime])
+  @@unique([userId, date, mealTime])
   @@map("meal_attendances")
 }
 

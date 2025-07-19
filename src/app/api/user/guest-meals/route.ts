@@ -1,3 +1,4 @@
+import { GuestMealStatusType } from "@/generated/prisma";
 import getSession from "@/lib/get-session";
 import prisma from "@/lib/prisma";
 
@@ -11,7 +12,7 @@ export async function GET() {
     const data = await prisma.guestMeal.findMany({
       where: {
         userId: session.user.id,
-        status: "PENDING",
+        status: GuestMealStatusType.PENDING,
       },
     });
     return Response.json(data);

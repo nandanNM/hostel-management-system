@@ -6,10 +6,9 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function getTimeOfDay(date: Date = new Date()): "day" | "night" {
+export function getTimeOfDay(date: Date = new Date()): "LUNCH" | "DINNER" {
   const amPm = format(date, "a");
-
-  return amPm === "AM" ? "day" : "night";
+  return amPm === "AM" ? "LUNCH" : "DINNER";
 }
 
 export function formatRelativeDate(from: Date) {
