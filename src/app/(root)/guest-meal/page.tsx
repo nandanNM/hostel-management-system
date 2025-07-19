@@ -50,7 +50,7 @@ export default function GuestMealsPage() {
 
       if (error) {
         toast.error(
-          error.name === "TimeoutError"
+          error.message || error.name === "TimeoutError"
             ? "Request timed out. Please try again."
             : "An unexpected error occurred. Please try again later.",
         );

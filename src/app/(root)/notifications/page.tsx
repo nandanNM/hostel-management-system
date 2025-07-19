@@ -1,10 +1,10 @@
-"use Client";
+"use client";
 
 import { tryCatch } from "@/hooks/try-catch";
 import kyInstance from "@/lib/ky";
 import { GetNotificationWithIssuer } from "@/types/prisma.type";
 import { RiLoader3Fill } from "@remixicon/react";
-import { Bell, Check, Filter } from "lucide-react";
+import { Bell } from "lucide-react";
 import { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 import Notification from "./_components/notification";
@@ -20,13 +20,13 @@ export default function NotificationsList() {
     startTransition(async () => {
       const { data: result, error } = await tryCatch(
         kyInstance
-          .get("/api/user/notification")
+          .get("/api/user/notifications")
           .json<GetNotificationWithIssuer[]>(),
       );
 
       if (error) {
         toast.error(
-          error.name === "TimeoutError"
+          error.message || error.message || error.name === "TimeoutError"
             ? "Request timed out. Please try again."
             : "An unexpected error occurred. Please try again later.",
         );
@@ -39,9 +39,7 @@ export default function NotificationsList() {
   useEffect(() => {
     async function makeAsRead() {
       const { data: result } = await tryCatch(
-        kyInstance
-          .patch("/api/user/notification/mark-as-read")
-          .json<GetNotificationWithIssuer[]>(),
+        kyInstance.patch("/api/user/notifications/mark-as-read"),
       );
       if (result) {
         setUnreadCount(0);
