@@ -57,7 +57,7 @@ const items = [
   },
 ];
 interface AppSideBarProps {
-  state: "admin" | "manager";
+  state: "ADMIN" | "MANAGER";
 }
 
 export default function AppSideBar({ state }: AppSideBarProps) {
@@ -86,7 +86,9 @@ export default function AppSideBar({ state }: AppSideBarProps) {
                   <SidebarMenuButton asChild>
                     <Link
                       href={
-                        item.url === "/" ? `/${state}` : `/${state}/${item.url}`
+                        item.url === "/"
+                          ? `/${state.toLocaleLowerCase()}`
+                          : `/${state.toLocaleLowerCase()}/${item.url}`
                       }
                     >
                       <item.icon />
@@ -101,7 +103,7 @@ export default function AppSideBar({ state }: AppSideBarProps) {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-        {state === "admin" && (
+        {state === "ADMIN" && (
           <>
             {/* users */}
             <SidebarGroup>
@@ -110,7 +112,7 @@ export default function AppSideBar({ state }: AppSideBarProps) {
                 <SidebarMenu>
                   <SidebarMenuItem>
                     <SidebarMenuButton asChild>
-                      <Link href={`/${state}/users`}>
+                      <Link href={`/${state.toLocaleLowerCase()}/users`}>
                         <Users />
                         See All Users
                       </Link>
@@ -126,7 +128,7 @@ export default function AppSideBar({ state }: AppSideBarProps) {
                 <SidebarMenu>
                   <SidebarMenuItem>
                     <SidebarMenuButton asChild>
-                      <Link href={`/${state}/payments`}>
+                      <Link href={`/${state.toLocaleLowerCase()}/payments`}>
                         <Projector />
                         See All Payments
                       </Link>
@@ -150,7 +152,7 @@ export default function AppSideBar({ state }: AppSideBarProps) {
                 <SidebarMenu>
                   <SidebarMenuItem>
                     <SidebarMenuButton asChild>
-                      <Link href={`/${state}/audits`}>
+                      <Link href={`/${state.toLocaleLowerCase()}/audits`}>
                         <FileCheck />
                         See All Audits
                       </Link>
@@ -158,7 +160,7 @@ export default function AppSideBar({ state }: AppSideBarProps) {
                   </SidebarMenuItem>
                   <SidebarMenuItem>
                     <SidebarMenuButton asChild>
-                      <Link href={`${state}/audit`}>
+                      <Link href={`${state.toLocaleLowerCase()}/audit`}>
                         <Plus />
                         Add Audit
                       </Link>

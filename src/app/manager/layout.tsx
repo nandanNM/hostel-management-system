@@ -12,7 +12,7 @@ export default async function Layout({
   const defaultOpen = cookieStore.get("sidebar_state")?.value === "true";
   return (
     <SidebarProvider defaultOpen={defaultOpen}>
-      <AppSideBar state="ADMIN" />
+      <AppSideBar state="MANAGER" />
       <main className="w-full">
         <Navbar />
         <div className="p-3">
