@@ -1,11 +1,7 @@
-import requireManager from "@/data/manager/require-manager";
 import { format } from "date-fns";
 import { Calendar } from "lucide-react";
-import React from "react";
-
-export default async function Page() {
-  await requireManager();
-
+export default function Page() {
+  // const [mealData, setMealData] = useState(dummyMealData);
   return (
     <div className="flex-1 space-y-6 p-6">
       {/* Header */}
@@ -25,7 +21,7 @@ export default async function Page() {
       </div>
 
       {/* Meal Data Generation */}
-      {/* <MealDataCard mealData={mealData} onGenerate={handleMealDataGenerate} /> */}
+      {/* <MealDataCard mealData={mealData} onGenerate={setMealData} /> */}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Today's Recipes */}

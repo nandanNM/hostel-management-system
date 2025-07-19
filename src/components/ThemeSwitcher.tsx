@@ -1,14 +1,24 @@
 "use client";
+
 import { Moon, Sun } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 
 interface ThemeToggleProps {
   className?: string;
 }
 
-export function ThemeToggle({ className }: ThemeToggleProps) {
+export function ThemeSwitcher({ className }: ThemeToggleProps) {
+  const [mounted, setMounted] = useState(false);
   const { resolvedTheme, setTheme } = useTheme();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
+
   const isDark = resolvedTheme === "dark";
 
   return (
@@ -16,8 +26,8 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
       className={cn(
         "flex h-8 w-16 cursor-pointer rounded-full p-1 transition-all duration-300",
         isDark
-          ? "border border-zinc-800 bg-zinc-950"
-          : "border border-zinc-200 bg-white",
+          ? "bg-muted border-border border"
+          : "bg-background border-border border",
         className,
       )}
       onClick={() => setTheme(isDark ? "light" : "dark")}
@@ -29,14 +39,17 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
           className={cn(
             "flex h-6 w-6 items-center justify-center rounded-full transition-transform duration-300",
             isDark
-              ? "translate-x-0 transform bg-zinc-800"
-              : "translate-x-8 transform bg-gray-200",
+              ? "bg-accent translate-x-0 transform"
+              : "bg-muted translate-x-8 transform",
           )}
         >
           {isDark ? (
-            <Moon className="h-4 w-4 text-white" strokeWidth={1.5} />
+            <Moon
+              className="text-accent-foreground h-4 w-4"
+              strokeWidth={1.5}
+            />
           ) : (
-            <Sun className="h-4 w-4 text-gray-700" strokeWidth={1.5} />
+            <Sun className="text-foreground h-4 w-4" strokeWidth={1.5} />
           )}
         </div>
         <div
@@ -46,9 +59,9 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
           )}
         >
           {isDark ? (
-            <Sun className="h-4 w-4 text-gray-500" strokeWidth={1.5} />
+            <Sun className="text-muted-foreground h-4 w-4" strokeWidth={1.5} />
           ) : (
-            <Moon className="h-4 w-4 text-black" strokeWidth={1.5} />
+            <Moon className="text-foreground h-4 w-4" strokeWidth={1.5} />
           )}
         </div>
       </div>

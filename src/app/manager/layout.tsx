@@ -2,6 +2,7 @@ import Navbar from "@/components/admin/Navbar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { cookies } from "next/headers";
 import AppSideBar from "@/components/admin/AppSideBar";
+import requireManager from "@/data/manager/require-manager";
 
 export default async function Layout({
   children,
@@ -10,6 +11,7 @@ export default async function Layout({
 }) {
   const cookieStore = await cookies();
   const defaultOpen = cookieStore.get("sidebar_state")?.value === "true";
+  await requireManager();
   return (
     <SidebarProvider defaultOpen={defaultOpen}>
       <AppSideBar state="MANAGER" />

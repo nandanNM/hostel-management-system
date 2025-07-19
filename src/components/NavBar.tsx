@@ -5,7 +5,7 @@ import UserButton from "./UserButton";
 import { useState } from "react";
 import { NavItems } from "@/data/nav-data";
 import { Menu } from "lucide-react";
-import { ThemeToggle } from "./ThemeToggle";
+import { ThemeSwitcher } from "./ThemeSwitcher";
 
 export default function NavBar() {
   const navItems = NavItems();
@@ -27,7 +27,8 @@ export default function NavBar() {
           </Link>
         </div>
         <div className="flex items-center justify-center gap-2">
-          <ThemeToggle />
+          <ThemeSwitcher />
+
           <UserButton />
         </div>
       </nav>

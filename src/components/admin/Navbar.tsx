@@ -9,10 +9,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-
 import { SidebarTrigger } from "../ui/sidebar";
 import UserAvatar from "../UserAvatar";
-import { ThemeToggle } from "../ThemeToggle";
+import { ThemeSwitcher } from "../ThemeSwitcher";
 
 const Navbar = () => {
   return (
@@ -20,7 +19,7 @@ const Navbar = () => {
       {/* LEFT */}
       <SidebarTrigger />
       <div className="flex items-center gap-4">
-        <ThemeToggle />
+        <ThemeSwitcher />
         {/* USER MENU */}
         <DropdownMenu>
           <DropdownMenuTrigger>
