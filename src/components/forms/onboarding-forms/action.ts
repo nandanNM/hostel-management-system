@@ -46,10 +46,10 @@ export const createUserOnboarding = async (
       status: "success",
       message: "Boader onboarding successfully.🎉",
     };
-  } catch {
+  } catch (error) {
     return {
       status: "error",
-      message: "Something went wrong",
+      message: error instanceof Error ? error.message : "Something went wrong",
     };
   }
 };

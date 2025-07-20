@@ -6,7 +6,7 @@ import {
 } from "@/generated/prisma";
 import getSession from "@/lib/get-session";
 import prisma from "@/lib/prisma";
-import { getTimeOfDay } from "@/lib/utils";
+import { getCurrentMealSlot } from "@/lib/utils";
 import { endOfDay, startOfDay } from "date-fns";
 
 export async function GET() {
@@ -19,7 +19,7 @@ export async function GET() {
         { error: "Unauthorized - You are not a manager" },
         { status: 401 },
       );
-    const mealTime = getTimeOfDay();
+    const mealTime = getCurrentMealSlot();
     const todayStart = startOfDay(new Date());
     const todayEnd = endOfDay(new Date());
     const data = await prisma.dailyMealActivity.findFirst({
@@ -53,7 +53,7 @@ export async function POST() {
       );
     }
 
-    const mealTime = getTimeOfDay();
+    const mealTime = getCurrentMealSlot();
     const todayStart = startOfDay(new Date());
     const todayEnd = endOfDay(new Date());
 

@@ -8,6 +8,7 @@ const paragraphVariants = cva("leading-7 [&:not(:first-child)]:mt-0", {
       lead: "text-xl text-muted-foreground",
       muted: "text-sm text-muted-foreground",
       child: "[&:not(:first-child)]:mt-6",
+      error: "text-sm font-semibold text-red-500 dark:text-red-400",
     },
     size: {
       default: "",

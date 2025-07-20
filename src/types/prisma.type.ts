@@ -5,3 +5,14 @@ export type GetNotificationWithIssuer = Prisma.NotificationGetPayload<{
     issuer: true;
   };
 }>;
+
+export type GetUserMealEventWithUser = Prisma.UserMealEventGetPayload<{
+  include: {
+    user: {
+      select: {
+        name: true;
+        email: true;
+      };
+    };
+  };
+}>;

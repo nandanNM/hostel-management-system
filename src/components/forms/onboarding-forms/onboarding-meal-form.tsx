@@ -167,7 +167,7 @@ export default function OnboardingMealForm() {
         </div>
 
         {form.formState.errors && (
-          <P className="text-center" variant="lead">
+          <P className="text-center" variant="error">
             {form.formState.errors.root?.message}
           </P>
         )}

@@ -1,6 +1,8 @@
 import { format } from "date-fns";
 import { Calendar } from "lucide-react";
 import { MealDataCard } from "./_components/meal-data-card";
+import { MessagesList } from "./_components/messages-list";
+import { GuestRequestsList } from "./_components/guest-requests-list";
 
 export default function Page() {
   return (
@@ -28,15 +30,11 @@ export default function Page() {
         {/* <RecipesList recipes={todayRecipes} /> */}
 
         {/* Meal Messages */}
-        {/* <MessagesList messages={mealMessages} /> */}
+        <MessagesList />
       </div>
 
       {/* Pending Guest Meal Requests */}
-      {/* <GuestRequestsList
-        requests={guestRequests}
-        onApprove={handleApproveRequest}
-        onDecline={handleDeclineRequest}
-      /> */}
+      <GuestRequestsList />
     </div>
   );
 }

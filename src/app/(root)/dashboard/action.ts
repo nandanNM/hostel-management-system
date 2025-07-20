@@ -37,7 +37,10 @@ export async function toggleMealStatus(
   } catch (error) {
     return {
       status: "error",
-      message: "An unexpected error occurred. Please try again later.",
+      message:
+        error instanceof Error
+          ? error.message
+          : "An unexpected error occurred. Please try again later.",
     };
   }
 }

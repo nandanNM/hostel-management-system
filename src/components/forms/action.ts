@@ -36,7 +36,10 @@ export async function createGuestMeal(values: GuestMeal): Promise<ApiResponse> {
   } catch (error) {
     return {
       status: "error",
-      message: "An unexpected error occurred. Please try again later.",
+      message:
+        error instanceof Error
+          ? error.message
+          : "An unexpected error occurred. Please try again later.",
     };
   }
 }

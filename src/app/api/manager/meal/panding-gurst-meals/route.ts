@@ -1,6 +1,7 @@
+import { UserRoleType } from "@/generated/prisma";
 import getSession from "@/lib/get-session";
 import prisma from "@/lib/prisma";
-import { getTimeOfDay } from "@/lib/utils";
+import { getCurrentMealSlot } from "@/lib/utils";
 import { endOfDay, startOfDay } from "date-fns";
 
 export async function GET() {
@@ -8,12 +9,12 @@ export async function GET() {
     const session = await getSession();
     if (!session?.user.id)
       return Response.json({ error: "Unauthorized" }, { status: 401 });
-    if (session.user.role !== "manager")
+    if (session.user.role !== UserRoleType.MANAGER)
       return Response.json(
         { error: "Unauthorized - You are not a manager" },
         { status: 401 },
       );
-    const mealTime = getTimeOfDay();
+    const mealTime = getCurrentMealSlot();
     const todayStart = startOfDay(new Date()).toISOString();
     const todayEnd = endOfDay(new Date()).toISOString();
     const data = await prisma.guestMeal.findMany({

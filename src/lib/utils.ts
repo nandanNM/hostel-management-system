@@ -6,7 +6,9 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function getTimeOfDay(date: Date = new Date()): "LUNCH" | "DINNER" {
+export function getCurrentMealSlot(
+  date: Date = new Date(),
+): "LUNCH" | "DINNER" {
   const amPm = format(date, "a");
   return amPm === "AM" ? "LUNCH" : "DINNER";
 }
