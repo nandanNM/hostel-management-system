@@ -20,7 +20,6 @@ import { Button } from "@/components/ui/button";
 import { MEAL_TYPE_OPTIONS, NON_VEG_OPTIONS } from "@/constants/form.constants";
 import { ArrowLeft } from "lucide-react";
 import { redirect, useRouter } from "next/navigation";
-import { Input } from "@/components/ui/input";
 import { useOnboardingStore } from "@/app/(root)/onboarding/store";
 import { useEffect, useTransition } from "react";
 import { tryCatch } from "@/hooks/try-catch";
@@ -50,7 +49,6 @@ export default function OnboardingMealForm() {
     defaultValues: {
       type: "NON_VEG",
       nonVegType: "NONE",
-      message: "",
     },
   });
 
@@ -168,22 +166,9 @@ export default function OnboardingMealForm() {
           />
         </div>
 
-        <FormField
-          control={form.control}
-          name="message"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Meal Message</FormLabel>
-              <FormControl>
-                <Input placeholder="Optional message..." {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
         {form.formState.errors && (
           <P className="text-center" variant="lead">
-            {form.formState.errors.message?.message}
+            {form.formState.errors.root?.message}
           </P>
         )}
 

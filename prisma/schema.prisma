@@ -30,7 +30,6 @@ model User {
   status              UserStatusType @default(PENDING_ONBOARDING)
   joinDate            DateTime?      @map("join_date")
   onboardingCompleted Boolean        @default(false) @map("onboarding_completed")
-  message             String[]       @default([])
   mealPreference      Json           @default("{}") @map("meal_preference")
   newChargelist       Json[]         @default([]) @map("new_charge_list")
   helpSection         Json[]         @default([]) @map("help_section")
@@ -52,8 +51,9 @@ model User {
   accounts Account[]
   sessions Session[]
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt     DateTime        @default(now()) @map("created_at")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
+  UserMealEvent UserMealEvent[]
 
   @@index([name, hostelId])
   @@map("users")
@@ -107,7 +107,6 @@ model Meal {
   userId     String         @unique @map("user_id")
   type       MealType
   nonVegType NonVegType     @default(NONE)
-  message    String?
   status     MealStatusType @default(INACTIVE)
   createdAt  DateTime       @default(now()) @map("created_at")
   updatedAt  DateTime       @updatedAt @map("updated_at")
@@ -195,7 +194,6 @@ model GuestMeal {
   nonVegType    NonVegType
   mealTime      MealTimeType
   mobileNumber  String              @map("mobile_number")
-  message       String?
   status        GuestMealStatusType @default(PENDING)
   createdAt     DateTime            @default(now()) @map("created_at")
 
@@ -302,6 +300,22 @@ model Media {
   createdAt DateTime @default(now())
 
   @@map("posr_media")
+}
+
+model UserMealEvent {
+  id        String       @id @default(cuid())
+  userId    String       @map("user_id")
+  mealTime  MealTimeType
+  date      DateTime
+  message   String
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId, date, mealTime])
+  @@index([date, mealTime])
+  @@map("user_meal_events")
 }
 
 // Enums

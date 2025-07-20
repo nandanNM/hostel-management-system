@@ -11,12 +11,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Users, Clock, Leaf, Utensils } from "lucide-react";
+import { MealType } from "@/generated/prisma";
 
 interface GuestRequest {
   id: string;
   guestName: string;
   roomNumber: string;
-  mealType: "vegetarian" | "non-vegetarian";
+  mealType: MealType;
   requestTime: string;
   specialRequirements?: string;
 }
@@ -31,8 +32,8 @@ export function GuestRequestsList({
   onApprove,
   onDecline,
 }: GuestRequestsListProps) {
-  const getMealTypeIcon = (type: string) => {
-    return type === "vegetarian" ? (
+  const getMealTypeIcon = (type: MealType) => {
+    return type === MealType.VEG ? (
       <Leaf className="h-4 w-4" />
     ) : (
       <Utensils className="h-4 w-4" />
@@ -76,12 +77,10 @@ export function GuestRequestsList({
                   <div className="text-right">
                     <Badge
                       variant={
-                        request.mealType === "vegetarian"
-                          ? "default"
-                          : "secondary"
+                        request.mealType === "VEG" ? "default" : "secondary"
                       }
                     >
-                      {request.mealType === "vegetarian"
+                      {request.mealType === "VEG"
                         ? "Vegetarian"
                         : "Non-Vegetarian"}
                     </Badge>

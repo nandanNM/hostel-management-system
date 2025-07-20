@@ -56,7 +56,6 @@ export const mealSchema = z.object({
     .enum(["CHICKEN", "FISH", "EGG", "NONE"])
     .default("NONE")
     .optional(),
-  message: z.string().optional(),
 });
 
 // Complete onboarding form

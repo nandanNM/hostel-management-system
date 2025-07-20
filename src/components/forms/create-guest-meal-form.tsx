@@ -48,7 +48,6 @@ export default function CreateGuestMealForm() {
       numberOfMeals: 1,
       date: new Date(),
       mealCharge: 0,
-      message: "",
     },
   });
   function onSubmit(values: GuestMeal) {
@@ -258,19 +257,6 @@ export default function CreateGuestMealForm() {
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="message"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Meal Message</FormLabel>
-              <FormControl>
-                <Input placeholder="Optional message..." {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
         <FormField
           control={form.control}
           name="mealCharge"
