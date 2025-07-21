@@ -4,6 +4,7 @@ import { tryCatch } from "@/hooks/try-catch";
 import kyInstance from "@/lib/ky";
 import { toast } from "sonner";
 import { approveGuestMealRequest, declineGuestMealRequest } from "./action";
+import { getErrorMessage } from "@/lib/utils";
 interface MealStore {
   getMealData: () => Promise<void>;
   mealData: DailyMealActivity | null;
@@ -22,7 +23,9 @@ export const useMealStore = create<MealStore>((set) => ({
   loading: true,
   guestRequests: [],
   errorOnGetGuestRequests: null,
-  getMealData: async () => {
+  getMealData: async (force = false) => {
+    const state = useMealStore.getState();
+    if (state.mealData && !force) return;
     set({ loading: true });
     const { data: result, error } = await tryCatch(
       kyInstance.get("/api/manager/meal").json<DailyMealActivity>(),
@@ -35,7 +38,6 @@ export const useMealStore = create<MealStore>((set) => ({
   },
 
   setMealData: (data) => set({ mealData: data }),
-
   clearMealData: () => set({ mealData: null }),
 
   getGuestMealRequests: async () => {
@@ -48,7 +50,8 @@ export const useMealStore = create<MealStore>((set) => ({
       set({ guestRequests: result, errorOnGetGuestRequests: null });
     }
     if (error) {
-      set({ errorOnGetGuestRequests: error.message });
+      const message = await getErrorMessage(error);
+      set({ errorOnGetGuestRequests: message });
     }
   },
   approveGuestRequest: async (requestId) => {

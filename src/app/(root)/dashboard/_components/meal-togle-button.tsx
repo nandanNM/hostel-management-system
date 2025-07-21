@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { toggleMealStatus } from "../action";
 import z from "zod";
 import { MealStatusType } from "@/generated/prisma";
-import { cn } from "@/lib/utils";
+import { cn, getErrorMessage } from "@/lib/utils";
 
 const toggleMealStatusSchema = z.object({
   status: z.enum(["ACTIVE", "INACTIVE", "SUSPENDED"]),
@@ -41,11 +41,8 @@ export default function MealToggleButton() {
       );
 
       if (error) {
-        toast.error(
-          error.message || error.name === "TimeoutError"
-            ? "Request timed out. Please try again."
-            : "An unexpected error occurred. Please try again later.",
-        );
+        const message = await getErrorMessage(error);
+        toast.error(message);
         return;
       }
 

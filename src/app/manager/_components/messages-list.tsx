@@ -10,7 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessageSquare } from "lucide-react";
 import type { GetUserMealEventWithUser } from "@/types/prisma.type";
-import { cn, formatRelativeDate } from "@/lib/utils";
+import { cn, formatRelativeDate, getErrorMessage } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import kyInstance from "@/lib/ky";
 import { tryCatch } from "@/hooks/try-catch";
@@ -28,7 +28,8 @@ export function MessagesList() {
           .json<GetUserMealEventWithUser[]>(),
       );
       if (error) {
-        setError(error.message);
+        const message = await getErrorMessage(error);
+        setError(message);
         return;
       }
       if (data) {

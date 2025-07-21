@@ -14,7 +14,7 @@ import kyInstance from "@/lib/ky";
 import { DailyMealActivity } from "@/generated/prisma";
 import LoadingButton from "@/components/LoadingButton";
 import { useMealStore } from "../store";
-import { formatRelativeDate } from "@/lib/utils";
+import { formatRelativeDate, getErrorMessage } from "@/lib/utils";
 import ManagerPageSkeleton from "./manager-page-skeleton";
 
 export function MealDataCard() {
@@ -30,7 +30,8 @@ export function MealDataCard() {
         kyInstance.post("/api/manager/meal").json<DailyMealActivity>(),
       );
       if (error) {
-        toast.error(error.message);
+        const message = await getErrorMessage(error);
+        toast.error(message);
         return;
       }
       setMealData(result);

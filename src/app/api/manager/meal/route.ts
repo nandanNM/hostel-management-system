@@ -178,7 +178,7 @@ export async function POST() {
       userId: meal.userId,
       mealTime,
       date: todayStart,
-      isPresent: true, // Already filtered for active users
+      isPresent: meal.status === MealStatusType.ACTIVE ? true : false, // Already filtered for active users
       mealId: meal.id,
     }));
 

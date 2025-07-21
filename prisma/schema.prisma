@@ -232,11 +232,11 @@ model DailyMealActivity {
   totalNonvegChicken Int          @map("total_nonveg_chicken")
   totalNonvegFish    Int          @map("total_nonveg_fish")
   totalNonvegEgg     Int          @map("total_nonveg_egg")
-  messages           String[]
   createdAt          DateTime     @default(now()) @map("created_at")
   updatedAt          DateTime     @updatedAt @map("updated_at")
 
   @@unique([mealTime, createdAt])
+  @@index([mealTime, createdAt])
   @@map("daily_meal_activities")
 }
 

@@ -32,3 +32,32 @@ export function formatNumber(n: number): string {
     maximumFractionDigits: 1,
   }).format(n);
 }
+
+export async function getErrorMessage(error: unknown): Promise<string> {
+  const defaultMessage = "Something went wrong. Please try again.";
+
+  if (error instanceof Error) {
+    if (error.name === "TimeoutError") {
+      return "Request timed out. Please check your internet connection.";
+    }
+
+    const httpError = error as Error & { response?: Response };
+    if (httpError.response) {
+      try {
+        const data = await httpError.response.json();
+        return (
+          data?.message ||
+          data?.error ||
+          httpError.response.statusText ||
+          defaultMessage
+        );
+      } catch {
+        return httpError.response.statusText || defaultMessage;
+      }
+    }
+
+    return error.message || defaultMessage;
+  }
+
+  return defaultMessage;
+}
