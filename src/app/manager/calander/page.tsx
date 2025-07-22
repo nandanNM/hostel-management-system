@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
-import { format, isSameDay } from "date-fns";
+import { format, isSameDay, isValid, parseISO } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -20,6 +20,7 @@ import {
   type Feature,
   type Status,
 } from "@/components/calendar";
+import kyInstance from "@/lib/ky";
 
 // Sample data for hostel management
 const mealStatuses: Status[] = [
@@ -35,6 +36,18 @@ const residents = [
   { id: "4", name: "Sarah Wilson", room: "104" },
   { id: "5", name: "Tom Brown", room: "105" },
 ];
+
+async function getData() {
+  try {
+    const data = await kyInstance
+      .get("/api/manager/meal/calendar?date=2025-07-01")
+      .json();
+    console.log(data);
+  } catch (error) {
+    console.log(error);
+  }
+}
+getData();
 
 // Generate sample meal data
 const generateMealData = (): Feature[] => {
@@ -72,7 +85,6 @@ const generateMealData = (): Feature[] => {
       status: mealStatuses[2],
     });
   }
-  console.log("meals", meals);
 
   return meals;
 };
