@@ -32,8 +32,8 @@ import { GENDER_OPTIONS, RELIGION_OPTIONS } from "@/constants/form.constants";
 import { useRouter } from "next/navigation";
 import { Calendar } from "@/components/ui/calendar";
 import { useOnboardingStore } from "@/app/(root)/onboarding/store";
-import { onboardingSchema } from "@/lib/validations";
-const identitySchema = onboardingSchema.pick({
+import { onboardingBaseSchema } from "@/lib/validations";
+const identitySchema = onboardingBaseSchema.pick({
   name: true,
   gender: true,
   religion: true,

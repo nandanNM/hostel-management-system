@@ -7,12 +7,17 @@ import { ApiResponse } from "@/types";
 export async function approveGuestMealRequest(
   requestId: string,
 ): Promise<ApiResponse> {
-  await requireManager();
-
+  const session = await requireManager();
+  if (!session?.user.hostelId)
+    return {
+      status: "error",
+      message: "Unauthorized - Hostel ID not found",
+    };
   try {
     await prisma.guestMeal.update({
       where: {
         id: requestId,
+        hostelId: session.user.hostelId,
       },
       data: {
         status: "ACTIVE",

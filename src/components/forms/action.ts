@@ -15,7 +15,7 @@ export async function createGuestMeal(values: GuestMeal): Promise<ApiResponse> {
   }
   try {
     const session = await requireUser();
-    if (!session?.user.id) {
+    if (!session?.user.id || !session?.user.hostelId) {
       return {
         status: "error",
         message: "Unauthorized",
@@ -27,6 +27,7 @@ export async function createGuestMeal(values: GuestMeal): Promise<ApiResponse> {
         ...values,
         nonVegType: values.nonVegType ?? "NONE",
         userId: session.user.id,
+        hostelId: session.user.hostelId,
       },
     });
     return {

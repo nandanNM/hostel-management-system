@@ -40,7 +40,7 @@ export default function OnboardingMealForm() {
   const gender = useOnboardingStore((state) => state.gender);
   const religion = useOnboardingStore((state) => state.religion);
   const address = useOnboardingStore((state) => state.address);
-  const hostel = useOnboardingStore((state) => state.hostel);
+  const hostelId = useOnboardingStore((state) => state.hostelId);
   const education = useOnboardingStore((state) => state.education);
 
   type CreateMealFormValues = z.infer<typeof mealSchema>;
@@ -61,7 +61,7 @@ export default function OnboardingMealForm() {
         dob &&
         selfPhNo &&
         address &&
-        hostel &&
+        hostelId &&
         education
       ) {
         const { data: result, error } = await tryCatch(
@@ -73,7 +73,7 @@ export default function OnboardingMealForm() {
             selfPhNo,
             guardianPhNo,
             address,
-            hostel,
+            hostelId,
             education,
             mealPreference: values,
           }),
@@ -98,10 +98,10 @@ export default function OnboardingMealForm() {
 
   useEffect(() => {
     if (!useOnboardingStore.persist.hasHydrated) return;
-    if (!hostel) {
+    if (!hostelId) {
       router.push("/onboarding/identity");
     }
-  }, [name, selfPhNo, dob, address, hostel, education, router]);
+  }, [name, selfPhNo, dob, address, hostelId, education, router]);
   return (
     <Form {...form}>
       <form

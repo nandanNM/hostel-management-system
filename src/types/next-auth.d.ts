@@ -6,12 +6,14 @@ declare module "next-auth" {
     user: {
       role: UserRoleType;
       onboardingCompleted: boolean;
+      status: UserStatusType;
+      hostelId?: string | null;
     } & DefaultSession["user"];
   }
 
   interface User extends DefaultUser {
     role: UserRoleType;
-
+    hostelId?: string | null;
     onboardingCompleted: boolean;
     status: UserStatusType;
   }
@@ -20,7 +22,7 @@ declare module "next-auth" {
 declare module "next-auth/jwt" {
   interface JWT {
     role: UserRoleType;
-
+    hostelId?: string | null;
     onboardingCompleted: boolean;
     status: UserStatusType;
   }

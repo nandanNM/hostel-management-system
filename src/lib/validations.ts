@@ -41,14 +41,6 @@ export const educationSchema = z
     path: ["passingYear"],
   });
 
-// Hostel info
-export const hostelSchema = z.object({
-  hostelId: z.string().min(1, "Hostel ID required"),
-  name: z.string().min(1, "Hostel name required"),
-  tag: z.string().min(1, "Hostel tag required"),
-  address: z.string().min(1, "Address is required"),
-});
-
 // Meal preferences
 export const mealSchema = z.object({
   type: z.enum(["VEG", "NON_VEG"]),
@@ -59,23 +51,22 @@ export const mealSchema = z.object({
 });
 
 // Complete onboarding form
-export const onboardingSchema = z
-  .object({
-    ...userSchema.shape,
-    hostel: hostelSchema,
-    education: educationSchema,
-    mealPreference: mealSchema,
-  })
-  .refine(
-    (data) =>
-      data.mealPreference.type === "VEG" ||
-      (data.mealPreference.type === "NON_VEG" &&
-        data.mealPreference.nonVegType !== "NONE"),
-    {
-      message: "nonVegType must be set if meal is NON_VEG",
-      path: ["nonVegType"],
-    },
-  );
+export const onboardingBaseSchema = z.object({
+  ...userSchema.shape,
+  hostelId: z.string().min(1, "Hostel ID required"),
+  education: educationSchema,
+  mealPreference: mealSchema,
+});
+export const onboardingSchema = onboardingBaseSchema.refine(
+  (data) =>
+    data.mealPreference.type === "VEG" ||
+    (data.mealPreference.type === "NON_VEG" &&
+      data.mealPreference.nonVegType !== "NONE"),
+  {
+    message: "nonVegType must be set if meal is NON_VEG",
+    path: ["nonVegType"],
+  },
+);
 
 // Guest meal booking
 export const guestMealSchema = z

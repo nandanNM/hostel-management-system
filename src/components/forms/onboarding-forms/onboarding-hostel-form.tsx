@@ -12,7 +12,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import {
@@ -22,11 +21,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { HOSTAL_ID, HOSTAL_TAG } from "@/constants/form.constants";
+import { HOSTAL_ID } from "@/constants/form.constants";
 import { useOnboardingStore } from "@/app/(root)/onboarding/store";
 import { useEffect } from "react";
-import { hostelSchema } from "@/lib/validations";
+import { onboardingBaseSchema } from "@/lib/validations";
 
+const hostelSchema = onboardingBaseSchema.pick({
+  hostelId: true,
+});
 type OnboardingHostelFormValues = z.infer<typeof hostelSchema>;
 export default function OnboardingHostelForm() {
   const router = useRouter();
@@ -43,14 +45,11 @@ export default function OnboardingHostelForm() {
     resolver: zodResolver(hostelSchema),
     defaultValues: {
       hostelId: "",
-      name: "",
-      tag: HOSTAL_TAG[0],
-      address: "",
     },
   });
   function onSubmit(values: OnboardingHostelFormValues) {
     setData({
-      hostel: values,
+      hostelId: values.hostelId,
     });
     router.push("/onboarding/meal");
   }
@@ -67,47 +66,6 @@ export default function OnboardingHostelForm() {
         onSubmit={form.handleSubmit(onSubmit)}
         className="mx-auto max-w-3xl space-y-6 py-5"
       >
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Hostel Name</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter hostel full name" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="tag"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Hostel Tag</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue
-                      className="w-full"
-                      placeholder="Select your hostel tag"
-                    />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {HOSTAL_TAG.map((tag) => (
-                    <SelectItem key={tag} value={tag}>
-                      {tag}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
         <FormField
           control={form.control}
           name="hostelId"
@@ -131,20 +89,6 @@ export default function OnboardingHostelForm() {
                   ))}
                 </SelectContent>
               </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="address"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Address</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter your hostel address" {...field} />
-              </FormControl>
               <FormMessage />
             </FormItem>
           )}

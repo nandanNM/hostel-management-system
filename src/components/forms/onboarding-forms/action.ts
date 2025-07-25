@@ -30,7 +30,6 @@ export const createUserOnboarding = async (
         },
         data: {
           ...values,
-          hostelId: values.hostel.hostelId,
           onboardingCompleted: true,
           status: "INACTIVE",
         },
@@ -38,6 +37,7 @@ export const createUserOnboarding = async (
       await prisma.meal.create({
         data: {
           ...values.mealPreference,
+          hostelId: values.hostelId,
           userId: session.user.id,
         },
       }),
