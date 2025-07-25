@@ -49,8 +49,8 @@ model User {
   hashedPassword String?   @map("hashed_password")
 
   // Multi-Tenancy: Link User to a specific Hostel
-  hostelId String @map("hostel_id")
-  hostel   Hostel @relation(fields: [hostelId], references: [id], onDelete: Cascade) // CASCADE here is typical for users if hostel is deleted
+  hostelId String? @map("hostel_id")
+  hostel   Hostel? @relation(fields: [hostelId], references: [id], onDelete: SetNull) // CASCADE here is typical for users if hostel is deleted
 
   roomId              String?        @map("room_id")
   gender              GenderType?
@@ -453,10 +453,11 @@ enum GenderType {
 
 enum UserRoleType {
   STUDENT
-  MANAGER
-  ADMIN
-  SUPER_ADMIN // Added Super Admin for platform-level management
   STAFF
+  MANAGER
+  AUDITOR
+  ADMIN
+  SUPER_ADMIN
 }
 
 enum UserStatusType {
