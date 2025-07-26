@@ -99,7 +99,6 @@ const getUsers = async (params: {
 }): Promise<UsersResponse> => {
   // Simulate API delay
   await new Promise((resolve) => setTimeout(resolve, 100));
-
   const { search = "", page = 1, pageSize = 5 } = params;
 
   // Filter users based on search query
