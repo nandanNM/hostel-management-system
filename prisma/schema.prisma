@@ -35,7 +35,7 @@ model Hostel {
   notifications       Notification[]      @relation("HostelNotifications") // Notifications for users of this hostel
   activityLogs        ActivityLog[]       @relation("HostelActivity") // Activity logs within this hostel
   userMealEvents      UserMealEvent[]
-  Media               Media[]
+  media               Media[]
 
   @@map("hostels")
 }
@@ -57,7 +57,7 @@ model User {
   religion            String?
   dob                 DateTime?
   education           Json?
-  // hostel               Json? // This 'hostel' field as Json is redundant with the relation. Consider removing.
+  // Removed redundant 'hostel' Json field - use the relation instead
   selfPhNo            String?        @map("self_ph_no")
   guardianPhNo        String?        @map("guardian_ph_no")
   address             String?
@@ -206,7 +206,7 @@ model UserPayment {
   hostel   Hostel @relation(fields: [hostelId], references: [id]) // RESTRICT for financial integrity
 
   paidAmount Float             @map("paid_amount")
-  starus     PaymentStatusType // Typo: Should be `status`
+  status     PaymentStatusType // Fixed typo: was 'starus'
 
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   audit Audit @relation(fields: [auditId], references: [id], onDelete: Cascade)
@@ -413,7 +413,7 @@ model Media {
 
   createdAt DateTime @default(now())
 
-  @@map("posr_media") // Typo: consider renaming to 'hostel_media' or 'attachments'
+  @@map("media") // Fixed typo: was "posr_media"
 }
 
 model UserMealEvent {

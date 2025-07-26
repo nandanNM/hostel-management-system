@@ -145,17 +145,7 @@ async function UsersContent({ searchParams }: UsersPageProps) {
       <div className="mb-4 rounded-md">
         <h2 className="font-semibold">All Users</h2>
       </div>
-      <DataTable
-        columns={userColumns}
-        data={usersResponse.data}
-        pagination={{
-          totalCount: usersResponse.totalCount,
-          totalPages: usersResponse.totalPages,
-          currentPage: usersResponse.currentPage,
-          pageSize: usersResponse.pageSize,
-        }}
-        searchValue={search}
-      />
+      <DataTable columns={userColumns} data={usersResponse.data} />
     </div>
   );
 }
