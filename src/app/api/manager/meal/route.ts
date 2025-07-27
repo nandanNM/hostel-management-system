@@ -1,4 +1,5 @@
 import {
+  GuestMealStatusType,
   MealStatusType,
   MealType,
   NonVegType,
@@ -112,7 +113,7 @@ export async function POST() {
             gte: todayStart,
             lte: todayEnd,
           },
-          status: MealStatusType.ACTIVE,
+          status: GuestMealStatusType.APPROVED,
         },
         select: {
           id: true,

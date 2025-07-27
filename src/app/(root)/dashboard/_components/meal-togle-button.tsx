@@ -13,7 +13,7 @@ import { MealStatusType } from "@/generated/prisma";
 import { cn, getErrorMessage } from "@/lib/utils";
 
 const toggleMealStatusSchema = z.object({
-  status: z.enum(["ACTIVE", "INACTIVE", "SUSPENDED"]),
+  status: z.nativeEnum(MealStatusType),
 });
 type ToggleMealStatusForm = z.infer<typeof toggleMealStatusSchema>;
 
@@ -45,7 +45,7 @@ export default function MealToggleButton() {
         toast.error(message);
         return;
       }
-
+      console.log("result", result);
       setValue("status", result.status);
     });
   }, [setValue]);

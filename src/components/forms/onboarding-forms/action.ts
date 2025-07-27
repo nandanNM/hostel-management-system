@@ -1,5 +1,6 @@
 "use server";
 
+import { UserStatusType } from "@/generated/prisma";
 import prisma from "@/lib/prisma";
 import { requireUser } from "@/lib/require-user";
 import { onboardingSchema, User } from "@/lib/validations";
@@ -20,7 +21,7 @@ export const createUserOnboarding = async (
     if (!validation.success) {
       return {
         status: "error",
-        message: "Invalid Form Data",
+        message: `Invalid Form Data - ${validation.error.message}`,
       };
     }
     Promise.all([
@@ -31,7 +32,7 @@ export const createUserOnboarding = async (
         data: {
           ...values,
           onboardingCompleted: true,
-          status: "INACTIVE",
+          status: UserStatusType.INACTIVE,
         },
       }),
       await prisma.meal.create({

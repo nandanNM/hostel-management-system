@@ -11,6 +11,7 @@ interface MealStore {
   loading: boolean;
   setMealData: (data: DailyMealActivity) => void;
   clearMealData: () => void;
+  error: string | null;
   guestRequests: GuestMeal[] | [];
   errorOnGetGuestRequests: string | null;
   approveGuestRequest: (requestId: string) => Promise<void>;
@@ -21,19 +22,28 @@ interface MealStore {
 export const useMealStore = create<MealStore>((set) => ({
   mealData: null,
   loading: true,
+  error: null,
   guestRequests: [],
   errorOnGetGuestRequests: null,
   getMealData: async (force = false) => {
     const state = useMealStore.getState();
+
     if (state.mealData && !force) return;
-    set({ loading: true });
+
+    set({ loading: true, error: null });
+
     const { data: result, error } = await tryCatch(
       kyInstance.get("/api/manager/meal").json<DailyMealActivity>(),
     );
-    if (!error && result) {
-      toast.success("Successfully fetched today's meal data.");
+
+    if (error) {
+      toast.error(error.message || "Failed to fetch meal data.");
+      set({ error: error.message || "Unknown error occurred." });
+    } else if (result) {
       set({ mealData: result });
+      toast.success("Successfully fetched today's meal data.");
     }
+
     set({ loading: false });
   },
 

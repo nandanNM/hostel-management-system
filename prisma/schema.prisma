@@ -8,34 +8,32 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Multi-Tenancy: Represents each independent hostel
 model Hostel {
   id               String  @id @default(cuid())
-  name             String  @unique // Hostel names should be unique across the platform
+  name             String  @unique
   address          String?
   contactEmail     String? @unique
   contactPhone     String?
-  isActive         Boolean @default(true) // Can be deactivated by super-admin
-  subscriptionPlan String  @default("FREE_TRIAL") // BASIC, PREMIUM, etc.
+  isActive         Boolean @default(true)
+  subscriptionPlan String  @default("FREE_TRIAL")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Inverse relations: link all hostel-specific data back here
   users               User[]
   meals               Meal[]
   guestMeals          GuestMeal[]
   userPayments        UserPayment[]
   userBills           UserBill[]
-  userFines           UserFine[]          @relation("HostelFines") // Fines belonging to this hostel
-  issuedFines         UserFine[]          @relation("HostelFineIssuer") // Fines issued by managers/staff of this hostel
+  userFines           UserFine[]          @relation("HostelFines")
+  issuedFines         UserFine[]          @relation("HostelFineIssuer")
   audits              Audit[]
   attendances         MealAttendance[]
-  dailyMealActivities DailyMealActivity[] // Aggregated stats per hostel
-  notifications       Notification[]      @relation("HostelNotifications") // Notifications for users of this hostel
-  activityLogs        ActivityLog[]       @relation("HostelActivity") // Activity logs within this hostel
+  dailyMealActivities DailyMealActivity[]
+  notifications       Notification[]      @relation("HostelNotifications")
+  activityLogs        ActivityLog[]       @relation("HostelActivity")
   userMealEvents      UserMealEvent[]
-  media               Media[]
+  Media               Media[]
 
   @@map("hostels")
 }
@@ -43,21 +41,19 @@ model Hostel {
 model User {
   id             String    @id @default(cuid())
   name           String?
-  email          String // Unique constraint moved to @@unique below
+  email          String    @unique
   emailVerified  DateTime? @map("email_verified")
   image          String?
   hashedPassword String?   @map("hashed_password")
 
-  // Multi-Tenancy: Link User to a specific Hostel
   hostelId String? @map("hostel_id")
-  hostel   Hostel? @relation(fields: [hostelId], references: [id], onDelete: SetNull) // CASCADE here is typical for users if hostel is deleted
+  hostel   Hostel? @relation(fields: [hostelId], references: [id], onDelete: SetNull)
 
   roomId              String?        @map("room_id")
   gender              GenderType?
   religion            String?
   dob                 DateTime?
   education           Json?
-  // Removed redundant 'hostel' Json field - use the relation instead
   selfPhNo            String?        @map("self_ph_no")
   guardianPhNo        String?        @map("guardian_ph_no")
   address             String?
@@ -66,13 +62,11 @@ model User {
   status              UserStatusType @default(PENDING_ONBOARDING)
   joinDate            DateTime?      @map("join_date")
   onboardingCompleted Boolean        @default(false) @map("onboarding_completed")
-  // `mealPreference` can store the `mealServiceOptedIn` boolean (e.g., in a JSON field)
-  // Or add a dedicated `mealServiceOptedIn Boolean @default(true)` field here.
-  mealPreference      Json           @default("{}") @map("meal_preference") // Consider adding a direct `mealServiceOptedIn Boolean` field
+  mealPreference      Json           @default("{}") @map("meal_preference")
   newChargelist       Json[]         @default([]) @map("new_charge_list")
   helpSection         Json[]         @default([]) @map("help_section")
 
-  deletedAt DateTime? @map("deleted_at") // Soft delete for users
+  deletedAt DateTime? @map("deleted_at")
 
   meals                 Meal[]
   guestMeals            GuestMeal[]
@@ -84,21 +78,21 @@ model User {
   attendances           MealAttendance[]
   receivedNotifications Notification[]   @relation("Recipient")
   issuedNotifications   Notification[]   @relation("Issuer")
+  activityLogs          ActivityLog[]    @relation("UserActivity")
+  accounts              Account[]
+  sessions              Session[]
+  userMealEvent         UserMealEvent[]
+  audit                 Audit[]          @relation("AuditApprover")
+  UserPayment           UserPayment[]    @relation("PaymentProcessor")
+  GuestMeal             GuestMeal[]      @relation("GuestMealApprover")
+  UserFine              UserFine[]       @relation("FineWaiver")
 
-  activityLogs ActivityLog[] @relation("UserActivity")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  accounts Account[]
-  sessions Session[]
-
-  createdAt     DateTime        @default(now()) @map("created_at")
-  updatedAt     DateTime        @updatedAt @map("updated_at")
-  UserMealEvent UserMealEvent[]
-
-  // Multi-Tenancy: Ensure email is unique *per hostel*
   @@unique([hostelId, email])
-  // Optional: If you have a username field, add: @@unique([hostelId, username])
-  @@index([name, hostelId]) // Existing index with hostelId
-  @@index([hostelId]) // Crucial index for multi-tenancy filtering
+  @@index([name, hostelId])
+  @@index([hostelId])
   @@map("users")
 }
 
@@ -148,14 +142,13 @@ model VerificationToken {
 
 model Meal {
   id         String         @id @default(cuid())
-  userId     String         @unique @map("user_id") // Unique per user (e.g., active meal plan)
+  userId     String         @unique @map("user_id")
   type       MealType
   nonVegType NonVegType     @default(NONE)
   status     MealStatusType @default(INACTIVE)
 
-  // Multi-Tenancy: Link Meal to a specific Hostel
   hostelId String @map("hostel_id")
-  hostel   Hostel @relation(fields: [hostelId], references: [id], onDelete: Cascade) // Meals belong to a hostel
+  hostel   Hostel @relation(fields: [hostelId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -163,7 +156,7 @@ model Meal {
   user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   attendances MealAttendance[]
 
-  @@index([hostelId]) // Index for hostel filtering
+  @@index([hostelId])
   @@map("meals")
 }
 
@@ -171,9 +164,8 @@ model Audit {
   id        String @id @default(cuid())
   auditorId String @map("auditor_id")
 
-  // Multi-Tenancy: Link Audit to a specific Hostel
   hostelId String @map("hostel_id")
-  hostel   Hostel @relation(fields: [hostelId], references: [id]) // RESTRICT for financial integrity
+  hostel   Hostel @relation(fields: [hostelId], references: [id])
 
   date               DateTime
   riceExpenses       Float    @map("rice_expenses")
@@ -191,8 +183,13 @@ model Audit {
   userBills   UserBill[]
   payments    UserPayment[]
   attachments Media[]
+  approvedBy  String?       @map("approved_by")
+  approvedAt  DateTime?     @map("approved_at")
+  version     Int           @default(0)
 
-  @@index([hostelId]) // Index for hostel filtering
+  approver User? @relation("AuditApprover", fields: [approvedBy], references: [id], onDelete: Restrict)
+
+  @@index([hostelId])
   @@map("audits")
 }
 
@@ -201,20 +198,25 @@ model UserPayment {
   userId  String @map("user_id")
   auditId String @map("audit_id")
 
-  // Multi-Tenancy: Link UserPayment to a specific Hostel
   hostelId String @map("hostel_id")
-  hostel   Hostel @relation(fields: [hostelId], references: [id]) // RESTRICT for financial integrity
+  hostel   Hostel @relation(fields: [hostelId], references: [id])
 
   paidAmount Float             @map("paid_amount")
-  status     PaymentStatusType // Fixed typo: was 'starus'
+  starus     PaymentStatusType
 
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   audit Audit @relation(fields: [auditId], references: [id], onDelete: Cascade)
 
-  createdAt DateTime   @default(now()) @map("created_at")
-  userBill  UserBill[]
+  createdAt     DateTime   @default(now()) @map("created_at")
+  userBill      UserBill[]
+  paymentMethod String?    @map("payment_method")
+  transactionId String?    @unique @map("transaction_id")
+  processedBy   String?    @map("processed_by")
+  processedAt   DateTime?  @map("processed_at")
 
-  @@index([hostelId]) // Index for hostel filtering
+  processor User? @relation("PaymentProcessor", fields: [processedBy], references: [id], onDelete: Restrict)
+
+  @@index([hostelId])
   @@map("user_payments")
 }
 
@@ -222,9 +224,8 @@ model UserBill {
   id     String @id @default(cuid())
   userId String @map("user_id")
 
-  // Multi-Tenancy: Link UserBill to a specific Hostel
   hostelId String @map("hostel_id")
-  hostel   Hostel @relation(fields: [hostelId], references: [id]) // RESTRICT for financial integrity
+  hostel   Hostel @relation(fields: [hostelId], references: [id])
 
   auditId          String?       @map("audit_id")
   fineId           String?       @map("fine_id")
@@ -246,7 +247,7 @@ model UserBill {
   guestMeal GuestMeal?   @relation(fields: [guestMealId], references: [id])
   payment   UserPayment? @relation(fields: [paymentId], references: [id])
 
-  @@index([hostelId]) // Index for hostel filtering
+  @@index([hostelId])
   @@map("user_bills")
 }
 
@@ -254,9 +255,8 @@ model GuestMeal {
   id     String @id @default(cuid())
   userId String @map("user_id")
 
-  // Multi-Tenancy: Link GuestMeal to a specific Hostel
   hostelId String @map("hostel_id")
-  hostel   Hostel @relation(fields: [hostelId], references: [id], onDelete: Cascade) // Guest meals belong to a hostel
+  hostel   Hostel @relation(fields: [hostelId], references: [id], onDelete: Cascade)
 
   name          String
   numberOfMeals Int                 @map("number_of_meals")
@@ -269,10 +269,14 @@ model GuestMeal {
   status        GuestMealStatusType @default(PENDING)
   createdAt     DateTime            @default(now()) @map("created_at")
 
-  user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userBill UserBill[]
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userBill   UserBill[]
+  approvedBy String?    @map("approved_by")
+  approvedAt DateTime?  @map("approved_at")
 
-  @@index([hostelId]) // Index for hostel filtering
+  approver User? @relation("GuestMealApprover", fields: [approvedBy], references: [id], onDelete: Restrict)
+
+  @@index([hostelId])
   @@map("guest_meals")
 }
 
@@ -280,18 +284,16 @@ model UserFine {
   id     String @id @default(cuid())
   userId String @map("user_id")
 
-  // Multi-Tenancy: Link UserFine to a specific Hostel (fine belongs to this hostel)
   hostelId String @map("hostel_id")
-  hostel   Hostel @relation("HostelFines", fields: [hostelId], references: [id]) // RESTRICT for financial integrity
+  hostel   Hostel @relation("HostelFines", fields: [hostelId], references: [id])
 
   amount   Float
   reason   String
   status   FineStatusType @default(PENDING)
-  issuedBy String         @map("issued_by") // User who issued the fine
+  issuedBy String         @map("issued_by")
 
-  // Multi-Tenancy: Link Issuer's Hostel for context
   issuedByHostelId String @map("issued_by_hostel_id")
-  issuedByHostel   Hostel @relation("HostelFineIssuer", fields: [issuedByHostelId], references: [id]) // RESTRICT for financial integrity
+  issuedByHostel   Hostel @relation("HostelFineIssuer", fields: [issuedByHostelId], references: [id])
 
   dueDate   DateTime  @map("due_date")
   paidDate  DateTime? @map("paid_date")
@@ -300,11 +302,15 @@ model UserFine {
 
   userBill UserBill[]
 
-  user   User @relation("UserFines", fields: [userId], references: [id], onDelete: Cascade)
-  issuer User @relation("FineIssuer", fields: [issuedBy], references: [id], onDelete: Cascade)
+  user     User      @relation("UserFines", fields: [userId], references: [id], onDelete: Cascade)
+  issuer   User      @relation("FineIssuer", fields: [issuedBy], references: [id], onDelete: Cascade)
+  waivedBy String?   @map("waived_by")
+  waivedAt DateTime? @map("waived_at")
 
-  @@index([hostelId]) // Index for fine's hostel
-  @@index([issuedByHostelId]) // Index for issuer's hostel
+  waiver User? @relation("FineWaiver", fields: [waivedBy], references: [id], onDelete: Restrict)
+
+  @@index([hostelId])
+  @@index([issuedByHostelId])
   @@map("user_fines")
 }
 
@@ -312,9 +318,8 @@ model DailyMealActivity {
   id       String       @id @default(cuid())
   mealTime MealTimeType
 
-  // Multi-Tenancy: Link DailyMealActivity to a specific Hostel
   hostelId String @map("hostel_id")
-  hostel   Hostel @relation(fields: [hostelId], references: [id], onDelete: Cascade) // Daily activity belongs to a hostel
+  hostel   Hostel @relation(fields: [hostelId], references: [id], onDelete: Cascade)
 
   totalMeal          Int      @map("total_meals")
   totalGuestMeal     Int      @map("total_guest_meals")
@@ -325,9 +330,9 @@ model DailyMealActivity {
   createdAt          DateTime @default(now()) @map("created_at")
   updatedAt          DateTime @updatedAt @map("updated_at")
 
-  @@unique([hostelId, mealTime, createdAt]) // Unique per hostel, meal time, and creation date
-  @@index([hostelId, mealTime, createdAt]) // Index including hostelId
-  @@index([hostelId]) // Index for hostel filtering
+  @@unique([hostelId, mealTime, createdAt])
+  @@index([hostelId, mealTime, createdAt])
+  @@index([hostelId])
   @@map("daily_meal_activities")
 }
 
@@ -339,9 +344,8 @@ model MealAttendance {
   isPresent Boolean      @map("is_present")
   mealId    String?      @map("meal_id")
 
-  // Multi-Tenancy: Link MealAttendance to a specific Hostel
   hostelId String @map("hostel_id")
-  hostel   Hostel @relation(fields: [hostelId], references: [id], onDelete: Cascade) // Attendance belongs to a hostel
+  hostel   Hostel @relation(fields: [hostelId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -349,8 +353,8 @@ model MealAttendance {
   user User  @relation(fields: [userId], references: [id])
   meal Meal? @relation(fields: [mealId], references: [id])
 
-  @@unique([hostelId, userId, date, mealTime]) // Unique per hostel, user, date, meal time
-  @@index([hostelId]) // Index for hostel filtering
+  @@unique([hostelId, userId, date, mealTime])
+  @@index([hostelId])
   @@map("meal_attendances")
 }
 
@@ -360,9 +364,8 @@ model Notification {
   message     String
   recipientId String
 
-  // Multi-Tenancy: Link Notification to a specific Hostel
   hostelId String @map("hostel_id")
-  hostel   Hostel @relation("HostelNotifications", fields: [hostelId], references: [id], onDelete: Cascade) // Notifications belong to a hostel
+  hostel   Hostel @relation("HostelNotifications", fields: [hostelId], references: [id], onDelete: Cascade)
 
   user      User             @relation("Recipient", fields: [recipientId], references: [id], onDelete: Cascade)
   issuerId  String
@@ -371,17 +374,16 @@ model Notification {
   read      Boolean          @default(false)
   createdAt DateTime         @default(now()) @map("created_at")
 
-  @@index([hostelId]) // Index for hostel filtering
+  @@index([hostelId])
   @@map("notifications")
 }
 
 model ActivityLog {
   id     String  @id @default(cuid())
-  userId String? @map("user_id") // Nullable if system actions or anonymous actions are logged
+  userId String? @map("user_id")
 
-  // Multi-Tenancy: Link ActivityLog to a specific Hostel
-  hostelId String? @map("hostel_id") // Nullable if system-wide logs exist without a specific hostel
-  hostel   Hostel? @relation("HostelActivity", fields: [hostelId], references: [id], onDelete: SetNull) // If hostel is deleted, set to null
+  hostelId String? @map("hostel_id")
+  hostel   Hostel? @relation("HostelActivity", fields: [hostelId], references: [id], onDelete: SetNull)
 
   actionType String   @map("action_type")
   entityType String?  @map("entity_type")
@@ -395,7 +397,7 @@ model ActivityLog {
 
   user User? @relation("UserActivity", fields: [userId], references: [id], onDelete: SetNull)
 
-  @@index([hostelId]) // Index for hostel filtering
+  @@index([hostelId])
   @@map("activity_logs")
 }
 
@@ -405,41 +407,38 @@ model Media {
   entry  EntryType
   url    String
 
-  // Multi-Tenancy: Link Media to a specific Hostel (if media is hostel-specific, e.g., audit attachments)
   hostelId String @map("hostel_id")
-  hostel   Hostel @relation(fields: [hostelId], references: [id], onDelete: Cascade) // Media belongs to a hostel
+  hostel   Hostel @relation(fields: [hostelId], references: [id], onDelete: Cascade)
 
   post Audit? @relation(fields: [postId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
 
-  @@map("media") // Fixed typo: was "posr_media"
+  @@map("posr_media")
 }
 
 model UserMealEvent {
   id     String @id @default(cuid())
   userId String @map("user_id")
 
-  // Multi-Tenancy: Link UserMealEvent to a specific Hostel
   hostelId String @map("hostel_id")
-  hostel   Hostel @relation(fields: [hostelId], references: [id], onDelete: Cascade) // Meal events belong to a hostel
+  hostel   Hostel @relation(fields: [hostelId], references: [id], onDelete: Cascade)
 
   mealTime  MealTimeType
   date      DateTime
-  type      MealEventType? // Added type from previous discussion
+  type      MealEventType?
   message   String
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
 
   user User @relation(fields: [userId], references: [id])
 
-  @@index([hostelId, userId, date, mealTime]) // Efficient lookup within a hostel
-  @@index([hostelId, date, mealTime]) // Efficient lookup for all events in a hostel for a meal
-  @@index([hostelId]) // General index for hostel filtering
+  @@index([hostelId, userId, date, mealTime])
+  @@index([hostelId, date, mealTime])
+  @@index([hostelId])
   @@map("user_meal_events")
 }
 
-// Enums
 enum EntryType {
   AUDIT
   DAILY
@@ -469,6 +468,7 @@ enum UserStatusType {
 }
 
 enum FineStatusType {
+  CANCELLED
   PENDING
   PAID
   WAIVED
@@ -476,6 +476,8 @@ enum FineStatusType {
 }
 
 enum PaymentStatusType {
+  REFUNDED
+  CANCELLED
   PENDING
   PAID
   FAILED
@@ -487,6 +489,7 @@ enum MealType {
 }
 
 enum NonVegType {
+  MUTTON
   CHICKEN
   FISH
   EGG
@@ -499,13 +502,16 @@ enum MealTimeType {
 }
 
 enum MealStatusType {
+  MAINTENANCE
   ACTIVE
   INACTIVE
   SUSPENDED
 }
 
 enum GuestMealStatusType {
-  ACTIVE
+  SERVED
+  CANCELLED
+  APPROVED
   PENDING
   REJECTED
 }
@@ -519,19 +525,20 @@ enum NotificationType {
 }
 
 enum BillEntryType {
-  MEAL_CHARGE // Monthly meal charge derived from Audit
-  FINE_CHARGE // Fine incurred by the user
-  GUEST_MEAL_CHARGE // Charge for guest meals
-  PAYMENT // Payment made by the user (recorded as a negative amount in UserBill)
-  ADJUSTMENT_CREDIT // Any credit/refund given to the user
-  ADJUSTMENT_DEBIT // Any extra charge/debit
+  SECURITY_DEPOSIT
+  REFUND
+  MEAL_CHARGE
+  FINE_CHARGE
+  GUEST_MEAL_CHARGE
+  PAYMENT
+  ADJUSTMENT_CREDIT
+  ADJUSTMENT_DEBIT
 }
 
-// Added for UserMealEvent - define the types of meal-related events
 enum MealEventType {
-  OPT_OUT // User explicitly opted out of a meal
-  OPT_IN // User explicitly opted in (if initially absent)
-  REQUEST // User requested something specific (e.g., extra, special diet)
-  STAFF_NOTE // A note made by staff about a user's meal
-  OTHER // General purpose
+  OPT_OUT
+  OPT_IN
+  REQUEST
+  STAFF_NOTE
+  OTHER
 }

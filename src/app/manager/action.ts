@@ -1,6 +1,7 @@
 "use server";
 
 import requireManager from "@/data/manager/require-manager";
+import { GuestMealStatusType } from "@/generated/prisma";
 import prisma from "@/lib/prisma";
 import { ApiResponse } from "@/types";
 
@@ -20,7 +21,7 @@ export async function approveGuestMealRequest(
         hostelId: session.user.hostelId,
       },
       data: {
-        status: "ACTIVE",
+        status: GuestMealStatusType.APPROVED,
       },
     });
 

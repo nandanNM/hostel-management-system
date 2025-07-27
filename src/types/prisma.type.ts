@@ -16,3 +16,15 @@ export type GetUserMealEventWithUser = Prisma.UserMealEventGetPayload<{
     };
   };
 }>;
+
+export type GetMealWithUser = Prisma.MealGetPayload<{
+  include: {
+    user: {
+      select: {
+        name: true;
+        email: true;
+        image: true;
+      };
+    };
+  };
+}>;
