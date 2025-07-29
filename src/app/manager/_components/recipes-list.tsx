@@ -1,23 +1,24 @@
+import { ChefHat, Leaf, Utensils } from "lucide-react"
+
+import { Badge } from "@/components/ui/badge"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { ChefHat, Leaf, Utensils } from "lucide-react";
+} from "@/components/ui/card"
 
 interface Recipe {
-  id: string;
-  name: string;
-  type: "vegetarian" | "non-vegetarian";
-  preparationTime: string;
-  servings: number;
+  id: string
+  name: string
+  type: "vegetarian" | "non-vegetarian"
+  preparationTime: string
+  servings: number
 }
 
 interface RecipesListProps {
-  recipes: Recipe[];
+  recipes: Recipe[]
 }
 
 export function RecipesList({ recipes }: RecipesListProps) {
@@ -26,8 +27,8 @@ export function RecipesList({ recipes }: RecipesListProps) {
       <Leaf className="h-4 w-4" />
     ) : (
       <Utensils className="h-4 w-4" />
-    );
-  };
+    )
+  }
 
   return (
     <Card>
@@ -64,5 +65,5 @@ export function RecipesList({ recipes }: RecipesListProps) {
         </div>
       </CardContent>
     </Card>
-  );
+  )
 }

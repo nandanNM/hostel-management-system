@@ -1,27 +1,28 @@
-import { UserRoleType } from "@/generated/prisma";
-import getSession from "@/lib/get-session";
-import prisma from "@/lib/prisma";
-import { getCurrentMealSlot } from "@/lib/utils";
-import { endOfDay, startOfDay } from "date-fns";
+import { UserRoleType } from "@/generated/prisma"
+import { endOfDay, startOfDay } from "date-fns"
+
+import getSession from "@/lib/get-session"
+import prisma from "@/lib/prisma"
+import { getCurrentMealSlot } from "@/lib/utils"
 
 export async function GET() {
   try {
-    const session = await getSession();
+    const session = await getSession()
     if (!session?.user.id)
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
+      return Response.json({ error: "Unauthorized" }, { status: 401 })
     if (!session?.user.hostelId)
       return Response.json(
         { error: "Unauthorized - Hostel ID not found " },
-        { status: 401 },
-      );
+        { status: 401 }
+      )
     if (session.user.role !== UserRoleType.MANAGER)
       return Response.json(
         { error: "Unauthorized - You are not a manager" },
-        { status: 401 },
-      );
-    const mealTime = getCurrentMealSlot();
-    const todayStart = startOfDay(new Date()).toISOString();
-    const todayEnd = endOfDay(new Date()).toISOString();
+        { status: 401 }
+      )
+    const mealTime = getCurrentMealSlot()
+    const todayStart = startOfDay(new Date()).toISOString()
+    const todayEnd = endOfDay(new Date()).toISOString()
     const data = await prisma.guestMeal.findMany({
       where: {
         status: "PENDING",
@@ -32,10 +33,10 @@ export async function GET() {
           lte: todayEnd,
         },
       },
-    });
-    return Response.json(data);
+    })
+    return Response.json(data)
   } catch (error) {
-    console.log(error);
-    return Response.json({ error: "Internal Server Error" }, { status: 500 });
+    console.log(error)
+    return Response.json({ error: "Internal Server Error" }, { status: 500 })
   }
 }

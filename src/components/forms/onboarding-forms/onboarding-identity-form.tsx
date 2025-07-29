@@ -1,8 +1,17 @@
-"use client";
-import { ArrowRight, Calendar as CalendarIcon } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
+"use client"
+
+import { useRouter } from "next/navigation"
+import { GENDER_OPTIONS, RELIGION_OPTIONS } from "@/constants/form.constants"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { format } from "date-fns"
+import { ArrowRight, Calendar as CalendarIcon } from "lucide-react"
+import { useForm } from "react-hook-form"
+import { z } from "zod"
+
+import { cn } from "@/lib/utils"
+import { onboardingBaseSchema } from "@/lib/validations"
+import { Button } from "@/components/ui/button"
+import { Calendar } from "@/components/ui/calendar"
 import {
   Form,
   FormControl,
@@ -10,29 +19,23 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+} from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { format } from "date-fns";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { GENDER_OPTIONS, RELIGION_OPTIONS } from "@/constants/form.constants";
-import { useRouter } from "next/navigation";
-import { Calendar } from "@/components/ui/calendar";
-import { useOnboardingStore } from "@/app/(root)/onboarding/store";
-import { onboardingBaseSchema } from "@/lib/validations";
+} from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
+import { useOnboardingStore } from "@/app/(root)/onboarding/store"
+
 const identitySchema = onboardingBaseSchema.pick({
   name: true,
   gender: true,
@@ -41,11 +44,11 @@ const identitySchema = onboardingBaseSchema.pick({
   dob: true,
   selfPhNo: true,
   guardianPhNo: true,
-});
-type OnboardingIdentityFormValues = z.infer<typeof identitySchema>;
+})
+type OnboardingIdentityFormValues = z.infer<typeof identitySchema>
 export default function OnboardingIdentityForm() {
-  const router = useRouter();
-  const setData = useOnboardingStore((state) => state.setData);
+  const router = useRouter()
+  const setData = useOnboardingStore((state) => state.setData)
   const form = useForm<OnboardingIdentityFormValues>({
     resolver: zodResolver(identitySchema),
     defaultValues: {
@@ -57,10 +60,10 @@ export default function OnboardingIdentityForm() {
       selfPhNo: "",
       guardianPhNo: "",
     },
-  });
+  })
   function onSubmit(values: OnboardingIdentityFormValues) {
-    setData(values);
-    router.push("/onboarding/education");
+    setData(values)
+    router.push("/onboarding/education")
   }
 
   return (
@@ -155,7 +158,7 @@ export default function OnboardingIdentityForm() {
                         variant={"outline"}
                         className={cn(
                           "w-[240px] pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground",
+                          !field.value && "text-muted-foreground"
                         )}
                       >
                         {field.value ? (
@@ -244,5 +247,5 @@ export default function OnboardingIdentityForm() {
         </div>
       </form>
     </Form>
-  );
+  )
 }

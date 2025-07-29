@@ -5,30 +5,31 @@ import {
   NonVegType,
   UserRoleType,
   UserStatusType,
-} from "@/generated/prisma";
-import getSession from "@/lib/get-session";
-import prisma from "@/lib/prisma";
-import { getCurrentMealSlot } from "@/lib/utils";
-import { endOfDay, startOfDay } from "date-fns";
+} from "@/generated/prisma"
+import { endOfDay, startOfDay } from "date-fns"
+
+import getSession from "@/lib/get-session"
+import prisma from "@/lib/prisma"
+import { getCurrentMealSlot } from "@/lib/utils"
 
 export async function GET() {
   try {
-    const session = await getSession();
+    const session = await getSession()
     if (!session?.user.id)
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
+      return Response.json({ error: "Unauthorized" }, { status: 401 })
     if (!session?.user.hostelId)
       return Response.json(
         { error: "Unauthorized - Hostel ID not found " },
-        { status: 401 },
-      );
+        { status: 401 }
+      )
     if (session.user.role !== UserRoleType.MANAGER)
       return Response.json(
         { error: "Unauthorized - You are not a manager" },
-        { status: 401 },
-      );
-    const mealTime = getCurrentMealSlot();
-    const todayStart = startOfDay(new Date());
-    const todayEnd = endOfDay(new Date());
+        { status: 401 }
+      )
+    const mealTime = getCurrentMealSlot()
+    const todayStart = startOfDay(new Date())
+    const todayEnd = endOfDay(new Date())
     const data = await prisma.dailyMealActivity.findFirst({
       where: {
         mealTime: mealTime,
@@ -38,37 +39,37 @@ export async function GET() {
           lte: todayEnd,
         },
       },
-    });
+    })
 
-    return Response.json(data);
+    return Response.json(data)
   } catch (error) {
-    console.log(error);
-    return Response.json({ error: "Internal Server Error" }, { status: 500 });
+    console.log(error)
+    return Response.json({ error: "Internal Server Error" }, { status: 500 })
   }
 }
 export async function POST() {
   try {
-    const session = await getSession();
+    const session = await getSession()
 
     if (!session?.user.id) {
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
+      return Response.json({ error: "Unauthorized" }, { status: 401 })
     }
     if (!session?.user.hostelId)
       return Response.json(
         { error: "Unauthorized - Hostel ID not found " },
-        { status: 401 },
-      );
+        { status: 401 }
+      )
 
     if (session.user.role !== UserRoleType.MANAGER) {
       return Response.json(
         { error: "Unauthorized - You are not a manager" },
-        { status: 401 },
-      );
+        { status: 401 }
+      )
     }
 
-    const mealTime = getCurrentMealSlot();
-    const todayStart = startOfDay(new Date());
-    const todayEnd = endOfDay(new Date());
+    const mealTime = getCurrentMealSlot()
+    const todayStart = startOfDay(new Date())
+    const todayEnd = endOfDay(new Date())
 
     // Check if the meal activity has already been generated today
     const alreadyGenerated = await prisma.dailyMealActivity.findFirst({
@@ -80,10 +81,10 @@ export async function POST() {
           lte: todayEnd,
         },
       },
-    });
+    })
 
     if (alreadyGenerated) {
-      return Response.json({ error: "Already Generated" }, { status: 400 });
+      return Response.json({ error: "Already Generated" }, { status: 400 })
     }
 
     // Fetch all regular meals and today's active guest meals
@@ -122,74 +123,74 @@ export async function POST() {
           nonVegType: true,
         },
       }),
-    ]);
+    ])
 
     // Filter only active meals where both meal and user are active
     const allActiveRegularMeals = allRegularMeals.filter(
       (meal) =>
         meal.status === MealStatusType.ACTIVE &&
-        meal.user.status === UserStatusType.ACTIVE,
-    );
+        meal.user.status === UserStatusType.ACTIVE
+    )
 
     // Active users (whether meal status active or not), for attendance
     const activeUsers = allRegularMeals.filter(
-      (meal) => meal.user.status === UserStatusType.ACTIVE,
-    );
+      (meal) => meal.user.status === UserStatusType.ACTIVE
+    )
 
     // Count meals by type for regular users
-    let totalVeg = 0;
-    let totalNonvegChicken = 0;
-    let totalNonvegFish = 0;
-    let totalNonvegEgg = 0;
+    let totalVeg = 0
+    let totalNonvegChicken = 0
+    let totalNonvegFish = 0
+    let totalNonvegEgg = 0
 
     for (const meal of allActiveRegularMeals) {
       if (meal.type === MealType.VEG) {
-        totalVeg++;
+        totalVeg++
       } else if (meal.type === MealType.NON_VEG) {
         switch (meal.nonVegType) {
           case NonVegType.CHICKEN:
-            totalNonvegChicken++;
-            break;
+            totalNonvegChicken++
+            break
           case NonVegType.FISH:
-            totalNonvegFish++;
-            break;
+            totalNonvegFish++
+            break
           case NonVegType.EGG:
-            totalNonvegEgg++;
-            break;
+            totalNonvegEgg++
+            break
         }
       }
     }
 
     // Count meals by type for guest meals
-    let guestTotalMeals = 0;
-    let guestTotalVeg = 0;
-    let guestTotalNonvegChicken = 0;
-    let guestTotalNonvegFish = 0;
-    let guestTotalNonvegEgg = 0;
+    let guestTotalMeals = 0
+    let guestTotalVeg = 0
+    let guestTotalNonvegChicken = 0
+    let guestTotalNonvegFish = 0
+    let guestTotalNonvegEgg = 0
 
     for (const guestMeal of allActiveGuestMeals) {
-      const numMeals = guestMeal.numberOfMeals;
-      guestTotalMeals += numMeals;
+      const numMeals = guestMeal.numberOfMeals
+      guestTotalMeals += numMeals
 
       if (guestMeal.type === MealType.VEG) {
-        guestTotalVeg += numMeals;
+        guestTotalVeg += numMeals
       } else if (guestMeal.type === MealType.NON_VEG) {
         switch (guestMeal.nonVegType) {
           case NonVegType.CHICKEN:
-            guestTotalNonvegChicken += numMeals;
-            break;
+            guestTotalNonvegChicken += numMeals
+            break
           case NonVegType.FISH:
-            guestTotalNonvegFish += numMeals;
-            break;
+            guestTotalNonvegFish += numMeals
+            break
           case NonVegType.EGG:
-            guestTotalNonvegEgg += numMeals;
-            break;
+            guestTotalNonvegEgg += numMeals
+            break
         }
       }
     }
 
     // Total meals includes both regular and guest entries
-    const totalMeal = allActiveGuestMeals.length + allActiveRegularMeals.length;
+    const totalMeal = allActiveGuestMeals.length + allActiveRegularMeals.length
 
     // Create attendance records for active users
     const attendanceRecordsToCreate = activeUsers.map((meal) => ({
@@ -199,7 +200,7 @@ export async function POST() {
       date: todayStart,
       isPresent: meal.status === MealStatusType.ACTIVE ? true : false, // Already filtered for active users
       mealId: meal.id,
-    }));
+    }))
 
     // Create meal activity record and attendance records in parallel
     const [mealActivity] = await Promise.all([
@@ -218,10 +219,10 @@ export async function POST() {
       prisma.mealAttendance.createMany({
         data: attendanceRecordsToCreate,
       }),
-    ]);
-    return Response.json(mealActivity);
+    ])
+    return Response.json(mealActivity)
   } catch (error) {
-    console.error(error);
-    return Response.json({ error: "Internal Server Error" }, { status: 500 });
+    console.error(error)
+    return Response.json({ error: "Internal Server Error" }, { status: 500 })
   }
 }

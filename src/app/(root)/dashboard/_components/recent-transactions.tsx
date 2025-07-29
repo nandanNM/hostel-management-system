@@ -1,3 +1,15 @@
+import { BillEntryType } from "@/generated/prisma"
+import { compareDesc, format } from "date-fns"
+
+import prisma from "@/lib/prisma"
+import { Badge } from "@/components/ui/badge"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import {
   Table,
   TableBody,
@@ -5,38 +17,27 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { compareDesc, format } from "date-fns";
-import { P } from "@/components/custom/p";
-import prisma from "@/lib/prisma";
-import { BillEntryType } from "@/generated/prisma";
+} from "@/components/ui/table"
+import { P } from "@/components/custom/p"
 
 interface RecentTransactionsProps {
-  userId: string;
+  userId: string
 }
 
 const getBadgeClass = (type: BillEntryType) => {
   switch (type) {
     case "PAYMENT":
-      return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100";
+      return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"
     case "GUEST_MEAL_CHARGE":
-      return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100";
+      return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100"
     case "FINE_CHARGE":
-      return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100";
+      return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100"
     case "MEAL_CHARGE":
-      return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100";
+      return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100"
     default:
-      return "bg-muted text-foreground";
+      return "bg-muted text-foreground"
   }
-};
+}
 
 export default async function RecentTransactions({
   userId,
@@ -51,44 +52,44 @@ export default async function RecentTransactions({
       audit: { select: { date: true } },
       payment: { select: { paidAmount: true } },
     },
-  });
+  })
 
   if (!transactions.length) {
     return (
       <P className="text-muted-foreground text-center">
         No recent transactions found.
       </P>
-    );
+    )
   }
 
   const formattedTransactions = transactions.map((transaction) => {
-    let statusText = "";
+    let statusText = ""
     if (
       transaction.type === BillEntryType.PAYMENT ||
       transaction.type === BillEntryType.ADJUSTMENT_CREDIT
     ) {
-      statusText = "Completed";
+      statusText = "Completed"
     } else {
-      statusText = transaction.isPaid ? "Paid" : "Outstanding";
+      statusText = transaction.isPaid ? "Paid" : "Outstanding"
     }
 
-    let detail = transaction.description;
+    let detail = transaction.description
     if (
       transaction.type === BillEntryType.FINE_CHARGE &&
       transaction.fine?.reason
     ) {
-      detail = `Fine: ${transaction.fine.reason}`;
-      statusText = transaction.fine.status;
+      detail = `Fine: ${transaction.fine.reason}`
+      statusText = transaction.fine.status
     } else if (
       transaction.type === BillEntryType.GUEST_MEAL_CHARGE &&
       transaction.guestMeal
     ) {
-      detail = `Guest Meal (${transaction.guestMeal.numberOfMeals} meals, ${transaction.guestMeal.mealTime})`;
+      detail = `Guest Meal (${transaction.guestMeal.numberOfMeals} meals, ${transaction.guestMeal.mealTime})`
     } else if (
       transaction.type === BillEntryType.MEAL_CHARGE &&
       transaction.audit?.date
     ) {
-      detail = `Monthly Meal Charge for ${format(new Date(transaction.audit.date), "MMMM yyyy")}`;
+      detail = `Monthly Meal Charge for ${format(new Date(transaction.audit.date), "MMMM yyyy")}`
     }
 
     return {
@@ -100,12 +101,12 @@ export default async function RecentTransactions({
       balanceRemaining: transaction.balanceRemaining,
       status: statusText,
       badgeClass: getBadgeClass(transaction.type),
-    };
-  });
+    }
+  })
 
   const sortedRecentTransactions = formattedTransactions.sort((a, b) =>
-    compareDesc(a.date, b.date),
-  );
+    compareDesc(a.date, b.date)
+  )
 
   return (
     <Card className="gap-4">
@@ -166,5 +167,5 @@ export default async function RecentTransactions({
         </Table>
       </CardContent>
     </Card>
-  );
+  )
 }

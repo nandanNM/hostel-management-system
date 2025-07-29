@@ -1,15 +1,18 @@
-"use client";
-import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
-import Link from "next/link";
-import UserButton from "./UserButton";
-import { useState } from "react";
-import { NavItems } from "@/data/nav-data";
-import { Menu } from "lucide-react";
-import { ThemeSwitcher } from "./ThemeSwitcher";
+"use client"
+
+import { useState } from "react"
+import Link from "next/link"
+import { NavItems } from "@/data/nav-data"
+import { Menu } from "lucide-react"
+
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
+
+import { ThemeSwitcher } from "./ThemeSwitcher"
+import UserButton from "./UserButton"
 
 export default function NavBar() {
-  const navItems = NavItems();
-  const [isOpen, setIsOpen] = useState(false);
+  const navItems = NavItems()
+  const [isOpen, setIsOpen] = useState(false)
   return (
     <header className="border-grid bg-sidebar supports-[backdrop-filter]:bg-sidebar/60 sticky top-0 z-50 w-full border-b backdrop-blur">
       <nav className="mx-auto flex h-14 w-full max-w-7xl shrink-0 items-center justify-between gap-3">
@@ -33,19 +36,19 @@ export default function NavBar() {
         </div>
       </nav>
     </header>
-  );
+  )
 }
 
 interface MobileNavProps {
-  isOpen: boolean;
-  setIsOpen: (isOpen: boolean) => void;
+  isOpen: boolean
+  setIsOpen: (isOpen: boolean) => void
   navItems: {
-    name: string;
-    href: string;
-    icon: React.ReactNode;
-    active: boolean;
-    position: string;
-  }[];
+    name: string
+    href: string
+    icon: React.ReactNode
+    active: boolean
+    position: string
+  }[]
 }
 function MobileNav({ isOpen, setIsOpen, navItems }: MobileNavProps) {
   return (
@@ -73,5 +76,5 @@ function MobileNav({ isOpen, setIsOpen, navItems }: MobileNavProps) {
         </div>
       </SheetContent>
     </Sheet>
-  );
+  )
 }

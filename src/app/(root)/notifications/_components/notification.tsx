@@ -1,32 +1,33 @@
-import { cn, formatRelativeDate } from "@/lib/utils";
-import Link from "next/link";
+import type { JSX } from "react" // Import JSX to fix the lint error
+import Link from "next/link"
+import { NotificationType } from "@/generated/prisma"
 import {
-  CreditCard,
-  UtensilsCrossed,
   AlertTriangle,
+  Clock,
+  CreditCard,
   Megaphone,
   Settings,
-  Clock,
-} from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import type { JSX } from "react"; // Import JSX to fix the lint error
-import UserAvatar from "@/components/UserAvatar";
-import { GetNotificationWithIssuer } from "@/types/prisma.type";
-import { NotificationType } from "@/generated/prisma";
+  UtensilsCrossed,
+} from "lucide-react"
+
+import { GetNotificationWithIssuer } from "@/types/prisma.type"
+import { cn, formatRelativeDate } from "@/lib/utils"
+import { Badge } from "@/components/ui/badge"
+import UserAvatar from "@/components/UserAvatar"
 
 interface NotificationProps {
-  notification: GetNotificationWithIssuer;
+  notification: GetNotificationWithIssuer
 }
 
 export default function Notification({ notification }: NotificationProps) {
   const notificationTypeMap: Record<
     NotificationType,
     {
-      icon: JSX.Element;
-      bgColor: string;
-      iconColor: string;
-      badge: string;
-      href: string;
+      icon: JSX.Element
+      bgColor: string
+      iconColor: string
+      badge: string
+      href: string
     }
   > = {
     PAYMENT: {
@@ -64,10 +65,10 @@ export default function Notification({ notification }: NotificationProps) {
       badge: "System",
       href: "/system",
     },
-  };
+  }
 
   const { icon, bgColor, iconColor, badge, href } =
-    notificationTypeMap[notification.type];
+    notificationTypeMap[notification.type]
 
   return (
     <Link href={href} className="block">
@@ -76,14 +77,14 @@ export default function Notification({ notification }: NotificationProps) {
           "group bg-card relative flex gap-4 rounded-xl border p-4 shadow-sm",
           !notification.read && "border-l-primary bg-primary/5 border-l-4",
           notification.read && "bg-muted/30 border-muted opacity-60",
-          bgColor,
+          bgColor
         )}
       >
         {/* Icon */}
         <div
           className={cn(
             "flex size-12 shrink-0 items-center justify-center rounded-full",
-            iconColor,
+            iconColor
           )}
         >
           {icon}
@@ -110,7 +111,7 @@ export default function Notification({ notification }: NotificationProps) {
             <h4
               className={cn(
                 "font-semibold",
-                notification.read ? "text-muted-foreground" : "text-foreground",
+                notification.read ? "text-muted-foreground" : "text-foreground"
               )}
             >
               {notification.title}
@@ -120,7 +121,7 @@ export default function Notification({ notification }: NotificationProps) {
                 "text-sm leading-relaxed",
                 notification.read
                   ? "text-muted-foreground/70"
-                  : "text-muted-foreground",
+                  : "text-muted-foreground"
               )}
             >
               {notification.message}
@@ -141,5 +142,5 @@ export default function Notification({ notification }: NotificationProps) {
         </div>
       </article>
     </Link>
-  );
+  )
 }

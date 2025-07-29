@@ -1,14 +1,15 @@
-import { buttonVariants } from "@/components/ui/button";
+import React from "react"
+import Link from "next/link"
+import { ArrowLeft, ShieldX } from "lucide-react"
+
+import { buttonVariants } from "@/components/ui/button"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { ArrowLeft, ShieldX } from "lucide-react";
-import Link from "next/link";
-import React from "react";
+} from "@/components/ui/card"
 
 export default function NotAdminRoute() {
   return (
@@ -37,5 +38,5 @@ export default function NotAdminRoute() {
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }

@@ -1,59 +1,62 @@
-"use client";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+"use client"
+
+import { useEffect, useTransition } from "react"
+import { redirect, useRouter } from "next/navigation"
+import { MEAL_TYPE_OPTIONS, NON_VEG_OPTIONS } from "@/constants/form.constants"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { ArrowLeft } from "lucide-react"
+import { useForm } from "react-hook-form"
+import { toast } from "sonner"
+import z from "zod"
+
+import { mealSchema } from "@/lib/validations"
+import { tryCatch } from "@/hooks/try-catch"
+import { Button } from "@/components/ui/button"
 import {
   Form,
+  FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormControl,
   FormMessage,
-} from "@/components/ui/form";
+} from "@/components/ui/form"
 import {
   Select,
-  SelectTrigger,
-  SelectValue,
   SelectContent,
   SelectItem,
-} from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { MEAL_TYPE_OPTIONS, NON_VEG_OPTIONS } from "@/constants/form.constants";
-import { ArrowLeft } from "lucide-react";
-import { redirect, useRouter } from "next/navigation";
-import { useOnboardingStore } from "@/app/(root)/onboarding/store";
-import { useEffect, useTransition } from "react";
-import { tryCatch } from "@/hooks/try-catch";
-import { createUserOnboarding } from "./action";
-import { toast } from "sonner";
-import LoadingButton from "@/components/LoadingButton";
-import { P } from "@/components/custom/p";
-import { mealSchema } from "@/lib/validations";
-import z from "zod";
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { P } from "@/components/custom/p"
+import LoadingButton from "@/components/LoadingButton"
+import { useOnboardingStore } from "@/app/(root)/onboarding/store"
+
+import { createUserOnboarding } from "./action"
 
 export default function OnboardingMealForm() {
-  const router = useRouter();
-  const [isPanding, startTransition] = useTransition();
-  const name = useOnboardingStore((state) => state.name);
-  const selfPhNo = useOnboardingStore((state) => state.selfPhNo);
-  const guardianPhNo = useOnboardingStore((state) => state.guardianPhNo);
-  const dob = useOnboardingStore((state) => state.dob);
-  const gender = useOnboardingStore((state) => state.gender);
-  const religion = useOnboardingStore((state) => state.religion);
-  const address = useOnboardingStore((state) => state.address);
-  const hostelId = useOnboardingStore((state) => state.hostelId);
-  const education = useOnboardingStore((state) => state.education);
+  const router = useRouter()
+  const [isPanding, startTransition] = useTransition()
+  const name = useOnboardingStore((state) => state.name)
+  const selfPhNo = useOnboardingStore((state) => state.selfPhNo)
+  const guardianPhNo = useOnboardingStore((state) => state.guardianPhNo)
+  const dob = useOnboardingStore((state) => state.dob)
+  const gender = useOnboardingStore((state) => state.gender)
+  const religion = useOnboardingStore((state) => state.religion)
+  const address = useOnboardingStore((state) => state.address)
+  const hostelId = useOnboardingStore((state) => state.hostelId)
+  const education = useOnboardingStore((state) => state.education)
 
-  type CreateMealFormValues = z.infer<typeof mealSchema>;
+  type CreateMealFormValues = z.infer<typeof mealSchema>
   const form = useForm<CreateMealFormValues>({
     resolver: zodResolver(mealSchema),
     defaultValues: {
       type: "NON_VEG",
       nonVegType: "NONE",
     },
-  });
+  })
 
   function onSubmit(values: CreateMealFormValues) {
-    console.log(values);
+    console.log(values)
     startTransition(async () => {
       if (
         name &&
@@ -77,32 +80,32 @@ export default function OnboardingMealForm() {
             hostelId,
             education,
             mealPreference: values,
-          }),
-        );
+          })
+        )
         if (error) {
-          toast.error("A Unexpected error occurred. Please try again later.");
-          return;
+          toast.error("A Unexpected error occurred. Please try again later.")
+          return
         }
         if (result.status === "success") {
-          useOnboardingStore.persist.clearStorage();
-          form.reset();
-          toast.success(result.message);
-          redirect("/dashboard");
+          useOnboardingStore.persist.clearStorage()
+          form.reset()
+          toast.success(result.message)
+          redirect("/dashboard")
         } else if (result.status === "error") {
-          toast.error(result.message);
+          toast.error(result.message)
         }
       } else {
-        toast.error("Please fill all the fields");
+        toast.error("Please fill all the fields")
       }
-    });
+    })
   }
 
   useEffect(() => {
-    if (!useOnboardingStore.persist.hasHydrated) return;
+    if (!useOnboardingStore.persist.hasHydrated) return
     if (!hostelId) {
-      router.push("/onboarding/identity");
+      router.push("/onboarding/identity")
     }
-  }, [name, selfPhNo, dob, address, hostelId, education, router]);
+  }, [name, selfPhNo, dob, address, hostelId, education, router])
   return (
     <Form {...form}>
       <form
@@ -184,5 +187,5 @@ export default function OnboardingMealForm() {
         </div>
       </form>
     </Form>
-  );
+  )
 }

@@ -1,55 +1,57 @@
-"use client";
+"use client"
 
-import { tryCatch } from "@/hooks/try-catch";
-import kyInstance from "@/lib/ky";
-import { GetNotificationWithIssuer } from "@/types/prisma.type";
-import { RiLoader3Fill } from "@remixicon/react";
-import { Bell } from "lucide-react";
-import { useEffect, useState, useTransition } from "react";
-import { toast } from "sonner";
-import Notification from "./_components/notification";
-import { useNotificationStore } from "./store";
+import { useEffect, useState, useTransition } from "react"
+import { RiLoader3Fill } from "@remixicon/react"
+import { Bell } from "lucide-react"
+import { toast } from "sonner"
+
+import { GetNotificationWithIssuer } from "@/types/prisma.type"
+import kyInstance from "@/lib/ky"
+import { tryCatch } from "@/hooks/try-catch"
+
+import Notification from "./_components/notification"
+import { useNotificationStore } from "./store"
 
 export default function NotificationsList() {
-  const [isPending, startTransition] = useTransition();
-  const setUnreadCount = useNotificationStore((state) => state.setUnreadCount);
+  const [isPending, startTransition] = useTransition()
+  const setUnreadCount = useNotificationStore((state) => state.setUnreadCount)
   const [notifications, setNotifications] = useState<
     GetNotificationWithIssuer[]
-  >([]);
+  >([])
   useEffect(() => {
     startTransition(async () => {
       const { data: result, error } = await tryCatch(
         kyInstance
           .get("/api/user/notifications")
-          .json<GetNotificationWithIssuer[]>(),
-      );
+          .json<GetNotificationWithIssuer[]>()
+      )
 
       if (error) {
         toast.error(
           error.message || error.message || error.name === "TimeoutError"
             ? "Request timed out. Please try again."
-            : "An unexpected error occurred. Please try again later.",
-        );
-        return;
+            : "An unexpected error occurred. Please try again later."
+        )
+        return
       }
-      setNotifications(result ?? []);
-    });
-  }, []);
+      setNotifications(result ?? [])
+    })
+  }, [])
 
   useEffect(() => {
     async function makeAsRead() {
       const { data: result } = await tryCatch(
-        kyInstance.patch("/api/user/notifications/mark-as-read"),
-      );
+        kyInstance.patch("/api/user/notifications/mark-as-read")
+      )
       if (result) {
-        setUnreadCount(0);
+        setUnreadCount(0)
       }
     }
-    makeAsRead();
-  }, [setUnreadCount]);
+    makeAsRead()
+  }, [setUnreadCount])
 
   if (isPending)
-    return <RiLoader3Fill size={30} className="mx-auto my-10 animate-spin" />;
+    return <RiLoader3Fill size={30} className="mx-auto my-10 animate-spin" />
   return (
     <div className="mx-auto w-full max-w-4xl">
       {/* Header */}
@@ -82,5 +84,5 @@ export default function NotificationsList() {
         )}
       </div>
     </div>
-  );
+  )
 }

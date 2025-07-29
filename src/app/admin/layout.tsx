@@ -1,15 +1,16 @@
-import Navbar from "@/components/admin/Navbar";
-import { SidebarProvider } from "@/components/ui/sidebar";
-import { cookies } from "next/headers";
-import AppSideBar from "@/components/admin/AppSideBar";
+import { cookies } from "next/headers"
+
+import { SidebarProvider } from "@/components/ui/sidebar"
+import AppSideBar from "@/components/admin/AppSideBar"
+import Navbar from "@/components/admin/Navbar"
 
 export default async function Layout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
-  const cookieStore = await cookies();
-  const defaultOpen = cookieStore.get("sidebar_state")?.value === "true";
+  const cookieStore = await cookies()
+  const defaultOpen = cookieStore.get("sidebar_state")?.value === "true"
   return (
     <SidebarProvider defaultOpen={defaultOpen}>
       <AppSideBar state="ADMIN" />
@@ -20,5 +21,5 @@ export default async function Layout({
         </div>
       </main>
     </SidebarProvider>
-  );
+  )
 }

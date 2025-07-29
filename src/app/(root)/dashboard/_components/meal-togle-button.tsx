@@ -1,34 +1,37 @@
-"use client";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { tryCatch } from "@/hooks/try-catch";
-import kyInstance from "@/lib/ky";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useId, useState, useTransition } from "react";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
-import { toggleMealStatus } from "../action";
-import z from "zod";
-import { MealStatusType } from "@/generated/prisma";
-import { cn, getErrorMessage } from "@/lib/utils";
+"use client"
+
+import { useEffect, useId, useState, useTransition } from "react"
+import { MealStatusType } from "@/generated/prisma"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useForm } from "react-hook-form"
+import { toast } from "sonner"
+import z from "zod"
+
+import kyInstance from "@/lib/ky"
+import { cn, getErrorMessage } from "@/lib/utils"
+import { tryCatch } from "@/hooks/try-catch"
+import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
+
+import { toggleMealStatus } from "../action"
 
 const toggleMealStatusSchema = z.object({
   status: z.nativeEnum(MealStatusType),
-});
-type ToggleMealStatusForm = z.infer<typeof toggleMealStatusSchema>;
+})
+type ToggleMealStatusForm = z.infer<typeof toggleMealStatusSchema>
 
 export default function MealToggleButton() {
-  const [isPending, startTransition] = useTransition();
-  const [isSwitching, setIsSwitching] = useState(false);
-  const id = useId();
+  const [isPending, startTransition] = useTransition()
+  const [isSwitching, setIsSwitching] = useState(false)
+  const id = useId()
 
   const form = useForm<ToggleMealStatusForm>({
     resolver: zodResolver(toggleMealStatusSchema),
     defaultValues: { status: "INACTIVE" },
-  });
+  })
 
-  const { watch, register, setValue } = form;
-  const currentStatus = watch("status");
+  const { watch, register, setValue } = form
+  const currentStatus = watch("status")
 
   useEffect(() => {
     startTransition(async () => {
@@ -37,38 +40,38 @@ export default function MealToggleButton() {
           .get("/api/user/meal/status", {
             retry: { limit: 2 },
           })
-          .json<{ status: MealStatusType }>(),
-      );
+          .json<{ status: MealStatusType }>()
+      )
 
       if (error) {
-        const message = await getErrorMessage(error);
-        toast.error(message);
-        return;
+        const message = await getErrorMessage(error)
+        toast.error(message)
+        return
       }
-      console.log("result", result);
-      setValue("status", result.status);
-    });
-  }, [setValue]);
+      console.log("result", result)
+      setValue("status", result.status)
+    })
+  }, [setValue])
 
   const handleSwitchChange = async () => {
-    const newStatus = currentStatus === "ACTIVE" ? "INACTIVE" : "ACTIVE";
-    setIsSwitching(true);
-    const { data: result, error } = await tryCatch(toggleMealStatus(newStatus));
-    setIsSwitching(false);
+    const newStatus = currentStatus === "ACTIVE" ? "INACTIVE" : "ACTIVE"
+    setIsSwitching(true)
+    const { data: result, error } = await tryCatch(toggleMealStatus(newStatus))
+    setIsSwitching(false)
     if (error) {
-      toast.error("Failed to update meal status.");
-      return;
+      toast.error("Failed to update meal status.")
+      return
     }
 
     if (result.status === "success") {
-      setValue("status", newStatus);
+      setValue("status", newStatus)
       toast.success(
-        `Meal status turned ${newStatus === "ACTIVE" ? "ON" : "OFF"}.`,
-      );
+        `Meal status turned ${newStatus === "ACTIVE" ? "ON" : "OFF"}.`
+      )
     } else if (result.status === "error") {
-      toast.error(result.message);
+      toast.error(result.message)
     }
-  };
+  }
 
   return (
     <div className="mb-4 flex items-center gap-2">
@@ -93,7 +96,7 @@ export default function MealToggleButton() {
             "bg-green-100 text-green-800": currentStatus === "ACTIVE",
             "bg-red-100 text-red-800": currentStatus === "INACTIVE",
             "bg-yellow-100 text-yellow-800": currentStatus === "SUSPENDED",
-          },
+          }
         )}
       >
         {currentStatus === "SUSPENDED"
@@ -101,5 +104,5 @@ export default function MealToggleButton() {
           : `Meal status: ${currentStatus === "ACTIVE" ? "ON" : "OFF"}`}
       </span>
     </div>
-  );
+  )
 }

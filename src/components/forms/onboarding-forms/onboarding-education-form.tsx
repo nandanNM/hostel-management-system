@@ -1,9 +1,14 @@
-"use client";
+"use client"
 
-import { ArrowLeft, ArrowRight } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { ArrowLeft, ArrowRight } from "lucide-react"
+import { useForm } from "react-hook-form"
+import { z } from "zod"
+
+import { educationSchema } from "@/lib/validations"
+import { Button } from "@/components/ui/button"
 import {
   Form,
   FormControl,
@@ -11,22 +16,18 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
-import { educationSchema } from "@/lib/validations";
-import { useOnboardingStore } from "@/app/(root)/onboarding/store";
-import { useEffect } from "react";
+} from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import { useOnboardingStore } from "@/app/(root)/onboarding/store"
 
-type EducationFormValues = z.infer<typeof educationSchema>;
+type EducationFormValues = z.infer<typeof educationSchema>
 export default function OnboardingEducationForm() {
-  const router = useRouter();
-  const name = useOnboardingStore((state) => state.name);
-  const phone = useOnboardingStore((state) => state.selfPhNo);
-  const dob = useOnboardingStore((state) => state.dob);
-  const address = useOnboardingStore((state) => state.address);
-  const setData = useOnboardingStore((state) => state.setData);
+  const router = useRouter()
+  const name = useOnboardingStore((state) => state.name)
+  const phone = useOnboardingStore((state) => state.selfPhNo)
+  const dob = useOnboardingStore((state) => state.dob)
+  const address = useOnboardingStore((state) => state.address)
+  const setData = useOnboardingStore((state) => state.setData)
   const form = useForm<EducationFormValues>({
     resolver: zodResolver(educationSchema),
     defaultValues: {
@@ -35,20 +36,20 @@ export default function OnboardingEducationForm() {
       passingYear: new Date().getFullYear() + 4,
       institute: "",
     },
-  });
+  })
 
   function onSubmit(values: EducationFormValues) {
     setData({
       education: values,
-    });
-    router.push("/onboarding/hostel");
+    })
+    router.push("/onboarding/hostel")
   }
   useEffect(() => {
-    if (!useOnboardingStore.persist.hasHydrated) return;
+    if (!useOnboardingStore.persist.hasHydrated) return
     if (!name || !phone || !dob || !address) {
-      router.push("/onboarding/identity");
+      router.push("/onboarding/identity")
     }
-  }, [name, phone, dob, address, router]);
+  }, [name, phone, dob, address, router])
 
   return (
     <Form {...form}>
@@ -134,5 +135,5 @@ export default function OnboardingEducationForm() {
         </div>
       </form>
     </Form>
-  );
+  )
 }

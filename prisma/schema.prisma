@@ -49,7 +49,7 @@ model User {
   hostelId String? @map("hostel_id")
   hostel   Hostel? @relation(fields: [hostelId], references: [id], onDelete: SetNull)
 
-  roomId              String?        @map("room_id")
+  roomNo              String?        @map("room_id")
   gender              GenderType?
   religion            String?
   dob                 DateTime?

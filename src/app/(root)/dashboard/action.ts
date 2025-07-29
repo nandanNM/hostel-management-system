@@ -1,25 +1,26 @@
-"use server";
+"use server"
 
-import { BillEntryType, MealStatusType } from "@/generated/prisma";
-import prisma from "@/lib/prisma";
-import { requireUser } from "@/lib/require-user";
-import { ApiResponse } from "@/types";
+import { BillEntryType, MealStatusType } from "@/generated/prisma"
+import { ApiResponse } from "@/types"
+
+import prisma from "@/lib/prisma"
+import { requireUser } from "@/lib/require-user"
 
 export async function toggleMealStatus(
-  status: MealStatusType,
+  status: MealStatusType
 ): Promise<ApiResponse> {
-  const session = await requireUser();
+  const session = await requireUser()
   if (!session?.user.id) {
     return {
       status: "error",
       message: "Unauthorized",
-    };
+    }
   }
   if (session.user.status !== "ACTIVE") {
     return {
       status: "error",
       message: "Unauthorized - You are not a boarder member",
-    };
+    }
   }
   try {
     await prisma.meal.update({
@@ -29,11 +30,11 @@ export async function toggleMealStatus(
       data: {
         status,
       },
-    });
+    })
     return {
       status: "success",
       message: "Meal status updated successfully",
-    };
+    }
   } catch (error) {
     return {
       status: "error",
@@ -41,23 +42,23 @@ export async function toggleMealStatus(
         error instanceof Error
           ? error.message
           : "An unexpected error occurred. Please try again later.",
-    };
+    }
   }
 }
 
 export async function getUserDeshboardStats() {
-  const session = await requireUser();
+  const session = await requireUser()
   if (!session?.user.id) {
     return {
       status: "error",
       message: "Unauthorized",
-    };
+    }
   }
   if (session.user.status !== "ACTIVE") {
     return {
       status: "error",
       message: "Unauthorized - You are not a boarder member",
-    };
+    }
   }
   const [
     balanceRemainingSumResult,
@@ -87,15 +88,15 @@ export async function getUserDeshboardStats() {
         userId: session.user.id,
       },
     }),
-  ]);
+  ])
   const totalBalanceRemaining =
-    balanceRemainingSumResult._sum.balanceRemaining ?? 0;
-  const totalPayments = totalPaymentsResult._sum.amount ?? 0;
-  const totalAttendance = totalMealAttendanceCount ?? 0;
+    balanceRemainingSumResult._sum.balanceRemaining ?? 0
+  const totalPayments = totalPaymentsResult._sum.amount ?? 0
+  const totalAttendance = totalMealAttendanceCount ?? 0
 
   return {
     totalBalanceRemaining,
     totalPayments,
     totalAttendance,
-  };
+  }
 }

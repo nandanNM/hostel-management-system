@@ -1,13 +1,14 @@
-import { requireUser } from "@/lib/require-user";
-import { redirect } from "next/navigation";
+import { redirect } from "next/navigation"
+
+import { requireUser } from "@/lib/require-user"
 
 export default async function Layout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
-  const { user } = await requireUser();
-  if (user.onboardingCompleted) return redirect("/");
+  const { user } = await requireUser()
+  if (user.onboardingCompleted) return redirect("/")
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-4">
@@ -16,5 +17,5 @@ export default async function Layout({
       </div>
       <div>{children}</div>
     </div>
-  );
+  )
 }

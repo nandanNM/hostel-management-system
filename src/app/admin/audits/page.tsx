@@ -1,8 +1,9 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import { DataTable } from "./data-table";
-import { auditColumns, AuditRecord } from "./columns";
+import { useState } from "react"
+
+import { auditColumns, AuditRecord } from "./columns"
+import { DataTable } from "./data-table"
 
 // Sample audit data
 const sampleAudits: AuditRecord[] = [
@@ -70,10 +71,10 @@ const sampleAudits: AuditRecord[] = [
     totalBorder: 1125,
     payableAmount: 10125.8,
   },
-];
+]
 
 export default function AuditsPage() {
-  const [data] = useState<AuditRecord[]>(sampleAudits);
+  const [data] = useState<AuditRecord[]>(sampleAudits)
 
   return (
     <div className="container mx-auto mt-4">
@@ -85,5 +86,5 @@ export default function AuditsPage() {
       </div>
       <DataTable columns={auditColumns} data={data} />
     </div>
-  );
+  )
 }

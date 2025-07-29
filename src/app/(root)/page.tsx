@@ -1,7 +1,7 @@
-import { requireUser } from "@/lib/require-user";
+import { requireUser } from "@/lib/require-user"
 
 export default async function Home() {
-  await requireUser();
+  await requireUser()
   return (
     <div className="">
       <p>
@@ -12,5 +12,5 @@ export default async function Home() {
         aliquam?{" "}
       </p>
     </div>
-  );
+  )
 }

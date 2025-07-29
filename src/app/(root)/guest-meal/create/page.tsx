@@ -1,16 +1,17 @@
-import CreateGuestMealForm from "@/components/forms/create-guest-meal-form";
-import { Metadata } from "next";
+import { Metadata } from "next"
+
 import {
   Card,
+  CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/card";
+} from "@/components/ui/card"
+import CreateGuestMealForm from "@/components/forms/create-guest-meal-form"
 
 export const metadata: Metadata = {
   title: "Create Guest Meal",
-};
+}
 
 export default function Page() {
   return (
@@ -29,5 +30,5 @@ export default function Page() {
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }

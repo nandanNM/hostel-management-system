@@ -1,30 +1,15 @@
-"use client";
-import { format } from "date-fns";
-import Link from "next/link";
-import { GuestMeal } from "@/generated/prisma";
-import { useEffect, useState, useTransition } from "react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { PlusIcon, Trash2Icon, UtensilsCrossedIcon } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { tryCatch } from "@/hooks/try-catch";
-import kyInstance from "@/lib/ky";
-import { toast } from "sonner";
-import { RiLoader3Fill } from "@remixicon/react";
+"use client"
+
+import { useEffect, useState, useTransition } from "react"
+import Link from "next/link"
+import { GuestMeal } from "@/generated/prisma"
+import { RiLoader3Fill } from "@remixicon/react"
+import { format } from "date-fns"
+import { PlusIcon, Trash2Icon, UtensilsCrossedIcon } from "lucide-react"
+import { toast } from "sonner"
+
+import kyInstance from "@/lib/ky"
+import { tryCatch } from "@/hooks/try-catch"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,51 +20,67 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { deleteGuestMealRequest } from "./action";
+} from "@/components/ui/alert-dialog"
+import { Badge } from "@/components/ui/badge"
+import { Button, buttonVariants } from "@/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+
+import { deleteGuestMealRequest } from "./action"
 
 export default function GuestMealsPage() {
-  const [isPending, startTransition] = useTransition();
-  const [isPendingDelete, startTransitionDelete] = useTransition();
-  const [pendingRequests, setPendingRequests] = useState<GuestMeal[]>([]);
+  const [isPending, startTransition] = useTransition()
+  const [isPendingDelete, startTransitionDelete] = useTransition()
+  const [pendingRequests, setPendingRequests] = useState<GuestMeal[]>([])
   useEffect(() => {
     startTransition(async () => {
       const { data, error } = await tryCatch(
-        kyInstance.get("/api/user/guest-meals").json<GuestMeal[]>(),
-      );
+        kyInstance.get("/api/user/guest-meals").json<GuestMeal[]>()
+      )
 
       if (error) {
         toast.error(
           error.message || error.name === "TimeoutError"
             ? "Request timed out. Please try again."
-            : "An unexpected error occurred. Please try again later.",
-        );
-        return;
+            : "An unexpected error occurred. Please try again later."
+        )
+        return
       }
-      setPendingRequests(data ?? []);
-    });
-  }, []);
+      setPendingRequests(data ?? [])
+    })
+  }, [])
   const handleDeleteRequest = (id: string) => {
     startTransitionDelete(async () => {
-      const { data: result, error } = await tryCatch(
-        deleteGuestMealRequest(id),
-      );
+      const { data: result, error } = await tryCatch(deleteGuestMealRequest(id))
       if (error) {
-        toast.error("A Unexpected error occurred. Please try again later.");
-        return;
+        toast.error("A Unexpected error occurred. Please try again later.")
+        return
       }
       if (result.status === "success") {
         setPendingRequests((prevRequests) =>
-          prevRequests.filter((request) => request.id !== id),
-        );
-        toast.success(result.message);
+          prevRequests.filter((request) => request.id !== id)
+        )
+        toast.success(result.message)
       } else if (result.status === "error") {
-        toast.error(result.message);
+        toast.error(result.message)
       }
-    });
-  };
+    })
+  }
   if (isPending)
-    return <RiLoader3Fill size={30} className="mx-auto my-10 animate-spin" />;
+    return <RiLoader3Fill size={30} className="mx-auto my-10 animate-spin" />
   return (
     <main className="flex flex-col items-center justify-center px-4 py-6 md:px-6 lg:px-12">
       <Card className="w-full max-w-4xl shadow-sm">
@@ -187,5 +188,5 @@ export default function GuestMealsPage() {
         </CardContent>
       </Card>
     </main>
-  );
+  )
 }

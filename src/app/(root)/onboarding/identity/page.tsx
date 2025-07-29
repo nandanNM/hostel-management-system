@@ -1,5 +1,5 @@
-import { OnboardingIdentityForm } from "@/components/forms/onboarding-forms";
+import { OnboardingIdentityForm } from "@/components/forms/onboarding-forms"
 
 export default function IdentityForm() {
-  return <OnboardingIdentityForm />;
+  return <OnboardingIdentityForm />
 }

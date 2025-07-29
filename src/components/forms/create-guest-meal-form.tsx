@@ -1,42 +1,45 @@
-"use client";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { guestMealSchema, GuestMeal } from "@/lib/validations";
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from "@/components/ui/form";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
+"use client"
 
+import { useTransition } from "react"
 import {
   MEAL_TIME_OPTIONS,
   MEAL_TYPE_OPTIONS,
   NON_VEG_OPTIONS,
-} from "@/constants/form.constants";
-import { Input } from "@/components/ui/input";
-import LoadingButton from "@/components/LoadingButton";
-import { tryCatch } from "@/hooks/try-catch";
-import { createGuestMeal } from "./action";
-import { toast } from "sonner";
-import { useTransition } from "react";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { Button } from "../ui/button";
-import { cn } from "@/lib/utils";
-import { addDays, format, isAfter, isBefore, startOfDay } from "date-fns";
-import { CalendarIcon } from "lucide-react";
-import { Calendar } from "../ui/calendar";
+} from "@/constants/form.constants"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { addDays, format, isAfter, isBefore, startOfDay } from "date-fns"
+import { CalendarIcon } from "lucide-react"
+import { useForm } from "react-hook-form"
+import { toast } from "sonner"
+
+import { cn } from "@/lib/utils"
+import { GuestMeal, guestMealSchema } from "@/lib/validations"
+import { tryCatch } from "@/hooks/try-catch"
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import LoadingButton from "@/components/LoadingButton"
+
+import { Button } from "../ui/button"
+import { Calendar } from "../ui/calendar"
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
+import { createGuestMeal } from "./action"
+
 export default function CreateGuestMealForm() {
-  const [isPanding, startTransition] = useTransition();
+  const [isPanding, startTransition] = useTransition()
   const form = useForm<GuestMeal>({
     resolver: zodResolver(guestMealSchema),
     defaultValues: {
@@ -49,20 +52,20 @@ export default function CreateGuestMealForm() {
       date: new Date(),
       mealCharge: 0,
     },
-  });
+  })
   function onSubmit(values: GuestMeal) {
     startTransition(async () => {
-      const { data: result, error } = await tryCatch(createGuestMeal(values));
+      const { data: result, error } = await tryCatch(createGuestMeal(values))
       if (error) {
-        toast.error("A Unexpected error occurred. Please try again later.");
-        return;
+        toast.error("A Unexpected error occurred. Please try again later.")
+        return
       }
       if (result.status === "success") {
-        toast.success(result.message);
+        toast.success(result.message)
       } else if (result.status === "error") {
-        toast.error(result.message);
+        toast.error(result.message)
       }
-    });
+    })
   }
 
   return (
@@ -153,7 +156,7 @@ export default function CreateGuestMealForm() {
                         variant={"outline"}
                         className={cn(
                           "w-[240px] pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground",
+                          !field.value && "text-muted-foreground"
                         )}
                       >
                         {field.value ? (
@@ -171,14 +174,14 @@ export default function CreateGuestMealForm() {
                       selected={field.value}
                       onSelect={field.onChange}
                       disabled={(date: Date) => {
-                        const today = startOfDay(new Date());
-                        const maxDate = startOfDay(addDays(today, 3));
-                        const targetDate = startOfDay(date);
+                        const today = startOfDay(new Date())
+                        const maxDate = startOfDay(addDays(today, 3))
+                        const targetDate = startOfDay(date)
 
                         return (
                           isBefore(targetDate, today) ||
                           isAfter(targetDate, maxDate)
-                        );
+                        )
                       }}
                       captionLayout="dropdown"
                     />
@@ -247,7 +250,7 @@ export default function CreateGuestMealForm() {
                   {...field}
                   onChange={(e) =>
                     field.onChange(
-                      e.target.value === "" ? "" : Number(e.target.value),
+                      e.target.value === "" ? "" : Number(e.target.value)
                     )
                   }
                 />
@@ -269,7 +272,7 @@ export default function CreateGuestMealForm() {
                   {...field}
                   onChange={(e) =>
                     field.onChange(
-                      e.target.value === "" ? "" : Number(e.target.value),
+                      e.target.value === "" ? "" : Number(e.target.value)
                     )
                   }
                 />
@@ -286,5 +289,5 @@ export default function CreateGuestMealForm() {
         </div>
       </form>
     </Form>
-  );
+  )
 }

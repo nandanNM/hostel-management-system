@@ -1,19 +1,20 @@
-"use server";
+"use server"
 
-import requireManager from "@/data/manager/require-manager";
-import { GuestMealStatusType } from "@/generated/prisma";
-import prisma from "@/lib/prisma";
-import { ApiResponse } from "@/types";
+import requireManager from "@/data/manager/require-manager"
+import { GuestMealStatusType } from "@/generated/prisma"
+import { ApiResponse } from "@/types"
+
+import prisma from "@/lib/prisma"
 
 export async function approveGuestMealRequest(
-  requestId: string,
+  requestId: string
 ): Promise<ApiResponse> {
-  const session = await requireManager();
+  const session = await requireManager()
   if (!session?.user.hostelId)
     return {
       status: "error",
       message: "Unauthorized - Hostel ID not found",
-    };
+    }
   try {
     await prisma.guestMeal.update({
       where: {
@@ -23,12 +24,12 @@ export async function approveGuestMealRequest(
       data: {
         status: GuestMealStatusType.APPROVED,
       },
-    });
+    })
 
     return {
       status: "success",
       message: "Guest meal request approved successfully",
-    };
+    }
   } catch (error) {
     return {
       status: "error",
@@ -36,14 +37,14 @@ export async function approveGuestMealRequest(
         error instanceof Error
           ? error.message
           : "An unexpected error occurred. Please try again later.",
-    };
+    }
   }
 }
 
 export async function declineGuestMealRequest(
-  requestId: string,
+  requestId: string
 ): Promise<ApiResponse> {
-  await requireManager();
+  await requireManager()
   try {
     prisma.guestMeal.update({
       where: {
@@ -52,11 +53,11 @@ export async function declineGuestMealRequest(
       data: {
         status: "REJECTED",
       },
-    });
+    })
     return {
       status: "success",
       message: "Guest meal request declined successfully",
-    };
+    }
   } catch (error) {
     return {
       status: "error",
@@ -64,6 +65,6 @@ export async function declineGuestMealRequest(
         error instanceof Error
           ? error.message
           : "An unexpected error occurred. Please try again later.",
-    };
+    }
   }
 }

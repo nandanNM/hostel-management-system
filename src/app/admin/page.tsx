@@ -1,8 +1,8 @@
-import { Metadata } from "next";
+import { Metadata } from "next"
 
 export const metadata: Metadata = {
   title: "Admin",
-};
+}
 
 export default async function Page() {
   return (
@@ -18,5 +18,5 @@ export default async function Page() {
       </div>
       <div className="bg-primary-foreground rounded-lg p-4">Test</div>
     </div>
-  );
+  )
 }

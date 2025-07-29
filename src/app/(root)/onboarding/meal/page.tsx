@@ -1,5 +1,5 @@
-import { OnboardingMealForm } from "@/components/forms/onboarding-forms";
+import { OnboardingMealForm } from "@/components/forms/onboarding-forms"
 
 export default function MealForm() {
-  return <OnboardingMealForm />;
+  return <OnboardingMealForm />
 }

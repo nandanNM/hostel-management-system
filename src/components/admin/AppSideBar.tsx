@@ -1,18 +1,24 @@
+import Image from "next/image"
+import Link from "next/link"
 import {
+  Calendar,
+  ChevronUp,
+  FileCheck,
   Home,
   Inbox,
-  Calendar,
-  Settings,
-  User2,
-  ChevronUp,
   Plus,
   Projector,
+  Settings,
+  User2,
   Users,
-  FileCheck,
-} from "lucide-react";
+} from "lucide-react"
 
-import Link from "next/link";
-import Image from "next/image";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import {
   Sidebar,
   SidebarContent,
@@ -26,13 +32,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarSeparator,
-} from "@/components/ui/sidebar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/components/ui/sidebar"
 
 const items = [
   {
@@ -55,9 +55,9 @@ const items = [
     url: "settings",
     icon: Settings,
   },
-];
+]
 interface AppSideBarProps {
-  state: "ADMIN" | "MANAGER";
+  state: "ADMIN" | "MANAGER"
 }
 
 export default function AppSideBar({ state }: AppSideBarProps) {
@@ -191,5 +191,5 @@ export default function AppSideBar({ state }: AppSideBarProps) {
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
-  );
+  )
 }

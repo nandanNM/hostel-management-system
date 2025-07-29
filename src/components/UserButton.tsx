@@ -1,10 +1,11 @@
-import avatarPlaceholder from "@/assets/avatar-placeholder.png";
-import { ChefHatIcon, Lock, LogOut } from "lucide-react";
-import { RiUserSettingsLine as Settings } from "@remixicon/react";
-import { signOut, useSession } from "next-auth/react";
-import Image from "next/image";
-import Link from "next/link";
-import { Button } from "./ui/button";
+import Image from "next/image"
+import Link from "next/link"
+import avatarPlaceholder from "@/assets/avatar-placeholder.png"
+import { RiUserSettingsLine as Settings } from "@remixicon/react"
+import { ChefHatIcon, Lock, LogOut } from "lucide-react"
+import { signOut, useSession } from "next-auth/react"
+
+import { Button } from "./ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,11 +14,11 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
+} from "./ui/dropdown-menu"
 
 export default function UserButton() {
-  const session = useSession();
-  const user = session.data?.user;
+  const session = useSession()
+  const user = session.data?.user
 
   return (
     <DropdownMenu>
@@ -72,5 +73,5 @@ export default function UserButton() {
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  );
+  )
 }

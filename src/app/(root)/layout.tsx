@@ -1,13 +1,13 @@
-import NavBar from "@/components/NavBar";
-import SideNav from "@/components/SideNav";
-import { requireUser } from "@/lib/require-user";
+import { requireUser } from "@/lib/require-user"
+import NavBar from "@/components/NavBar"
+import SideNav from "@/components/SideNav"
 
 export default async function Layout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
-  await requireUser();
+  await requireUser()
   return (
     <>
       <NavBar />
@@ -22,5 +22,5 @@ export default async function Layout({
         </div>
       </div>
     </>
-  );
+  )
 }

@@ -1,8 +1,21 @@
-"use client";
+"use client"
 
-import type { ColumnDef } from "@tanstack/react-table";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Button } from "@/components/ui/button";
+import type { ColumnDef } from "@tanstack/react-table"
+import {
+  ArrowUpDown,
+  Ban,
+  Copy,
+  Crown,
+  Eye,
+  MoreHorizontal,
+  Shield,
+  UserCheck,
+  UserX,
+} from "lucide-react"
+
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,28 +23,16 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  ArrowUpDown,
-  MoreHorizontal,
-  Ban,
-  UserX,
-  Shield,
-  Crown,
-  Eye,
-  Copy,
-  UserCheck,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
+} from "@/components/ui/dropdown-menu"
 
 export type UserRow = {
-  id: string;
-  name: string;
-  email: string;
-  dueAmount: number;
-  status: "active" | "inactive" | "banned" | "suspended";
-  role: "user" | "admin" | "manager" | "ex";
-};
+  id: string
+  name: string
+  email: string
+  dueAmount: number
+  status: "active" | "inactive" | "banned" | "suspended"
+  role: "user" | "admin" | "manager" | "ex"
+}
 
 export const userColumns: ColumnDef<UserRow>[] = [
   {
@@ -72,7 +73,7 @@ export const userColumns: ColumnDef<UserRow>[] = [
     accessorKey: "role",
     header: "Role",
     cell: ({ row }) => {
-      const role = row.getValue("role") as string;
+      const role = row.getValue("role") as string
       return (
         <div className="flex items-center gap-2">
           {role === "admin" && <Crown className="h-4 w-4 text-yellow-500" />}
@@ -80,26 +81,26 @@ export const userColumns: ColumnDef<UserRow>[] = [
           {role === "user" && <UserCheck className="h-4 w-4 text-gray-500" />}
           <span className="capitalize">{role}</span>
         </div>
-      );
+      )
     },
   },
   {
     accessorKey: "dueAmount",
     header: () => <div className="text-right">Due Amount</div>,
     cell: ({ row }) => {
-      const amount = Number.parseFloat(row.getValue("dueAmount"));
+      const amount = Number.parseFloat(row.getValue("dueAmount"))
       const formatted = new Intl.NumberFormat("en-US", {
         style: "currency",
         currency: "USD",
-      }).format(amount);
-      return <div className="text-right font-medium">{formatted}</div>;
+      }).format(amount)
+      return <div className="text-right font-medium">{formatted}</div>
     },
   },
   {
     accessorKey: "status",
     header: "Status",
     cell: ({ row }) => {
-      const status = row.getValue("status") as string;
+      const status = row.getValue("status") as string
       return (
         <div
           className={cn(
@@ -108,23 +109,23 @@ export const userColumns: ColumnDef<UserRow>[] = [
             status === "inactive" && "bg-gray-100 text-gray-800",
             status === "banned" && "bg-red-100 text-red-800",
             status === "suspended" && "bg-orange-100 text-orange-800",
-            status === "ex" && "bg-fuchsia-100 text-fuchsia-800",
+            status === "ex" && "bg-fuchsia-100 text-fuchsia-800"
           )}
         >
           {status}
         </div>
-      );
+      )
     },
   },
   {
     id: "actions",
     cell: ({ row }) => {
-      const user = row.original;
+      const user = row.original
 
       const handleAction = (action: string) => {
         // In a real app, you would call your API here
-        console.log(`${action} user:`, user.id);
-      };
+        console.log(`${action} user:`, user.id)
+      }
 
       return (
         <DropdownMenu>
@@ -210,7 +211,7 @@ export const userColumns: ColumnDef<UserRow>[] = [
             )}
           </DropdownMenuContent>
         </DropdownMenu>
-      );
+      )
     },
   },
-];
+]

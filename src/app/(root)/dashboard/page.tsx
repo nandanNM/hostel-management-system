@@ -1,28 +1,30 @@
-import { Separator } from "@/components/ui/separator";
-import MealTogleButton from "./_components/meal-togle-button";
-import { Metadata } from "next";
-import UserDataCard from "./_components/user-data-card";
-import OverviewCards from "./_components/overview";
-import { P } from "@/components/custom/p";
-import { requireUser } from "@/lib/require-user";
-import { cache } from "react";
-import prisma from "@/lib/prisma";
-import { notFound } from "next/navigation";
-import RecentTransactions from "./_components/recent-transactions";
-import UserActivity from "./_components/user-activity";
+import { cache } from "react"
+import { Metadata } from "next"
+import { notFound } from "next/navigation"
+
+import prisma from "@/lib/prisma"
+import { requireUser } from "@/lib/require-user"
+import { Separator } from "@/components/ui/separator"
+import { P } from "@/components/custom/p"
+
+import MealTogleButton from "./_components/meal-togle-button"
+import OverviewCards from "./_components/overview"
+import RecentTransactions from "./_components/recent-transactions"
+import UserActivity from "./_components/user-activity"
+import UserDataCard from "./_components/user-data-card"
 
 export const metadata: Metadata = {
   title: "Dashboard",
-};
+}
 
 const getUserById = cache(async (userId: string) => {
-  const foundUser = await prisma.user.findUnique({ where: { id: userId } });
-  if (!foundUser) notFound();
-  return foundUser;
-});
+  const foundUser = await prisma.user.findUnique({ where: { id: userId } })
+  if (!foundUser) notFound()
+  return foundUser
+})
 
 export default async function Page() {
-  const { user: sessionUser } = await requireUser();
+  const { user: sessionUser } = await requireUser()
 
   if (sessionUser.status === "INACTIVE")
     return (
@@ -32,7 +34,7 @@ export default async function Page() {
           contact the admin or a boarder member.
         </P>
       </div>
-    );
+    )
 
   if (sessionUser.status === "BANNED")
     return (
@@ -41,9 +43,9 @@ export default async function Page() {
           You are banned and cannot access this page. Please contact the admin.
         </P>
       </div>
-    );
+    )
 
-  const user = await getUserById(sessionUser.id as string);
+  const user = await getUserById(sessionUser.id as string)
 
   return (
     <div className="w-full md:mx-8 lg:mx-auto">
@@ -70,5 +72,5 @@ export default async function Page() {
         </div>
       </div>
     </div>
-  );
+  )
 }

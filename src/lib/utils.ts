@@ -1,27 +1,31 @@
-import { clsx, type ClassValue } from "clsx";
-import { format, formatDate, formatDistanceToNowStrict } from "date-fns";
-import { twMerge } from "tailwind-merge";
+import { clsx, type ClassValue } from "clsx"
+import {
+  format,
+  formatDate as formatDateFn,
+  formatDistanceToNowStrict,
+} from "date-fns"
+import { twMerge } from "tailwind-merge"
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
+  return twMerge(clsx(inputs))
 }
 
 export function getCurrentMealSlot(
-  date: Date = new Date(),
+  date: Date = new Date()
 ): "LUNCH" | "DINNER" {
-  const amPm = format(date, "a");
-  return amPm === "AM" ? "LUNCH" : "DINNER";
+  const amPm = format(date, "a")
+  return amPm === "AM" ? "LUNCH" : "DINNER"
 }
 
 export function formatRelativeDate(from: Date) {
-  const currentDate = new Date();
+  const currentDate = new Date()
   if (currentDate.getTime() - from.getTime() < 24 * 60 * 60 * 1000) {
-    return formatDistanceToNowStrict(from, { addSuffix: true });
+    return formatDistanceToNowStrict(from, { addSuffix: true })
   } else {
     if (currentDate.getFullYear() === from.getFullYear()) {
-      return formatDate(from, "MMM d");
+      return formatDateFn(from, "MMM d")
     } else {
-      return formatDate(from, "MMM d, yyy");
+      return formatDateFn(from, "MMM d, yyy")
     }
   }
 }
@@ -30,34 +34,55 @@ export function formatNumber(n: number): string {
   return Intl.NumberFormat("en-US", {
     notation: "compact",
     maximumFractionDigits: 1,
-  }).format(n);
+  }).format(n)
 }
 
 export async function getErrorMessage(error: unknown): Promise<string> {
-  const defaultMessage = "Something went wrong. Please try again.";
+  const defaultMessage = "Something went wrong. Please try again."
 
   if (error instanceof Error) {
     if (error.name === "TimeoutError") {
-      return "Request timed out. Please check your internet connection.";
+      return "Request timed out. Please check your internet connection."
     }
 
-    const httpError = error as Error & { response?: Response };
+    const httpError = error as Error & { response?: Response }
     if (httpError.response) {
       try {
-        const data = await httpError.response.json();
+        const data = await httpError.response.json()
         return (
           data?.message ||
           data?.error ||
           httpError.response.statusText ||
           defaultMessage
-        );
+        )
       } catch {
-        return httpError.response.statusText || defaultMessage;
+        return httpError.response.statusText || defaultMessage
       }
     }
 
-    return error.message || defaultMessage;
+    return error.message || defaultMessage
   }
 
-  return defaultMessage;
+  return defaultMessage
+}
+export function formatDate(
+  date: Date | string | number,
+  opts: Intl.DateTimeFormatOptions = {}
+) {
+  return new Intl.DateTimeFormat("en-US", {
+    month: opts.month ?? "long",
+    day: opts.day ?? "numeric",
+    year: opts.year ?? "numeric",
+    ...opts,
+  }).format(new Date(date))
+}
+export function parseEnumList<T extends string>(
+  value: string | undefined,
+  enumObject: Record<string, T>
+): T[] {
+  if (!value) return []
+  return value
+    .split(".")
+    .map((v) => v.trim())
+    .filter((v): v is T => Object.values(enumObject).includes(v as T))
 }

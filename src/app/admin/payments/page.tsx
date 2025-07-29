@@ -1,5 +1,6 @@
-import { DataTable } from "@/components/table/data-table";
-import { Payment, columns } from "./columns";
+import { DataTable } from "@/components/table/data-table"
+
+import { columns, Payment } from "./columns"
 
 const getData = async (): Promise<Payment[]> => {
   return [
@@ -255,10 +256,10 @@ const getData = async (): Promise<Payment[]> => {
       name: "Anne Cruz",
       email: "annecruz@gmail.com",
     },
-  ];
-};
+  ]
+}
 export default async function PaymentsPage() {
-  const data = await getData();
+  const data = await getData()
   return (
     <div className="">
       <div className="mb-4 rounded-md">
@@ -266,5 +267,5 @@ export default async function PaymentsPage() {
       </div>
       <DataTable columns={columns} data={data} />
     </div>
-  );
+  )
 }

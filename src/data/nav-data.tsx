@@ -1,11 +1,11 @@
-import { usePathname } from "next/navigation";
-import { Bell, Home, Utensils } from "lucide-react";
-import { RiDashboardLine, RiToolsFill } from "@remixicon/react";
+import { usePathname } from "next/navigation"
+import { RiDashboardLine, RiToolsFill } from "@remixicon/react"
+import { Bell, Home, Utensils } from "lucide-react"
 
 export const NavItems = () => {
-  const pathname = usePathname();
+  const pathname = usePathname()
   function isNavItemActive(pathname: string, nav: string) {
-    return pathname.includes(nav);
+    return pathname.includes(nav)
   }
 
   return [
@@ -45,5 +45,5 @@ export const NavItems = () => {
       active: isNavItemActive(pathname, "/settings"),
       position: "bottom",
     },
-  ];
-};
+  ]
+}

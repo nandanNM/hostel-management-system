@@ -1,9 +1,15 @@
-"use client";
-import { ArrowLeft, ArrowRight } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
+"use client"
 
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { HOSTAL_ID } from "@/constants/form.constants"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { ArrowLeft, ArrowRight } from "lucide-react"
+import { useForm } from "react-hook-form"
+import { z } from "zod"
+
+import { onboardingBaseSchema } from "@/lib/validations"
+import { Button } from "@/components/ui/button"
 import {
   Form,
   FormControl,
@@ -11,54 +17,49 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
+} from "@/components/ui/form"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { HOSTAL_ID } from "@/constants/form.constants";
-import { useOnboardingStore } from "@/app/(root)/onboarding/store";
-import { useEffect } from "react";
-import { onboardingBaseSchema } from "@/lib/validations";
+} from "@/components/ui/select"
+import { useOnboardingStore } from "@/app/(root)/onboarding/store"
 
 const hostelSchema = onboardingBaseSchema.pick({
   hostelId: true,
-});
-type OnboardingHostelFormValues = z.infer<typeof hostelSchema>;
+})
+type OnboardingHostelFormValues = z.infer<typeof hostelSchema>
 export default function OnboardingHostelForm() {
-  const router = useRouter();
-  const degree = useOnboardingStore((state) => state.education?.degree);
+  const router = useRouter()
+  const degree = useOnboardingStore((state) => state.education?.degree)
   const admissionYear = useOnboardingStore(
-    (state) => state.education?.admissionYear,
-  );
+    (state) => state.education?.admissionYear
+  )
   const passingYear = useOnboardingStore(
-    (state) => state.education?.passingYear,
-  );
-  const institute = useOnboardingStore((state) => state.education?.institute);
-  const setData = useOnboardingStore((state) => state.setData);
+    (state) => state.education?.passingYear
+  )
+  const institute = useOnboardingStore((state) => state.education?.institute)
+  const setData = useOnboardingStore((state) => state.setData)
   const form = useForm<OnboardingHostelFormValues>({
     resolver: zodResolver(hostelSchema),
     defaultValues: {
       hostelId: "",
     },
-  });
+  })
   function onSubmit(values: OnboardingHostelFormValues) {
     setData({
       hostelId: values.hostelId,
-    });
-    router.push("/onboarding/meal");
+    })
+    router.push("/onboarding/meal")
   }
   useEffect(() => {
-    if (!useOnboardingStore.persist.hasHydrated) return;
+    if (!useOnboardingStore.persist.hasHydrated) return
     if (!degree || !admissionYear || !passingYear || !institute) {
-      router.push("/onboarding/identity");
+      router.push("/onboarding/identity")
     }
-  }, [degree, admissionYear, passingYear, institute, router]);
+  }, [degree, admissionYear, passingYear, institute, router])
 
   return (
     <Form {...form}>
@@ -104,5 +105,5 @@ export default function OnboardingHostelForm() {
         </div>
       </form>
     </Form>
-  );
+  )
 }

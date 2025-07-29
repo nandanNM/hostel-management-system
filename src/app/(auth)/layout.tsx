@@ -1,9 +1,9 @@
-import { GalleryVerticalEnd } from "lucide-react";
+import { GalleryVerticalEnd } from "lucide-react"
 
 export default async function Layout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
   return (
     <main className="grid min-h-svh lg:grid-cols-2">
@@ -28,5 +28,5 @@ export default async function Layout({
         /> */}
       </div>
     </main>
-  );
+  )
 }

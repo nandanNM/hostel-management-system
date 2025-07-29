@@ -1,6 +1,8 @@
-"use client";
+"use client"
 
-import { LogOut, Settings, User } from "lucide-react";
+import { LogOut, Settings, User } from "lucide-react"
+
+import { ThemeSwitcher } from "../ThemeSwitcher"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,10 +10,9 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
-import { SidebarTrigger } from "../ui/sidebar";
-import UserAvatar from "../UserAvatar";
-import { ThemeSwitcher } from "../ThemeSwitcher";
+} from "../ui/dropdown-menu"
+import { SidebarTrigger } from "../ui/sidebar"
+import UserAvatar from "../UserAvatar"
 
 const Navbar = () => {
   return (
@@ -44,7 +45,7 @@ const Navbar = () => {
         </DropdownMenu>
       </div>
     </nav>
-  );
-};
+  )
+}
 
-export default Navbar;
+export default Navbar

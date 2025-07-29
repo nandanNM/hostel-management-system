@@ -1,25 +1,26 @@
-"use client";
+"use client"
 
-import { Moon, Sun } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
+import { useEffect, useState } from "react"
+import { Moon, Sun } from "lucide-react"
+import { useTheme } from "next-themes"
+
+import { cn } from "@/lib/utils"
 
 interface ThemeToggleProps {
-  className?: string;
+  className?: string
 }
 
 export function ThemeSwitcher({ className }: ThemeToggleProps) {
-  const [mounted, setMounted] = useState(false);
-  const { resolvedTheme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false)
+  const { resolvedTheme, setTheme } = useTheme()
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    setMounted(true)
+  }, [])
 
-  if (!mounted) return null;
+  if (!mounted) return null
 
-  const isDark = resolvedTheme === "dark";
+  const isDark = resolvedTheme === "dark"
 
   return (
     <div
@@ -28,7 +29,7 @@ export function ThemeSwitcher({ className }: ThemeToggleProps) {
         isDark
           ? "bg-muted border-border border"
           : "bg-background border-border border",
-        className,
+        className
       )}
       onClick={() => setTheme(isDark ? "light" : "dark")}
       role="button"
@@ -40,7 +41,7 @@ export function ThemeSwitcher({ className }: ThemeToggleProps) {
             "flex h-6 w-6 items-center justify-center rounded-full transition-transform duration-300",
             isDark
               ? "bg-accent translate-x-0 transform"
-              : "bg-muted translate-x-8 transform",
+              : "bg-muted translate-x-8 transform"
           )}
         >
           {isDark ? (
@@ -55,7 +56,7 @@ export function ThemeSwitcher({ className }: ThemeToggleProps) {
         <div
           className={cn(
             "flex h-6 w-6 items-center justify-center rounded-full transition-transform duration-300",
-            isDark ? "bg-transparent" : "-translate-x-8 transform",
+            isDark ? "bg-transparent" : "-translate-x-8 transform"
           )}
         >
           {isDark ? (
@@ -66,5 +67,5 @@ export function ThemeSwitcher({ className }: ThemeToggleProps) {
         </div>
       </div>
     </div>
-  );
+  )
 }

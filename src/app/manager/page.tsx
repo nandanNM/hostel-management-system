@@ -1,8 +1,9 @@
-import { format } from "date-fns";
-import { Calendar } from "lucide-react";
-import { MealDataCard } from "./_components/meal-data-card";
-import { MessagesList } from "./_components/messages-list";
-import { GuestRequestsList } from "./_components/guest-requests-list";
+import { format } from "date-fns"
+import { Calendar } from "lucide-react"
+
+import { GuestRequestsList } from "./_components/guest-requests-list"
+import { MealDataCard } from "./_components/meal-data-card"
+import { MessagesList } from "./_components/messages-list"
 
 export default function Page() {
   return (
@@ -36,5 +37,5 @@ export default function Page() {
       {/* Pending Guest Meal Requests */}
       <GuestRequestsList />
     </div>
-  );
+  )
 }

@@ -1,10 +1,11 @@
-import React from "react";
-import { Loader2 as Loader2Icon } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Button, type ButtonProps } from "@/components/ui/button";
+import React from "react"
+import { Loader2 as Loader2Icon } from "lucide-react"
+
+import { cn } from "@/lib/utils"
+import { Button, type ButtonProps } from "@/components/ui/button"
 
 interface LoadingButtonProps extends ButtonProps {
-  loading: boolean;
+  loading: boolean
 }
 
 const LoadingButton: React.FC<LoadingButtonProps> = ({
@@ -22,7 +23,7 @@ const LoadingButton: React.FC<LoadingButtonProps> = ({
     >
       {loading ? <Loader2Icon className="h-4 w-4 animate-spin" /> : children}
     </Button>
-  );
-};
+  )
+}
 
-export default LoadingButton;
+export default LoadingButton

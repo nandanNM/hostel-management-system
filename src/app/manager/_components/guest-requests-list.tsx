@@ -1,4 +1,10 @@
-"use client";
+"use client"
+
+import { useEffect } from "react"
+import { MealType } from "@/generated/prisma"
+import { Clock, Leaf, Users, Utensils } from "lucide-react"
+
+import { formatRelativeDate } from "@/lib/utils"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -9,48 +15,41 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+} from "@/components/ui/alert-dialog"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Users, Clock, Leaf, Utensils } from "lucide-react";
-import { MealType } from "@/generated/prisma";
-import { useMealStore } from "../store";
-import { useEffect } from "react";
-import { P } from "@/components/custom/p";
-import { formatRelativeDate } from "@/lib/utils";
+} from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
+import { P } from "@/components/custom/p"
+
+import { useMealStore } from "../store"
 
 export function GuestRequestsList() {
-  const requests = useMealStore((state) => state.guestRequests);
+  const requests = useMealStore((state) => state.guestRequests)
   const getGuestMealRequests = useMealStore(
-    (state) => state.getGuestMealRequests,
-  );
-  const approveGuestRequest = useMealStore(
-    (state) => state.approveGuestRequest,
-  );
-  const declineGuestRequest = useMealStore(
-    (state) => state.declineGuestRequest,
-  );
-  const error = useMealStore((state) => state.errorOnGetGuestRequests);
+    (state) => state.getGuestMealRequests
+  )
+  const approveGuestRequest = useMealStore((state) => state.approveGuestRequest)
+  const declineGuestRequest = useMealStore((state) => state.declineGuestRequest)
+  const error = useMealStore((state) => state.errorOnGetGuestRequests)
   const getMealTypeIcon = (type: MealType) => {
     return type === MealType.VEG ? (
       <Leaf className="h-4 w-4" />
     ) : (
       <Utensils className="h-4 w-4" />
-    );
-  };
+    )
+  }
   useEffect(() => {
-    getGuestMealRequests();
-  }, [getGuestMealRequests]);
+    getGuestMealRequests()
+  }, [getGuestMealRequests])
 
-  if (error && requests.length === 0) return <P variant="error">{error}</P>;
+  if (error && requests.length === 0) return <P variant="error">{error}</P>
   return (
     <Card className="w-full max-w-md">
       <CardHeader>
@@ -158,5 +157,5 @@ export function GuestRequestsList() {
         </div>
       </CardContent>
     </Card>
-  );
+  )
 }

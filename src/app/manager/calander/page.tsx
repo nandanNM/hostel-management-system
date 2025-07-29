@@ -1,33 +1,34 @@
-"use client";
+"use client"
 
-import { useState, useMemo, useCallback } from "react";
-import { format, isSameDay, isValid, parseISO } from "date-fns";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
+import { useCallback, useMemo, useState } from "react"
+import { format, isSameDay, isValid, parseISO } from "date-fns"
+
+import kyInstance from "@/lib/ky"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
 import {
-  CalendarProvider,
-  CalendarDate,
-  CalendarDatePicker,
-  CalendarMonthPicker,
-  CalendarYearPicker,
-  CalendarDatePagination,
-  CalendarHeader,
   CalendarBody,
+  CalendarDate,
+  CalendarDatePagination,
+  CalendarDatePicker,
+  CalendarHeader,
   CalendarItem,
+  CalendarMonthPicker,
+  CalendarProvider,
+  CalendarYearPicker,
   useCalendarMonth,
   useCalendarYear,
   type Feature,
   type Status,
-} from "@/components/calendar";
-import kyInstance from "@/lib/ky";
+} from "@/components/calendar"
 
 // Sample data for hostel management
 const mealStatuses: Status[] = [
   { id: "breakfast", name: "Breakfast", color: "#f59e0b" },
   { id: "lunch", name: "Lunch", color: "#10b981" },
   { id: "dinner", name: "Dinner", color: "#3b82f6" },
-];
+]
 
 const residents = [
   { id: "1", name: "John Doe", room: "101" },
@@ -35,28 +36,28 @@ const residents = [
   { id: "3", name: "Mike Johnson", room: "103" },
   { id: "4", name: "Sarah Wilson", room: "104" },
   { id: "5", name: "Tom Brown", room: "105" },
-];
+]
 
 async function getData() {
   try {
     const data = await kyInstance
       .get("/api/manager/meal/calendar?date=2025-07-01")
-      .json();
-    console.log(data);
+      .json()
+    console.log(data)
   } catch (error) {
-    console.log(error);
+    console.log(error)
   }
 }
-getData();
+getData()
 
 // Generate sample meal data
 const generateMealData = (): Feature[] => {
-  const meals: Feature[] = [];
-  const today = new Date();
+  const meals: Feature[] = []
+  const today = new Date()
 
   for (let i = -15; i <= 15; i++) {
-    const date = new Date(today);
-    date.setDate(today.getDate() + i);
+    const date = new Date(today)
+    date.setDate(today.getDate() + i)
 
     // Breakfast
     meals.push({
@@ -65,7 +66,7 @@ const generateMealData = (): Feature[] => {
       startAt: new Date(date.setHours(7, 0, 0, 0)),
       endAt: new Date(date.setHours(9, 0, 0, 0)),
       status: mealStatuses[0],
-    });
+    })
 
     // Lunch
     meals.push({
@@ -74,7 +75,7 @@ const generateMealData = (): Feature[] => {
       startAt: new Date(date.setHours(12, 0, 0, 0)),
       endAt: new Date(date.setHours(14, 0, 0, 0)),
       status: mealStatuses[1],
-    });
+    })
 
     // Dinner
     meals.push({
@@ -83,57 +84,57 @@ const generateMealData = (): Feature[] => {
       startAt: new Date(date.setHours(18, 0, 0, 0)),
       endAt: new Date(date.setHours(20, 0, 0, 0)),
       status: mealStatuses[2],
-    });
+    })
   }
 
-  return meals;
-};
+  return meals
+}
 
 // Generate sample attendance data
 const generateAttendanceData = () => {
-  const attendance: { [key: string]: string[] } = {};
-  const today = new Date();
+  const attendance: { [key: string]: string[] } = {}
+  const today = new Date()
 
   for (let i = -15; i <= 15; i++) {
-    const date = new Date(today);
-    date.setDate(today.getDate() + i);
-    const dateKey = format(date, "yyyy-MM-dd");
+    const date = new Date(today)
+    date.setDate(today.getDate() + i)
+    const dateKey = format(date, "yyyy-MM-dd")
 
     // Randomly select residents who are present
-    const presentResidents = residents.filter(() => Math.random() > 0.2);
-    attendance[dateKey] = presentResidents.map((r) => r.id);
+    const presentResidents = residents.filter(() => Math.random() > 0.2)
+    attendance[dateKey] = presentResidents.map((r) => r.id)
   }
 
-  return attendance;
-};
+  return attendance
+}
 
 const DateDetailsPanel = () => {
-  const [month] = useCalendarMonth();
-  const [year] = useCalendarYear();
-  console.log("month", month, "year", year);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [month] = useCalendarMonth()
+  const [year] = useCalendarYear()
+  console.log("month", month, "year", year)
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
 
-  const mealData = useMemo(() => generateMealData(), []);
-  const attendanceData = useMemo(() => generateAttendanceData(), []);
+  const mealData = useMemo(() => generateMealData(), [])
+  const attendanceData = useMemo(() => generateAttendanceData(), [])
 
   const selectedDateMeals = useMemo(() => {
-    if (!selectedDate) return [];
+    if (!selectedDate) return []
     return mealData.filter((meal) =>
-      isSameDay(new Date(meal.endAt), selectedDate),
-    );
-  }, [selectedDate, mealData]);
+      isSameDay(new Date(meal.endAt), selectedDate)
+    )
+  }, [selectedDate, mealData])
 
   const selectedDateAttendance = useMemo(() => {
-    if (!selectedDate) return [];
-    const dateKey = format(selectedDate, "yyyy-MM-dd");
-    const presentIds = attendanceData[dateKey] || [];
-    return residents.filter((resident) => presentIds.includes(resident.id));
-  }, [selectedDate, attendanceData]);
+    if (!selectedDate) return []
+    const dateKey = format(selectedDate, "yyyy-MM-dd")
+    const presentIds = attendanceData[dateKey] || []
+    return residents.filter((resident) => presentIds.includes(resident.id))
+  }, [selectedDate, attendanceData])
 
   // Function to handle date selection - this will be passed to the calendar
   const handleDateSelect = useCallback((date: Date) => {
-    setSelectedDate(date);
-  }, []);
+    setSelectedDate(date)
+  }, [])
 
   return (
     <div className="space-y-4 md:space-y-6">
@@ -315,8 +316,8 @@ const DateDetailsPanel = () => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
 export default function HostelManagementPage() {
   return (
@@ -331,5 +332,5 @@ export default function HostelManagementPage() {
       </div>
       <DateDetailsPanel />
     </div>
-  );
+  )
 }

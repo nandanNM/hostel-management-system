@@ -1,12 +1,13 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { User as UserIcon, MapPin, Utensils } from "lucide-react";
-import { formatDate } from "date-fns";
-import { User } from "@/generated/prisma";
-import { MealPreference } from "@/types";
+import { User } from "@/generated/prisma"
+import { MealPreference } from "@/types"
+import { formatDate } from "date-fns"
+import { MapPin, User as UserIcon, Utensils } from "lucide-react"
+
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent } from "@/components/ui/card"
 
 interface UserDataCardProps {
-  user: User;
+  user: User
 }
 
 export default async function UserDataCard({ user }: UserDataCardProps) {
@@ -79,7 +80,7 @@ export default async function UserDataCard({ user }: UserDataCardProps) {
             typeof user.mealPreference === "object" &&
             !Array.isArray(user.mealPreference) &&
             (() => {
-              const meal = user.mealPreference as unknown as MealPreference;
+              const meal = user.mealPreference as unknown as MealPreference
               return (
                 <div className="p-4">
                   <div className="mb-3 flex items-center gap-2">
@@ -127,10 +128,10 @@ export default async function UserDataCard({ user }: UserDataCardProps) {
                     </div>
                   </div>
                 </div>
-              );
+              )
             })()}
         </div>
       </CardContent>
     </Card>
-  );
+  )
 }

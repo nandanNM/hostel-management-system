@@ -1,16 +1,18 @@
+import { format } from "date-fns"
+
+import prisma from "@/lib/prisma"
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import UserAvatar from "@/components/UserAvatar";
-import prisma from "@/lib/prisma";
-import { format } from "date-fns";
+} from "@/components/ui/card"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import UserAvatar from "@/components/UserAvatar"
+
 interface UserActivityProps {
-  userId: string;
+  userId: string
 }
 export default async function UserActivity({ userId }: UserActivityProps) {
   const activityLogs = await prisma.activityLog.findMany({
@@ -29,7 +31,7 @@ export default async function UserActivity({ userId }: UserActivityProps) {
       timestamp: true,
       details: true,
     },
-  });
+  })
 
   return (
     <Card className="flex flex-col gap-4">
@@ -72,5 +74,5 @@ export default async function UserActivity({ userId }: UserActivityProps) {
         </div>
       </CardContent>
     </Card>
-  );
+  )
 }

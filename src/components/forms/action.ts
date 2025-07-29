@@ -1,25 +1,26 @@
-"use server";
+"use server"
 
-import prisma from "@/lib/prisma";
-import { requireUser } from "@/lib/require-user";
-import { guestMealSchema, GuestMeal } from "@/lib/validations";
-import { ApiResponse } from "@/types";
+import { ApiResponse } from "@/types"
+
+import prisma from "@/lib/prisma"
+import { requireUser } from "@/lib/require-user"
+import { GuestMeal, guestMealSchema } from "@/lib/validations"
 
 export async function createGuestMeal(values: GuestMeal): Promise<ApiResponse> {
-  const validation = await guestMealSchema.safeParseAsync(values);
+  const validation = await guestMealSchema.safeParseAsync(values)
   if (!validation.success) {
     return {
       status: "error",
       message: "Invalid Form Data",
-    };
+    }
   }
   try {
-    const session = await requireUser();
+    const session = await requireUser()
     if (!session?.user.id || !session?.user.hostelId) {
       return {
         status: "error",
         message: "Unauthorized",
-      };
+      }
     }
 
     await prisma.guestMeal.create({
@@ -29,11 +30,11 @@ export async function createGuestMeal(values: GuestMeal): Promise<ApiResponse> {
         userId: session.user.id,
         hostelId: session.user.hostelId,
       },
-    });
+    })
     return {
       status: "success",
       message: "Guest meal created successfully. 🎉",
-    };
+    }
   } catch (error) {
     return {
       status: "error",
@@ -41,6 +42,6 @@ export async function createGuestMeal(values: GuestMeal): Promise<ApiResponse> {
         error instanceof Error
           ? error.message
           : "An unexpected error occurred. Please try again later.",
-    };
+    }
   }
 }

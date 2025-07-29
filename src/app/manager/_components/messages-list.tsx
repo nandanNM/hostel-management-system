@@ -1,45 +1,47 @@
-"use client";
+"use client"
+
+import { useEffect, useState } from "react"
+import { MessageSquare } from "lucide-react"
+
+import type { GetUserMealEventWithUser } from "@/types/prisma.type"
+import kyInstance from "@/lib/ky"
+import { cn, formatRelativeDate, getErrorMessage } from "@/lib/utils"
+import { tryCatch } from "@/hooks/try-catch"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { MessageSquare } from "lucide-react";
-import type { GetUserMealEventWithUser } from "@/types/prisma.type";
-import { cn, formatRelativeDate, getErrorMessage } from "@/lib/utils";
-import { useEffect, useState } from "react";
-import kyInstance from "@/lib/ky";
-import { tryCatch } from "@/hooks/try-catch";
-import { P } from "@/components/custom/p";
+} from "@/components/ui/card"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Separator } from "@/components/ui/separator"
+import { P } from "@/components/custom/p"
 
 export function MessagesList() {
-  const [events, setEvents] = useState<GetUserMealEventWithUser[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const [events, setEvents] = useState<GetUserMealEventWithUser[]>([])
+  const [error, setError] = useState<string | null>(null)
   useEffect(() => {
     async function getEvents() {
-      setError(null);
+      setError(null)
       const { data, error } = await tryCatch(
         kyInstance
           .get("/api/manager/meal/events")
-          .json<GetUserMealEventWithUser[]>(),
-      );
+          .json<GetUserMealEventWithUser[]>()
+      )
       if (error) {
-        const message = await getErrorMessage(error);
-        setError(message);
-        return;
+        const message = await getErrorMessage(error)
+        setError(message)
+        return
       }
       if (data) {
-        setEvents(data);
+        setEvents(data)
       }
     }
-    getEvents();
-  }, []);
+    getEvents()
+  }, [])
   if (error) {
-    <P variant="error">{error}</P>;
+    ;<P variant="error">{error}</P>
   }
   return (
     <Card className="w-full max-w-md">
@@ -89,5 +91,5 @@ export function MessagesList() {
         </ScrollArea>
       </CardContent>
     </Card>
-  );
+  )
 }

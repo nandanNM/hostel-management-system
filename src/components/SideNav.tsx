@@ -1,57 +1,56 @@
-"use client";
-import { Fragment, useEffect, useState } from "react";
-import Link from "next/link";
+"use client"
+
+import { Fragment, useEffect, useState } from "react"
+import Link from "next/link"
+import { NavItems } from "@/data/nav-data"
+import { RiArrowLeftDoubleLine, RiArrowRightDoubleLine } from "@remixicon/react"
+
+import { cn } from "@/lib/utils"
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
-import { NavItems } from "@/data/nav-data";
-import {
-  RiArrowLeftDoubleLine,
-  RiArrowRightDoubleLine,
-} from "@remixicon/react";
-import { useNotificationStore } from "@/app/(root)/notifications/store";
+} from "@/components/ui/tooltip"
+import { useNotificationStore } from "@/app/(root)/notifications/store"
 
 export default function SideNav() {
-  const navItems = NavItems();
-  const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
-  const unreadCount = useNotificationStore((state) => state.unreadCount);
-  const getUnreadCount = useNotificationStore((state) => state.getUnreadCount);
+  const navItems = NavItems()
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(true)
+  const unreadCount = useNotificationStore((state) => state.unreadCount)
+  const getUnreadCount = useNotificationStore((state) => state.getUnreadCount)
   useEffect(() => {
-    getUnreadCount();
-  }, [getUnreadCount]);
+    getUnreadCount()
+  }, [getUnreadCount])
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const saved = window.localStorage.getItem("sidebarExpanded");
+      const saved = window.localStorage.getItem("sidebarExpanded")
       if (saved !== null) {
-        setIsSidebarExpanded(JSON.parse(saved));
+        setIsSidebarExpanded(JSON.parse(saved))
       }
     }
-  }, []);
+  }, [])
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       window.localStorage.setItem(
         "sidebarExpanded",
-        JSON.stringify(isSidebarExpanded),
-      );
+        JSON.stringify(isSidebarExpanded)
+      )
     }
-  }, [isSidebarExpanded]);
+  }, [isSidebarExpanded])
 
   const toggleSidebar = () => {
-    setIsSidebarExpanded(!isSidebarExpanded);
-  };
+    setIsSidebarExpanded(!isSidebarExpanded)
+  }
 
   return (
     <div>
       <div
         className={cn(
           isSidebarExpanded ? "w-[200px]" : "w-[68px]",
-          "bg-sidebar hidden h-full transform border-r transition-all duration-300 ease-in-out sm:flex",
+          "bg-sidebar hidden h-full transform border-r transition-all duration-300 ease-in-out sm:flex"
         )}
       >
         <aside className="flex h-full w-full columns-1 flex-col overflow-x-hidden px-4 break-words">
@@ -73,7 +72,7 @@ export default function SideNav() {
                         />
                       </div>
                     </Fragment>
-                  );
+                  )
                 }
               })}
             </div>
@@ -95,7 +94,7 @@ export default function SideNav() {
                       />
                     </div>
                   </Fragment>
-                );
+                )
               }
             })}
           </div>
@@ -121,16 +120,16 @@ export default function SideNav() {
         </div>
       </div>
     </div>
-  );
+  )
 }
 
 export const SideNavItem: React.FC<{
-  label: string;
-  icon: React.ReactNode;
-  path: string;
-  active: boolean;
-  isSidebarExpanded: boolean;
-  unreadCount?: number;
+  label: string
+  icon: React.ReactNode
+  path: string
+  active: boolean
+  isSidebarExpanded: boolean
+  unreadCount?: number
 }> = ({ label, icon, path, active, isSidebarExpanded, unreadCount = 0 }) => {
   // featch unread count
   return (
@@ -187,5 +186,5 @@ export const SideNavItem: React.FC<{
         </TooltipProvider>
       )}
     </>
-  );
-};
+  )
+}

@@ -1,20 +1,19 @@
-import { P, paragraphVariants } from "@/components/custom/p";
-import { Button } from "@/components/ui/button";
+import Link from "next/link"
+import { signIn } from "@/auth"
+import { RiGoogleFill } from "@remixicon/react"
+
+import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import Link from "next/link";
-
-import { RiGoogleFill } from "@remixicon/react";
-
-import { signIn } from "@/auth";
+} from "@/components/ui/card"
+import { P, paragraphVariants } from "@/components/custom/p"
 
 interface Props {
-  action: "Sign In" | "Sign Up";
+  action: "Sign In" | "Sign Up"
 }
 
 const AuthForm = ({ action }: Props) => {
@@ -31,10 +30,10 @@ const AuthForm = ({ action }: Props) => {
       <CardContent className="space-y-3">
         <form
           action={async () => {
-            "use server";
+            "use server"
             await signIn("google", {
               callbackUrl: "/",
-            });
+            })
           }}
         >
           <Button className="w-full bg-[#DB4437] text-white after:flex-1 hover:bg-[#DB4437]/90">
@@ -73,7 +72,7 @@ const AuthForm = ({ action }: Props) => {
         </P>
       </CardContent>
     </Card>
-  );
-};
+  )
+}
 
-export default AuthForm;
+export default AuthForm

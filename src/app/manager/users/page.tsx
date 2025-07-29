@@ -1,42 +1,36 @@
-"use client";
-import { DataTable } from "@/components/table/data-table";
-import { useUserMealListStore } from "./store";
-import { useEffect, useMemo } from "react";
-import { createMealColumns } from "./columns";
-import { GetMealWithUser } from "@/types/prisma.type";
-import { P } from "@/components/custom/p";
-import { Loader2 } from "lucide-react";
+import React from "react"
+import { SearchParams } from "@/types"
 
-export default function UsersPage() {
-  const { meals, loading, fetchMeals, updateMealStatus, error } =
-    useUserMealListStore();
-  useEffect(() => {
-    if (meals.length === 0) {
-      fetchMeals();
-    }
-  }, [fetchMeals, meals.length]);
-  const columns = useMemo(() => {
-    return createMealColumns({
-      updateMealStatus,
-      onViewProfile: (meal: GetMealWithUser) => {
-        console.log("Viewing profile for:", meal.user.name);
-      },
-    });
-  }, [updateMealStatus]);
+import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton"
+import { Shell } from "@/components/shell"
 
+import { TasksTable } from "./_components/users-meal-table"
+import { getMealsForManager } from "./_lib/actions"
+import { getMealsSchema } from "./_lib/validations"
+
+export interface UsersPageProps {
+  searchParams: SearchParams
+}
+export default async function UsersPage({ searchParams }: UsersPageProps) {
+  const resolvedSearchParams = await searchParams
+  const search = getMealsSchema.parse(resolvedSearchParams)
+
+  const mealsPromise = getMealsForManager(search)
   return (
-    <div className="">
-      <div className="mb-4 rounded-md">
-        <h2 className="font-semibold">All Users</h2>
-      </div>
-      {error && <P variant="error">{error}</P>}
-      {loading && !error && meals.length === 0 ? (
-        <div className="flex justify-center">
-          <Loader2 className="size-6 animate-spin" />
-        </div>
-      ) : (
-        <DataTable columns={columns} data={meals} />
-      )}
-    </div>
-  );
+    <Shell className="gap-2">
+      <React.Suspense
+        fallback={
+          <DataTableSkeleton
+            columnCount={5}
+            searchableColumnCount={1}
+            filterableColumnCount={2}
+            cellWidths={["10rem", "40rem", "12rem", "12rem", "8rem"]}
+            shrinkZero
+          />
+        }
+      >
+        <TasksTable tasksPromise={mealsPromise} />
+      </React.Suspense>
+    </Shell>
+  )
 }

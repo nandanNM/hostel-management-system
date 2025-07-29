@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod"
 
 // Basic user info
 const userSchema = z.object({
@@ -16,7 +16,7 @@ const userSchema = z.object({
     .regex(/^\d+$/, "Phone must be numbers only")
     .optional(),
   address: z.string().min(1, "Address is required"),
-});
+})
 
 // Education info
 export const educationSchema = z
@@ -39,16 +39,16 @@ export const educationSchema = z
   .refine((data) => data.passingYear >= data.admissionYear, {
     message: "Passing year must be after admission year",
     path: ["passingYear"],
-  });
+  })
 
 // Meal preferences
 export const mealSchema = z.object({
   type: z.enum(["VEG", "NON_VEG"]),
   nonVegType: z
-    .enum(["CHICKEN", "FISH", "EGG", "NONE"])
+    .enum(["CHICKEN", "FISH", "EGG", "NONE", "MUTTON"])
     .default("NONE")
     .optional(),
-});
+})
 
 // Complete onboarding form
 export const onboardingBaseSchema = z.object({
@@ -56,7 +56,7 @@ export const onboardingBaseSchema = z.object({
   hostelId: z.string().min(1, "Hostel ID required"),
   education: educationSchema,
   mealPreference: mealSchema,
-});
+})
 export const onboardingSchema = onboardingBaseSchema.refine(
   (data) =>
     data.mealPreference.type === "VEG" ||
@@ -65,8 +65,8 @@ export const onboardingSchema = onboardingBaseSchema.refine(
   {
     message: "nonVegType must be set if meal is NON_VEG",
     path: ["nonVegType"],
-  },
-);
+  }
+)
 
 // Guest meal booking
 export const guestMealSchema = z
@@ -89,23 +89,23 @@ export const guestMealSchema = z
     {
       message: "nonVegType must be set if meal is NON_VEG",
       path: ["nonVegType"],
-    },
-  );
+    }
+  )
 
 // Admin actions
 export const banUserSchema = z.object({
   id: z.string().uuid(),
   reason: z.string().min(1, "Ban reason required"),
   bannedBy: z.string().min(1, "Banned by required"),
-});
+})
 
 export const changeRoleSchema = z.object({
   id: z.string().uuid(),
   role: z.enum(["guest", "user", "manager", "staff", "admin", "superadmin"]),
-});
+})
 
 // Types for TypeScript
-export type User = z.infer<typeof onboardingSchema>;
-export type GuestMeal = z.infer<typeof guestMealSchema>;
-export type BanUser = z.infer<typeof banUserSchema>;
-export type ChangeRole = z.infer<typeof changeRoleSchema>;
+export type User = z.infer<typeof onboardingSchema>
+export type GuestMeal = z.infer<typeof guestMealSchema>
+export type BanUser = z.infer<typeof banUserSchema>
+export type ChangeRole = z.infer<typeof changeRoleSchema>

@@ -1,50 +1,53 @@
-"use client";
-import { useEffect, useTransition } from "react";
+"use client"
+
+import { useEffect, useTransition } from "react"
+import { DailyMealActivity } from "@/generated/prisma"
+import { ChefHat, Leaf, TrendingUp, Utensils } from "lucide-react"
+import { toast } from "sonner"
+
+import kyInstance from "@/lib/ky"
+import { formatRelativeDate, getErrorMessage } from "@/lib/utils"
+import { tryCatch } from "@/hooks/try-catch"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { TrendingUp, Leaf, Utensils, ChefHat } from "lucide-react";
-import { toast } from "sonner";
-import { tryCatch } from "@/hooks/try-catch";
-import kyInstance from "@/lib/ky";
-import { DailyMealActivity } from "@/generated/prisma";
-import LoadingButton from "@/components/LoadingButton";
-import { useMealStore } from "../store";
-import { formatRelativeDate, getErrorMessage } from "@/lib/utils";
-import ManagerPageSkeleton from "./manager-page-skeleton";
+} from "@/components/ui/card"
+import LoadingButton from "@/components/LoadingButton"
+
+import { useMealStore } from "../store"
+import ManagerPageSkeleton from "./manager-page-skeleton"
 
 export function MealDataCard() {
-  const [isPanding, startTransition] = useTransition();
-  const mealData = useMealStore((state) => state.mealData);
-  const setMealData = useMealStore((state) => state.setMealData);
-  const getMealData = useMealStore((state) => state.getMealData);
-  const loading = useMealStore((state) => state.loading);
+  const [isPanding, startTransition] = useTransition()
+  const mealData = useMealStore((state) => state.mealData)
+  const setMealData = useMealStore((state) => state.setMealData)
+  const getMealData = useMealStore((state) => state.getMealData)
+  const loading = useMealStore((state) => state.loading)
 
   const generateMealData = () => {
     startTransition(async () => {
       const { data: result, error } = await tryCatch(
-        kyInstance.post("/api/manager/meal").json<DailyMealActivity>(),
-      );
+        kyInstance.post("/api/manager/meal").json<DailyMealActivity>()
+      )
       if (error) {
-        const message = await getErrorMessage(error);
-        toast.error(message);
-        return;
+        const message = await getErrorMessage(error)
+        toast.error(message)
+        return
       }
-      setMealData(result);
-      toast.success("Successfully generated today's meal data.");
-    });
-  };
+      setMealData(result)
+      toast.success("Successfully generated today's meal data.")
+    })
+  }
   useEffect(() => {
     if (!mealData) {
-      getMealData();
+      getMealData()
     }
-  }, [getMealData, mealData]);
+  }, [getMealData, mealData])
 
-  if (loading && !mealData) return <ManagerPageSkeleton />;
+  if (loading && !mealData) return <ManagerPageSkeleton />
 
   return (
     <Card>
@@ -142,5 +145,5 @@ export function MealDataCard() {
         )}
       </CardContent>
     </Card>
-  );
+  )
 }

@@ -1,3 +1,7 @@
+import { Gavel, LucideIcon, TrendingUp, Utensils, Wallet } from "lucide-react"
+
+import { cn } from "@/lib/utils"
+import { Badge } from "@/components/ui/badge"
 import {
   Card,
   CardAction,
@@ -5,15 +9,13 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Gavel, LucideIcon, TrendingUp, Utensils, Wallet } from "lucide-react";
-import { getUserDeshboardStats } from "../action";
-import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
+} from "@/components/ui/card"
+
+import { getUserDeshboardStats } from "../action"
 
 export default async function OverviewCards() {
   const { totalBalanceRemaining, totalPayments, totalAttendance } =
-    await getUserDeshboardStats();
+    await getUserDeshboardStats()
 
   const cards: StatsCardProps[] = [
     {
@@ -37,7 +39,7 @@ export default async function OverviewCards() {
       color: "blue",
       subtitle: "Total meals taken",
     },
-  ];
+  ]
 
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -45,15 +47,15 @@ export default async function OverviewCards() {
         <StatsCard key={idx} {...card} />
       ))}
     </div>
-  );
+  )
 }
 
 interface StatsCardProps {
-  title: string;
-  icon: LucideIcon;
-  value: number | string;
-  color: string;
-  subtitle?: string;
+  title: string
+  icon: LucideIcon
+  value: number | string
+  color: string
+  subtitle?: string
 }
 
 export function StatsCard({
@@ -81,5 +83,5 @@ export function StatsCard({
         </div>
       </CardFooter>
     </Card>
-  );
+  )
 }

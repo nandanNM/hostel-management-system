@@ -1,31 +1,32 @@
-"use client";
+"use client"
 
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import type { ColumnDef } from "@tanstack/react-table"
+import {
+  ArrowUpDown,
+  Calendar,
+  Edit,
+  MoreHorizontal,
+  Trash2,
+} from "lucide-react"
+
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import type { ColumnDef } from "@tanstack/react-table";
-import {
-  ArrowUpDown,
-  MoreHorizontal,
-  Trash2,
-  Edit,
-  Calendar,
-} from "lucide-react";
+} from "@/components/ui/dropdown-menu"
 
 export type AuditRecord = {
-  id: string;
-  index: number;
-  auditDate: string;
-  totalAmount: number;
-  totalBorder: number;
-  payableAmount: number;
-};
+  id: string
+  index: number
+  auditDate: string
+  totalAmount: number
+  totalBorder: number
+  payableAmount: number
+}
 
 export const auditColumns: ColumnDef<AuditRecord>[] = [
   {
@@ -50,7 +51,7 @@ export const auditColumns: ColumnDef<AuditRecord>[] = [
     accessorKey: "index",
     header: "Index",
     cell: ({ row }) => {
-      return <div className="font-medium">{row.getValue("index")}</div>;
+      return <div className="font-medium">{row.getValue("index")}</div>
     },
   },
   {
@@ -67,16 +68,16 @@ export const auditColumns: ColumnDef<AuditRecord>[] = [
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         </div>
-      );
+      )
     },
     cell: ({ row }) => {
-      const date = new Date(row.getValue("auditDate"));
+      const date = new Date(row.getValue("auditDate"))
       const formatted = date.toLocaleDateString("en-US", {
         year: "numeric",
         month: "short",
         day: "numeric",
-      });
-      return <div className="font-medium">{formatted}</div>;
+      })
+      return <div className="font-medium">{formatted}</div>
     },
   },
   {
@@ -92,15 +93,15 @@ export const auditColumns: ColumnDef<AuditRecord>[] = [
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         </div>
-      );
+      )
     },
     cell: ({ row }) => {
-      const amount = Number.parseFloat(row.getValue("totalAmount"));
+      const amount = Number.parseFloat(row.getValue("totalAmount"))
       const formatted = new Intl.NumberFormat("en-US", {
         style: "currency",
         currency: "USD",
-      }).format(amount);
-      return <div className="text-right font-medium">{formatted}</div>;
+      }).format(amount)
+      return <div className="text-right font-medium">{formatted}</div>
     },
   },
   {
@@ -116,15 +117,15 @@ export const auditColumns: ColumnDef<AuditRecord>[] = [
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         </div>
-      );
+      )
     },
     cell: ({ row }) => {
-      const amount = Number.parseFloat(row.getValue("payableAmount"));
+      const amount = Number.parseFloat(row.getValue("payableAmount"))
       const formatted = new Intl.NumberFormat("en-US", {
         style: "currency",
         currency: "USD",
-      }).format(amount);
-      return <div className="text-right font-medium">{formatted}</div>;
+      }).format(amount)
+      return <div className="text-right font-medium">{formatted}</div>
     },
   },
   {
@@ -140,25 +141,25 @@ export const auditColumns: ColumnDef<AuditRecord>[] = [
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         </div>
-      );
+      )
     },
     cell: ({ row }) => {
-      const border = Number.parseFloat(row.getValue("totalBorder"));
+      const border = Number.parseFloat(row.getValue("totalBorder"))
       return (
         <div className="text-right font-medium">{border.toLocaleString()}</div>
-      );
+      )
     },
   },
   {
     id: "actions",
     header: "Actions",
     cell: ({ row }) => {
-      const audit = row.original;
+      const audit = row.original
 
       const handleAction = (action: string) => {
         // In a real app, you would call your API here
-        console.log(`${action} audit:`, audit.id);
-      };
+        console.log(`${action} audit:`, audit.id)
+      }
 
       return (
         <DropdownMenu>
@@ -188,7 +189,7 @@ export const auditColumns: ColumnDef<AuditRecord>[] = [
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-      );
+      )
     },
   },
-];
+]

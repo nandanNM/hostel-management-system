@@ -1,5 +1,6 @@
-import { DataTable } from "@/components/table/data-table";
-import { userColumns, UserRow } from "./columns";
+import { DataTable } from "@/components/table/data-table"
+
+import { userColumns, UserRow } from "./columns"
 
 const getUsers = async (): Promise<UserRow[]> => {
   return [
@@ -115,11 +116,11 @@ const getUsers = async (): Promise<UserRow[]> => {
       status: "banned",
       role: "user",
     },
-  ];
-};
+  ]
+}
 
 export default async function UsersPage() {
-  const data = await getUsers();
+  const data = await getUsers()
   return (
     <div className="">
       <div className="mb-4 rounded-md">
@@ -127,5 +128,5 @@ export default async function UsersPage() {
       </div>
       <DataTable columns={userColumns} data={data} />
     </div>
-  );
+  )
 }
