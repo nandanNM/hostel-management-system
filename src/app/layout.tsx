@@ -4,6 +4,7 @@ import "./globals.css"
 
 import { Outfit } from "next/font/google"
 import AuthProvider from "@/context/AuthProvider"
+import ReactQueryProvider from "@/context/ReactQueryProvider"
 import { ThemeProvider } from "@/context/theme-provider"
 
 import { cn } from "@/lib/utils"
@@ -32,16 +33,18 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <AuthProvider>
         <body className={cn(outfit.variable, "antialiased")}>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            {children}
-          </ThemeProvider>
+          <ReactQueryProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              {children}
+            </ThemeProvider>
 
-          <Toaster />
+            <Toaster />
+          </ReactQueryProvider>
         </body>
       </AuthProvider>
     </html>

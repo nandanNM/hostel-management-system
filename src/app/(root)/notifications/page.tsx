@@ -1,57 +1,42 @@
 "use client"
 
-import { useEffect, useState, useTransition } from "react"
+import { useEffect } from "react"
 import { RiLoader3Fill } from "@remixicon/react"
+import { useQuery } from "@tanstack/react-query"
 import { Bell } from "lucide-react"
 import { toast } from "sonner"
 
 import { GetNotificationWithIssuer } from "@/types/prisma.type"
 import kyInstance from "@/lib/ky"
-import { tryCatch } from "@/hooks/try-catch"
 
 import Notification from "./_components/notification"
-import { useNotificationStore } from "./store"
+import { useMarkNotificationsAsRead } from "./_lib/mutations"
 
 export default function NotificationsList() {
-  const [isPending, startTransition] = useTransition()
-  const setUnreadCount = useNotificationStore((state) => state.setUnreadCount)
-  const [notifications, setNotifications] = useState<
-    GetNotificationWithIssuer[]
-  >([])
-  useEffect(() => {
-    startTransition(async () => {
-      const { data: result, error } = await tryCatch(
-        kyInstance
-          .get("/api/user/notifications")
-          .json<GetNotificationWithIssuer[]>()
-      )
-
-      if (error) {
-        toast.error(
-          error.message || error.message || error.name === "TimeoutError"
-            ? "Request timed out. Please try again."
-            : "An unexpected error occurred. Please try again later."
-        )
-        return
-      }
-      setNotifications(result ?? [])
-    })
-  }, [])
+  const { mutate: markAsRead } = useMarkNotificationsAsRead()
+  const {
+    data: notifications,
+    isLoading: isPending,
+    error,
+    isError,
+  } = useQuery({
+    queryKey: ["notifications"],
+    queryFn: () =>
+      kyInstance
+        .get("/api/user/notifications")
+        .json<GetNotificationWithIssuer[]>(),
+  })
 
   useEffect(() => {
-    async function makeAsRead() {
-      const { data: result } = await tryCatch(
-        kyInstance.patch("/api/user/notifications/mark-as-read")
-      )
-      if (result) {
-        setUnreadCount(0)
-      }
-    }
-    makeAsRead()
-  }, [setUnreadCount])
+    markAsRead()
+  }, [markAsRead])
 
-  if (isPending)
+  if (isPending) {
     return <RiLoader3Fill size={30} className="mx-auto my-10 animate-spin" />
+  }
+  if (isError && error) {
+    toast.error(error.message)
+  }
   return (
     <div className="mx-auto w-full max-w-4xl">
       {/* Header */}
@@ -69,7 +54,7 @@ export default function NotificationsList() {
 
       {/* Notifications */}
       <div className="bg-card space-y-4 rounded-b-lg border border-t-0 p-6">
-        {notifications.length > 0 ? (
+        {notifications && notifications.length > 0 ? (
           notifications.map((notification) => (
             <Notification key={notification.id} notification={notification} />
           ))

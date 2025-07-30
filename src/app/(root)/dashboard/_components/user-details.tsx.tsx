@@ -1,16 +1,134 @@
+import React, { cache, Suspense } from "react"
+import { notFound } from "next/navigation"
 import { User } from "@/generated/prisma"
 import { MealPreference } from "@/types"
 import { formatDate } from "date-fns"
-import { MapPin, User as UserIcon, Utensils } from "lucide-react"
+import {
+  Gavel,
+  Loader2,
+  LucideIcon,
+  MapPin,
+  TrendingUp,
+  User as UserIcon,
+  Utensils,
+  Wallet,
+} from "lucide-react"
 
+import prisma from "@/lib/prisma"
+import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent } from "@/components/ui/card"
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+
+import { getUserDeshboardStats } from "../_lib/action"
+import RecentTransactions from "./recent-transactions"
+
+const getUserById = cache(async (userId: string) => {
+  const foundUser = await prisma.user.findUnique({ where: { id: userId } })
+  if (!foundUser) notFound()
+  return foundUser
+})
+interface UserDetailsProps {
+  userId: string
+}
+export default async function UserDetails({ userId }: UserDetailsProps) {
+  const user = await getUserById(userId)
+  return (
+    <div className="space-y-8 lg:col-span-2">
+      <Suspense fallback={<Loader2 className="mx-auto animate-spin" />}>
+        <OverviewCards />
+        <RecentTransactions userId={userId} />
+        <UserDataCard user={user} />
+      </Suspense>
+    </div>
+  )
+}
+
+async function OverviewCards() {
+  const { totalBalanceRemaining, totalPayments, totalAttendance } =
+    await getUserDeshboardStats()
+
+  const cards: StatsCardProps[] = [
+    {
+      title: "Outstanding Dues",
+      icon: Gavel,
+      value: `₹${totalBalanceRemaining}`,
+      color: "red",
+      subtitle: "Balance remaining",
+    },
+    {
+      title: "Total Paid Amount",
+      icon: Wallet,
+      value: `₹${totalPayments}`,
+      color: "green",
+      subtitle: "Till date",
+    },
+    {
+      title: "Meal Attendances",
+      icon: Utensils,
+      value: totalAttendance ?? 0,
+      color: "blue",
+      subtitle: "Total meals taken",
+    },
+  ]
+
+  return (
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {cards.map((card, idx) => (
+        <StatsCard key={idx} {...card} />
+      ))}
+    </div>
+  )
+}
+
+interface StatsCardProps {
+  title: string
+  icon: LucideIcon
+  value: number | string
+  color: string
+  subtitle?: string
+}
+
+export function StatsCard({
+  title,
+  icon: Icon,
+  value,
+  subtitle,
+}: StatsCardProps) {
+  return (
+    <Card className="@container/card">
+      <CardHeader>
+        <CardDescription>{title}</CardDescription>
+        <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+          {value}
+        </CardTitle>
+        <CardAction>
+          <Badge variant="outline" className="h-full w-full rounded-full p-1">
+            <Icon className={cn("size-5")} />
+          </Badge>
+        </CardAction>
+      </CardHeader>
+      <CardFooter className="flex-col items-start gap-1.5 text-sm">
+        <div className="line-clamp-1 flex gap-2 font-medium">
+          {subtitle} <TrendingUp className="size-4" />
+        </div>
+      </CardFooter>
+    </Card>
+  )
+}
 
 interface UserDataCardProps {
   user: User
 }
 
-export default async function UserDataCard({ user }: UserDataCardProps) {
+async function UserDataCard({ user }: UserDataCardProps) {
   return (
     <Card className="shadow-lg">
       <CardContent className="p-0">

@@ -4,7 +4,9 @@ import { Fragment, useEffect, useState } from "react"
 import Link from "next/link"
 import { NavItems } from "@/data/nav-data"
 import { RiArrowLeftDoubleLine, RiArrowRightDoubleLine } from "@remixicon/react"
+import { useQuery } from "@tanstack/react-query"
 
+import kyInstance from "@/lib/ky"
 import { cn } from "@/lib/utils"
 import {
   Tooltip,
@@ -12,16 +14,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { useNotificationStore } from "@/app/(root)/notifications/store"
 
 export default function SideNav() {
   const navItems = NavItems()
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true)
-  const unreadCount = useNotificationStore((state) => state.unreadCount)
-  const getUnreadCount = useNotificationStore((state) => state.getUnreadCount)
-  useEffect(() => {
-    getUnreadCount()
-  }, [getUnreadCount])
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -44,6 +40,11 @@ export default function SideNav() {
   const toggleSidebar = () => {
     setIsSidebarExpanded(!isSidebarExpanded)
   }
+  const { data: unreadCount } = useQuery({
+    queryKey: ["notifications", "unread-count"],
+    queryFn: () =>
+      kyInstance.get("/api/user/notifications/unread-count").json<number>(),
+  })
 
   return (
     <div>
@@ -147,7 +148,7 @@ export const SideNavItem: React.FC<{
             {icon}
             {label === "Notifications" && unreadCount > 0 && (
               <span className="bg-primary text-primary-foreground absolute top-2.5 -right-12 rounded-full px-1 text-xs font-medium tabular-nums">
-                {unreadCount}
+                {unreadCount > 99 ? "99+" : unreadCount}
               </span>
             )}
             <span>{label}</span>
