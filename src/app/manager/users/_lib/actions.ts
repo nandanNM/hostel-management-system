@@ -22,18 +22,26 @@ interface MealsResponse {
 export async function getMealsForManager(
   input: GetMealsSchema
 ): Promise<MealsResponse> {
-  const { page, per_page, sort, status, nonVegType, operator = "and" } = input
-
+  noStore()
+  const {
+    page,
+    per_page,
+    sort,
+    status,
+    nonVegType,
+    user,
+    operator = "and",
+  } = input
   const offset = (page - 1) * per_page
-  const [sortField = "updatedAt", sortOrder = "desc"] = (sort?.split(".") ??
-    []) as [keyof Prisma.MealOrderByWithRelationInput, "asc" | "desc"]
-
-  // Validate enum filters
+  const [sortField, sortOrder] = (sort?.split(".") ?? [
+    "updatedAt",
+    "desc",
+  ]) as [keyof Prisma.MealOrderByWithRelationInput, "asc" | "desc"]
   const statusList = parseEnumList(status, MealStatusType)
   const nonVegList = parseEnumList(nonVegType, NonVegType)
+
   const statusCondition =
     statusList.length > 0 ? { status: { in: statusList } } : undefined
-
   const nonVegCondition =
     nonVegList.length > 0 ? { nonVegType: { in: nonVegList } } : undefined
 
@@ -41,38 +49,53 @@ export async function getMealsForManager(
     Boolean
   ) as Prisma.MealWhereInput[]
 
+  if (user) {
+    filters.push({
+      user: {
+        OR: [
+          { name: { contains: user, mode: "insensitive" } },
+          { email: { contains: user, mode: "insensitive" } },
+        ],
+      },
+    })
+  }
+
   const whereClause =
     filters.length > 0
       ? operator === "or"
         ? { OR: filters }
         : { AND: filters }
       : {}
-  const [data, totalRows] = await Promise.all([
-    prisma.meal.findMany({
-      where: whereClause,
-      skip: offset,
-      take: per_page,
-      orderBy: {
-        [sortField]: sortOrder,
-      },
-      include: {
-        user: {
-          select: {
-            image: true,
-            name: true,
-            email: true,
+
+  try {
+    const [data, totalRows] = await Promise.all([
+      prisma.meal.findMany({
+        where: whereClause,
+        skip: offset,
+        take: per_page,
+        orderBy: {
+          [sortField]: sortOrder,
+        },
+        include: {
+          user: {
+            select: {
+              image: true,
+              name: true,
+              email: true,
+            },
           },
         },
-      },
-    }),
+      }),
+      prisma.meal.count({ where: whereClause }),
+    ])
 
-    prisma.meal.count({ where: whereClause }),
-  ])
-
-  return {
-    data,
-    totalRows,
-    pageCount: Math.ceil(totalRows / per_page),
+    return {
+      data,
+      totalRows,
+      pageCount: Math.ceil(totalRows / per_page),
+    }
+  } catch (error) {
+    throw new Error("Failed to retrieve meal data.")
   }
 }
 

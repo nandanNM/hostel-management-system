@@ -46,7 +46,6 @@ interface UpdateMealSheetProps
 type UpdateMealSchema = z.infer<typeof mealSchema>
 export function UpdateMealSheet({ meal, ...props }: UpdateMealSheetProps) {
   const [isUpdatePending, startUpdateTransition] = React.useTransition()
-  console.log("Meal", meal)
 
   const form = useForm<UpdateMealSchema>({
     resolver: zodResolver(mealSchema),

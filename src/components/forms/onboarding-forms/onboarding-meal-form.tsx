@@ -56,7 +56,6 @@ export default function OnboardingMealForm() {
   })
 
   function onSubmit(values: CreateMealFormValues) {
-    console.log(values)
     startTransition(async () => {
       if (
         name &&
