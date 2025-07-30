@@ -1,5 +1,6 @@
 import { Suspense } from "react"
 import { Metadata } from "next"
+import { notFound } from "next/navigation"
 import { Loader2 } from "lucide-react"
 
 import { requireUser } from "@/lib/require-user"
@@ -15,9 +16,9 @@ export const metadata: Metadata = {
 }
 
 export default async function Page() {
-  const { user: sessionUser } = await requireUser()
-
-  if (sessionUser.status === "INACTIVE")
+  const { user } = await requireUser()
+  if (!user?.id) return notFound()
+  if (user.status === "INACTIVE")
     return (
       <div className="w-full md:mx-8 lg:mx-auto">
         <P className="text-destructive text-center text-balance">
@@ -27,7 +28,7 @@ export default async function Page() {
       </div>
     )
 
-  if (sessionUser.status === "BANNED")
+  if (user.status === "BANNED")
     return (
       <div className="w-full md:mx-8 lg:mx-auto">
         <P className="text-destructive text-center text-balance">
@@ -44,7 +45,7 @@ export default async function Page() {
       <div className="mx-auto max-w-7xl px-2 py-8 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h2 className="text-foreground text-2xl font-bold">
-            Welcome back, {sessionUser.name}! 👋
+            Welcome back, {user.name}! 👋
           </h2>
           <p className="text-muted-foreground">
             Here&apos;s your mess account overview
@@ -52,9 +53,9 @@ export default async function Page() {
         </div>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <UserDetails userId={sessionUser.id as string} />
+          <UserDetails userId={user.id} />
           <Suspense fallback={<Loader2 className="mx-auto animate-spin" />}>
-            <UserActivity userId={sessionUser.id as string} />
+            <UserActivity userId={user.id} />
           </Suspense>
         </div>
       </div>
