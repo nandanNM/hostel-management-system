@@ -79,6 +79,7 @@ export async function getMealsForManager(
         include: {
           user: {
             select: {
+              selfPhNo: true,
               image: true,
               name: true,
               email: true,

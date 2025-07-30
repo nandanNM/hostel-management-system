@@ -21,6 +21,7 @@ export type GetMealWithUser = Prisma.MealGetPayload<{
   include: {
     user: {
       select: {
+        selfPhNo: true
         name: true
         email: true
         image: true

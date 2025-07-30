@@ -74,7 +74,9 @@ export function getColumns(): ColumnDef<GetMealWithUser>[] {
             <UserAvatar avatarUrl={user.image} size={38} />
             <div>
               <div className="font-medium">{user.name || "Unknown User"}</div>
-              <div className="text-muted-foreground text-sm">{user.email}</div>
+              <div className="text-muted-foreground text-sm">
+                +91 {user.selfPhNo}
+              </div>
             </div>
           </div>
         )
@@ -89,7 +91,7 @@ export function getColumns(): ColumnDef<GetMealWithUser>[] {
     },
     {
       accessorKey: "nonVegType",
-      header: "Non-Veg Type",
+      header: "Type",
       cell: ({ row }) => {
         const nonVegType = row.original.nonVegType
         const Icon = getNonVegTypeIcon(nonVegType)
