@@ -338,15 +338,13 @@ model DailyMealActivity {
 }
 
 model MealAttendance {
-  id        String       @id @default(cuid())
-  userId    String       @map("user_id")
-  mealTime  MealTimeType @map("meal_time")
-  date      DateTime
-  isPresent Boolean      @map("is_present")
-  mealId    String?      @map("meal_id")
-
-  hostelId String @map("hostel_id")
-  hostel   Hostel @relation(fields: [hostelId], references: [id], onDelete: Cascade)
+  id       String       @id @default(cuid())
+  userId   String       @map("user_id")
+  mealTime MealTimeType @map("meal_time")
+  date     DateTime
+  mealId   String?      @map("meal_id")
+  hostelId String       @map("hostel_id")
+  hostel   Hostel       @relation(fields: [hostelId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")

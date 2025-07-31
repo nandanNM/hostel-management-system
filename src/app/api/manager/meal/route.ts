@@ -34,6 +34,7 @@ export async function GET() {
         hostelId: user.hostelId,
         mealTime,
         createdAt: {
+          //TODO: Immplemant date filter hare
           gte: startOfDay(today),
           lte: endOfDay(today),
         },
@@ -75,6 +76,7 @@ export async function POST() {
       where: {
         mealTime,
         hostelId: session.user.hostelId,
+        //TODO: Immplemant date filter hare
         createdAt: {
           gte: todayStart,
           lte: todayEnd,
@@ -91,6 +93,10 @@ export async function POST() {
       prisma.meal.findMany({
         where: {
           hostelId: session.user.hostelId,
+          status: MealStatusType.ACTIVE,
+          user: {
+            status: UserStatusType.ACTIVE,
+          },
         },
         select: {
           id: true,
@@ -125,16 +131,16 @@ export async function POST() {
     ])
 
     // Filter only active meals where both meal and user are active
-    const allActiveRegularMeals = allRegularMeals.filter(
-      (meal) =>
-        meal.status === MealStatusType.ACTIVE &&
-        meal.user.status === UserStatusType.ACTIVE
-    )
+    // const allActiveRegularMeals = allRegularMeals.filter(
+    //   (meal) =>
+    //     meal.status === MealStatusType.ACTIVE &&
+    //     meal.user.status === UserStatusType.ACTIVE
+    // )
 
-    // Active users (whether meal status active or not), for attendance
-    const activeUsers = allRegularMeals.filter(
-      (meal) => meal.user.status === UserStatusType.ACTIVE
-    )
+    // // Active users (whether meal status active or not), for attendance
+    // const activeUsers = allRegularMeals.filter(
+    //   (meal) => meal.user.status === UserStatusType.ACTIVE
+    // )
 
     // Count meals by type for regular users
     let totalVeg = 0
@@ -142,7 +148,7 @@ export async function POST() {
     let totalNonvegFish = 0
     let totalNonvegEgg = 0
 
-    for (const meal of allActiveRegularMeals) {
+    for (const meal of allRegularMeals) {
       if (meal.type === MealType.VEG) {
         totalVeg++
       } else if (meal.type === MealType.NON_VEG) {
@@ -189,10 +195,10 @@ export async function POST() {
     }
 
     // Total meals includes both regular and guest entries
-    const totalMeal = allActiveGuestMeals.length + allActiveRegularMeals.length
+    const totalMeal = allActiveGuestMeals.length + allRegularMeals.length
 
     // Create attendance records for active users
-    const attendanceRecordsToCreate = activeUsers.map((meal) => ({
+    const attendanceRecordsToCreate = allRegularMeals.map((meal) => ({
       hostelId: session.user.hostelId as string,
       userId: meal.userId,
       mealTime,
@@ -202,23 +208,28 @@ export async function POST() {
     }))
 
     // Create meal activity record and attendance records in parallel
-    const [mealActivity] = await Promise.all([
-      prisma.dailyMealActivity.create({
+    const hostelId = session.user.hostelId
+    const mealActivity = await prisma.$transaction(async (tx) => {
+      const createdMealActivity = await tx.dailyMealActivity.create({
         data: {
           mealTime,
           totalMeal,
-          hostelId: session.user.hostelId,
+          hostelId,
           totalGuestMeal: guestTotalMeals,
           totalVeg: totalVeg + guestTotalVeg,
           totalNonvegChicken: totalNonvegChicken + guestTotalNonvegChicken,
           totalNonvegFish: totalNonvegFish + guestTotalNonvegFish,
           totalNonvegEgg: totalNonvegEgg + guestTotalNonvegEgg,
         },
-      }),
-      prisma.mealAttendance.createMany({
+      })
+
+      await tx.mealAttendance.createMany({
         data: attendanceRecordsToCreate,
-      }),
-    ])
+      })
+
+      return createdMealActivity
+    })
+
     return Response.json(mealActivity)
   } catch (error) {
     console.error(error)

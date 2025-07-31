@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useMemo, useState } from "react"
-import { format, isSameDay, isValid, parseISO } from "date-fns"
+import { format, isSameDay } from "date-fns"
 
 import kyInstance from "@/lib/ky"
 import { Badge } from "@/components/ui/badge"
@@ -41,9 +41,9 @@ const residents = [
 async function getData() {
   try {
     const data = await kyInstance
-      .get("/api/manager/meal/calendar?date=2025-07-01")
+      .get("/api/manager/meal/attendance-summary?month=7&year=2025")
       .json()
-    console.log(data)
+    console.log("data", data)
   } catch (error) {
     console.log(error)
   }
@@ -105,6 +105,7 @@ const generateAttendanceData = () => {
     attendance[dateKey] = presentResidents.map((r) => r.id)
   }
 
+  console.log(attendance)
   return attendance
 }
 
