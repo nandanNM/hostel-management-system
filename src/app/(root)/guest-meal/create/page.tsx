@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import CreateGuestMealForm from "@/components/forms/create-guest-meal-form"
+import CreateGuestMealForm from "@/app/(root)/guest-meal/_components/create-guest-meal-form"
 
 export const metadata: Metadata = {
   title: "Create Guest Meal",
