@@ -15,35 +15,34 @@ import { getCurrentMealSlot } from "@/lib/utils"
 export async function GET() {
   try {
     const session = await getSession()
-    if (!session?.user.id)
+
+    const user = session?.user
+    if (!user?.id || !user.hostelId)
       return Response.json({ error: "Unauthorized" }, { status: 401 })
-    if (!session?.user.hostelId)
+
+    if (user.role !== UserRoleType.MANAGER)
       return Response.json(
-        { error: "Unauthorized - Hostel ID not found " },
+        { error: "Unauthorized - Manager access only" },
         { status: 401 }
       )
-    if (session.user.role !== UserRoleType.MANAGER)
-      return Response.json(
-        { error: "Unauthorized - You are not a manager" },
-        { status: 401 }
-      )
+
+    const today = new Date()
     const mealTime = getCurrentMealSlot()
-    const todayStart = startOfDay(new Date())
-    const todayEnd = endOfDay(new Date())
+
     const data = await prisma.dailyMealActivity.findFirst({
       where: {
-        mealTime: mealTime,
-        hostelId: session.user.hostelId,
+        hostelId: user.hostelId,
+        mealTime,
         createdAt: {
-          gte: todayStart,
-          lte: todayEnd,
+          gte: startOfDay(today),
+          lte: endOfDay(today),
         },
       },
     })
 
     return Response.json(data)
   } catch (error) {
-    console.log(error)
+    console.error("GET /daily-meal-activity error:", error)
     return Response.json({ error: "Internal Server Error" }, { status: 500 })
   }
 }

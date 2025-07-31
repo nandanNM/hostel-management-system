@@ -1,22 +1,22 @@
-import Image from "next/image"
 import Link from "next/link"
 import {
   Calendar,
   ChevronUp,
   FileCheck,
   Home,
-  Inbox,
+  LogOut,
   Plus,
   Projector,
   Settings,
-  User2,
   Users,
 } from "lucide-react"
+import { User } from "next-auth"
 
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
@@ -28,11 +28,12 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarSeparator,
 } from "@/components/ui/sidebar"
+
+import { Separator } from "../ui/separator"
+import UserAvatar from "../UserAvatar"
 
 const items = [
   {
@@ -41,9 +42,9 @@ const items = [
     icon: Home,
   },
   {
-    title: "Inbox",
-    url: "inbox",
-    icon: Inbox,
+    title: "Users",
+    url: "users",
+    icon: Users,
   },
   {
     title: "Calendar",
@@ -58,9 +59,10 @@ const items = [
 ]
 interface AppSideBarProps {
   state: "ADMIN" | "MANAGER"
+  user: User
 }
 
-export default function AppSideBar({ state }: AppSideBarProps) {
+export default function AppSideBar({ state, user }: AppSideBarProps) {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="py-4">
@@ -68,14 +70,14 @@ export default function AppSideBar({ state }: AppSideBarProps) {
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
               <Link href="/">
-                <Image src="/logo.svg" alt="logo" width={20} height={20} />
-                <span>Lama Dev</span>
+                <UserAvatar size={32} avatarUrl={user.image} />
+                <span>{user.name}</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
-      <SidebarSeparator />
+      <Separator />
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Application</SidebarGroupLabel>
@@ -95,9 +97,9 @@ export default function AppSideBar({ state }: AppSideBarProps) {
                       <span>{item.title}</span>
                     </Link>
                   </SidebarMenuButton>
-                  {item.title === "Inbox" && (
+                  {/* {item.title === "Inbox" && (
                     <SidebarMenuBadge>24</SidebarMenuBadge>
-                  )}
+                  )} */}
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>
@@ -177,14 +179,21 @@ export default function AppSideBar({ state }: AppSideBarProps) {
           <SidebarMenuItem>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <SidebarMenuButton>
-                  <User2 /> John Doe <ChevronUp className="ml-auto" />
+                <SidebarMenuButton className="flex items-center justify-center">
+                  <UserAvatar size={32} avatarUrl={user.image} /> {user.name}
+                  <ChevronUp className="ml-auto" />
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem>Account</DropdownMenuItem>
-                <DropdownMenuItem>Setting</DropdownMenuItem>
-                <DropdownMenuItem>Sign out</DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Settings className="mr-2 h-[1.2rem] w-[1.2rem]" />
+                  Settings
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem variant="destructive">
+                  <LogOut className="mr-2 h-[1.2rem] w-[1.2rem]" />
+                  Logout
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </SidebarMenuItem>

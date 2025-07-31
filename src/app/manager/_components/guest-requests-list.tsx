@@ -44,6 +44,7 @@ export function GuestRequestsList() {
       kyInstance
         .get("/api/manager/meal/panding-gurst-meals")
         .json<GuestMeal[]>(),
+    refetchOnWindowFocus: false,
   })
 
   const getMealTypeIcon = (type: MealType) => {

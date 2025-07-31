@@ -1,6 +1,12 @@
-import { GuestMeal, GuestMealStatusType } from "@/generated/prisma"
+import {
+  DailyMealActivity,
+  GuestMeal,
+  GuestMealStatusType,
+} from "@/generated/prisma"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
+
+import kyInstance from "@/lib/ky"
 
 import { updateGuestMealStatus } from "./action"
 
@@ -65,6 +71,26 @@ export function useUpdateGuestMealStatus() {
       queryClient.invalidateQueries({
         queryKey: ["guest-meals", "manager", "pending"],
       })
+    },
+  })
+}
+export function useGenerateMealData() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (): Promise<DailyMealActivity> =>
+      kyInstance.post("/api/manager/meal").json(),
+
+    onSuccess: () => {
+      toast.success("Successfully generated today's meal data.")
+      queryClient.invalidateQueries({ queryKey: ["daily-meal-activity"] })
+    },
+
+    onError: async (err) => {
+      console.log(err)
+      toast.error(
+        err.message || "An unexpected error occurred. Please try again later."
+      )
     },
   })
 }

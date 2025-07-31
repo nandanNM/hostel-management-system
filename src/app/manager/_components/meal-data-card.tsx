@@ -1,13 +1,12 @@
 "use client"
 
-import { useEffect, useTransition } from "react"
-import { DailyMealActivity } from "@/generated/prisma"
+import type { DailyMealActivity } from "@/generated/prisma"
+import { useQuery } from "@tanstack/react-query"
 import { ChefHat, Leaf, TrendingUp, Utensils } from "lucide-react"
 import { toast } from "sonner"
 
 import kyInstance from "@/lib/ky"
-import { formatRelativeDate, getErrorMessage } from "@/lib/utils"
-import { tryCatch } from "@/hooks/try-catch"
+import { formatRelativeDate } from "@/lib/utils"
 import {
   Card,
   CardContent,
@@ -17,37 +16,28 @@ import {
 } from "@/components/ui/card"
 import LoadingButton from "@/components/LoadingButton"
 
-import { useMealStore } from "../store"
-import ManagerPageSkeleton from "./manager-page-skeleton"
+import { useGenerateMealData } from "../_lib/mutations"
 
 export function MealDataCard() {
-  const [isPanding, startTransition] = useTransition()
-  const mealData = useMealStore((state) => state.mealData)
-  const setMealData = useMealStore((state) => state.setMealData)
-  const getMealData = useMealStore((state) => state.getMealData)
-  const loading = useMealStore((state) => state.loading)
+  const { mutate: generateMealData, isPending: isGenerating } =
+    useGenerateMealData()
+  const {
+    data: mealData,
+    isLoading,
+    error,
+    isError,
+  } = useQuery({
+    queryKey: ["daily-meal-activity", "manager"],
+    queryFn: () =>
+      kyInstance.get("/api/manager/meal").json<DailyMealActivity>(),
+    refetchOnWindowFocus: false,
+  })
 
-  const generateMealData = () => {
-    startTransition(async () => {
-      const { data: result, error } = await tryCatch(
-        kyInstance.post("/api/manager/meal").json<DailyMealActivity>()
-      )
-      if (error) {
-        const message = await getErrorMessage(error)
-        toast.error(message)
-        return
-      }
-      setMealData(result)
-      toast.success("Successfully generated today's meal data.")
-    })
+  if (isError && error) {
+    toast.error(error.message)
   }
-  useEffect(() => {
-    if (!mealData) {
-      getMealData()
-    }
-  }, [getMealData, mealData])
 
-  if (loading && !mealData) return <ManagerPageSkeleton />
+  if (isLoading && !mealData) return <ManagerPageSkeleton />
 
   return (
     <Card>
@@ -65,14 +55,13 @@ export function MealDataCard() {
       <CardContent className="space-y-4">
         {!mealData && (
           <LoadingButton
-            loading={isPanding}
-            onClick={generateMealData}
+            loading={isGenerating}
+            onClick={() => generateMealData()}
             className="w-full sm:w-auto"
           >
             {"Generate Today's Meal Data"}
           </LoadingButton>
         )}
-
         {mealData && (
           <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
             <Card>
@@ -87,7 +76,6 @@ export function MealDataCard() {
                 <p className="text-muted-foreground text-sm">meals today</p>
               </CardContent>
             </Card>
-
             <Card>
               <CardContent className="p-6">
                 <div className="mb-4 flex items-center justify-center gap-2">
@@ -96,7 +84,6 @@ export function MealDataCard() {
                     Non-Vegetarian Meals
                   </h4>
                 </div>
-
                 <div className="grid grid-cols-3 gap-4 text-center">
                   <div>
                     <p className="text-2xl font-bold text-orange-500">
@@ -119,7 +106,6 @@ export function MealDataCard() {
                 </div>
               </CardContent>
             </Card>
-
             <Card>
               <CardContent className="p-6 text-center">
                 <div className="mb-2 flex items-center justify-center gap-2">
@@ -132,7 +118,6 @@ export function MealDataCard() {
                 <p className="text-muted-foreground text-sm">
                   including guest meals
                 </p>
-
                 <div className="mt-3 flex items-center justify-center gap-2 text-sm">
                   <span className="text-muted-foreground">Guest Meals:</span>
                   <span className="text-muted-foreground font-semibold">
@@ -143,6 +128,25 @@ export function MealDataCard() {
             </Card>
           </div>
         )}
+      </CardContent>
+    </Card>
+  )
+}
+
+function ManagerPageSkeleton() {
+  return (
+    <Card className="w-full animate-pulse">
+      <CardHeader>
+        <div className="h-6 w-3/4 rounded bg-gray-200 dark:bg-gray-700" />
+        <div className="h-4 w-1/2 rounded bg-gray-200 dark:bg-gray-700" />
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="h-10 w-full rounded bg-gray-200 dark:bg-gray-700" />
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <div className="h-32 rounded bg-gray-200 dark:bg-gray-700" />
+          <div className="h-32 rounded bg-gray-200 dark:bg-gray-700" />
+          <div className="h-32 rounded bg-gray-200 dark:bg-gray-700" />
+        </div>
       </CardContent>
     </Card>
   )
