@@ -1,5 +1,6 @@
 "use client"
 
+import type React from "react"
 import {
   MEAL_TIME_OPTIONS,
   MEAL_TYPE_OPTIONS,
@@ -11,7 +12,7 @@ import { CalendarIcon } from "lucide-react"
 import { useForm } from "react-hook-form"
 
 import { cn } from "@/lib/utils"
-import { GuestMeal, guestMealSchema } from "@/lib/validations"
+import { guestMealSchema, type GuestMeal } from "@/lib/validations"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import {
@@ -28,6 +29,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import {
   Select,
   SelectContent,
@@ -67,9 +69,11 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
       mealCharge: 0,
     },
   })
+
   function onSubmit(values: GuestMeal) {
     createGuestMeal(values)
   }
+
   return (
     <Sheet {...props}>
       <SheetContent className="flex flex-col gap-6 sm:max-w-md">
@@ -80,225 +84,215 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
           </SheetDescription>
         </SheetHeader>
         <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="mx-auto max-w-xl space-y-6"
-          >
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel> Guest Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter guest name" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <div className="flex flex-wrap gap-4">
+          <ScrollArea className="flex-grow">
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="mx-auto max-w-xl space-y-4 p-4"
+            >
               <FormField
                 control={form.control}
-                name="type"
+                name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Meal Type</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select meal type" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {MEAL_TYPE_OPTIONS.map((type) => (
-                          <SelectItem key={type} value={type}>
-                            {type}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FormLabel> Guest Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter guest name" {...field} />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
-              <FormField
-                control={form.control}
-                name="nonVegType"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Non-Veg Type</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select non-veg type" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {NON_VEG_OPTIONS.map((type) => (
-                          <SelectItem key={type} value={type}>
-                            {type}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="date"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Date of birth</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
+              <div className="flex flex-wrap gap-4">
+                <FormField
+                  control={form.control}
+                  name="type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Meal Type</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
                         <FormControl>
-                          <Button
-                            variant={"outline"}
-                            className={cn(
-                              "w-[240px] pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
-                            )}
-                          >
-                            {field.value ? (
-                              format(field.value, "PPP")
-                            ) : (
-                              <span>Pick a date</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select meal type" />
+                          </SelectTrigger>
                         </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          disabled={(date: Date) => {
-                            const today = startOfDay(new Date())
-                            const maxDate = startOfDay(addDays(today, 3))
-                            const targetDate = startOfDay(date)
-
-                            return (
-                              isBefore(targetDate, today) ||
-                              isAfter(targetDate, maxDate)
-                            )
-                          }}
-                          captionLayout="dropdown"
-                        />
-                      </PopoverContent>
-                    </Popover>
+                        <SelectContent>
+                          {MEAL_TYPE_OPTIONS.map((type) => (
+                            <SelectItem key={type} value={type}>
+                              {type}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="nonVegType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Non-Veg Type</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select non-veg type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {NON_VEG_OPTIONS.map((type) => (
+                            <SelectItem key={type} value={type}>
+                              {type}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="date"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Meal Date</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant={"outline"}
+                              className={cn(
+                                "w-[240px] pl-3 text-left font-normal",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value ? (
+                                format(field.value, "PPP")
+                              ) : (
+                                <span>Pick a date</span>
+                              )}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            disabled={(date: Date) => {
+                              const today = startOfDay(new Date())
+                              const maxDate = startOfDay(addDays(today, 3))
+                              const targetDate = startOfDay(date)
+                              return (
+                                isBefore(targetDate, today) ||
+                                isAfter(targetDate, maxDate)
+                              )
+                            }}
+                            captionLayout="dropdown"
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="mealTime"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Meal Time</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select meal time" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {MEAL_TIME_OPTIONS.map((time) => (
+                            <SelectItem key={time} value={time}>
+                              {time}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <FormField
+                control={form.control}
+                name="mobileNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Guest Number</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="Enter guest phone number"
+                        {...field}
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
               <FormField
                 control={form.control}
-                name="mealTime"
+                name="numberOfMeals"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Meal Time</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select meal time" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {MEAL_TIME_OPTIONS.map((time) => (
-                          <SelectItem key={time} value={time}>
-                            {time}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FormLabel>Number of Meals</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="Enter number of meals required by guest"
+                        {...field}
+                        onChange={(e) =>
+                          field.onChange(
+                            e.target.value === "" ? "" : Number(e.target.value)
+                          )
+                        }
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            </div>
-            <FormField
-              control={form.control}
-              name="mobileNumber"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Guest Number</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      placeholder="Enter guest phone number"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="numberOfMeals"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Number of Meals</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      placeholder="Enter number of meals required by guest"
-                      {...field}
-                      onChange={(e) =>
-                        field.onChange(
-                          e.target.value === "" ? "" : Number(e.target.value)
-                        )
-                      }
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="mealCharge"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel> Meal Charge</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      {...field}
-                      onChange={(e) =>
-                        field.onChange(
-                          e.target.value === "" ? "" : Number(e.target.value)
-                        )
-                      }
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <SheetFooter className="gap-2 pt-2 sm:space-x-0">
-              <SheetClose asChild>
-                <Button type="button" variant="outline">
-                  Cancel
-                </Button>
-              </SheetClose>
-              <SheetFooter className="gap-2 pt-2 sm:space-x-0">
+              <FormField
+                control={form.control}
+                name="mealCharge"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel> Meal Charge</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        {...field}
+                        onChange={(e) =>
+                          field.onChange(
+                            e.target.value === "" ? "" : Number(e.target.value)
+                          )
+                        }
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <SheetFooter className="gap-2 p-0 sm:space-x-0">
                 <SheetClose asChild>
                   <Button type="button" variant="outline">
                     Cancel
@@ -308,8 +302,9 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
                   Submit
                 </LoadingButton>
               </SheetFooter>
-            </SheetFooter>
-          </form>
+            </form>
+            <ScrollBar orientation="vertical" />
+          </ScrollArea>
         </Form>
       </SheetContent>
     </Sheet>

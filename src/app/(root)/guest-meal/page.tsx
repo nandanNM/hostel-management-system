@@ -1,11 +1,11 @@
 "use client"
 
-import Link from "next/link"
+import { useState } from "react"
 import { GuestMeal } from "@/generated/prisma"
 import { RiLoader3Fill } from "@remixicon/react"
 import { useQuery } from "@tanstack/react-query"
 import { format } from "date-fns"
-import { PlusIcon, Trash2Icon, UtensilsCrossedIcon } from "lucide-react"
+import { Plus, Trash2Icon, UtensilsCrossedIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import kyInstance from "@/lib/ky"
@@ -21,7 +21,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
-import { Button, buttonVariants } from "@/components/ui/button"
+import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -38,9 +38,12 @@ import {
   TableRow,
 } from "@/components/ui/table"
 
+import { CreateGuestMealSheet } from "./_components/create-guest-meal-sheet"
 import { useDeleteGuestMealRequest } from "./_lib/mutations"
 
 export default function GuestMealsPage() {
+  const [showCreateGuestMealSheet, setShowCreateGuestMealSheet] =
+    useState(false)
   const {
     data: pendingRequests,
     isLoading: isPending,
@@ -70,13 +73,14 @@ export default function GuestMealsPage() {
               Manage your pending guest meal requests.
             </CardDescription>
           </div>
-          <Link
-            href="/guest-meal/create"
-            className={buttonVariants({ variant: "default" })}
-          >
-            <PlusIcon className="mr-2 h-4 w-4" />
-            Create New Request
-          </Link>
+          <Button onClick={() => setShowCreateGuestMealSheet(true)}>
+            <Plus className="mr-2 size-4" />
+            Create
+          </Button>
+          <CreateGuestMealSheet
+            open={showCreateGuestMealSheet}
+            onOpenChange={setShowCreateGuestMealSheet}
+          />
         </CardHeader>
 
         <CardContent className="p-4 md:p-6">
