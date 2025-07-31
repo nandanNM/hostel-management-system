@@ -6,9 +6,14 @@ import { ApiResponse } from "@/types"
 
 import prisma from "@/lib/prisma"
 
-export async function approveGuestMealRequest(
+export async function updateGuestMealStatus({
+  requestId,
+  status,
+}: {
   requestId: string
-): Promise<ApiResponse> {
+  status: GuestMealStatusType
+}): Promise<ApiResponse> {
+  console.log(status)
   const session = await requireManager()
   if (!session?.user.hostelId)
     return {
@@ -22,41 +27,13 @@ export async function approveGuestMealRequest(
         hostelId: session.user.hostelId,
       },
       data: {
-        status: GuestMealStatusType.APPROVED,
+        status: status,
       },
     })
 
     return {
       status: "success",
-      message: "Guest meal request approved successfully",
-    }
-  } catch (error) {
-    return {
-      status: "error",
-      message:
-        error instanceof Error
-          ? error.message
-          : "An unexpected error occurred. Please try again later.",
-    }
-  }
-}
-
-export async function declineGuestMealRequest(
-  requestId: string
-): Promise<ApiResponse> {
-  await requireManager()
-  try {
-    prisma.guestMeal.update({
-      where: {
-        id: requestId,
-      },
-      data: {
-        status: "REJECTED",
-      },
-    })
-    return {
-      status: "success",
-      message: "Guest meal request declined successfully",
+      message: "Guest meal status updated successfully",
     }
   } catch (error) {
     return {

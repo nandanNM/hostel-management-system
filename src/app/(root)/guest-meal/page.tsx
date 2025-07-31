@@ -50,7 +50,7 @@ export default function GuestMealsPage() {
     error,
     isError,
   } = useQuery({
-    queryKey: ["guest-meals", "pending"],
+    queryKey: ["guest-meals", "self", "pending"],
     queryFn: () => kyInstance.get("/api/user/guest-meals").json<GuestMeal[]>(),
   })
   if (isError && error) {

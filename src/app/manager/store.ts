@@ -6,7 +6,7 @@ import kyInstance from "@/lib/ky"
 import { getErrorMessage } from "@/lib/utils"
 import { tryCatch } from "@/hooks/try-catch"
 
-import { approveGuestMealRequest, declineGuestMealRequest } from "./action"
+import { approveGuestMealRequest, declineGuestMealRequest } from "./_lib/action"
 
 interface MealStore {
   getMealData: () => Promise<void>

@@ -12,14 +12,17 @@ export function useDeleteGuestMealRequest() {
   return useMutation({
     mutationFn: (id: string) => deleteGuestMealRequest(id),
     onMutate: async (deletedId) => {
-      await queryClient.cancelQueries({ queryKey: ["guest-meals", "pending"] })
+      await queryClient.cancelQueries({
+        queryKey: ["guest-meals", "self", "pending"],
+      })
       const previousRequests = queryClient.getQueryData<GuestMeal[]>([
         "guest-meals",
+        "self",
         "pending",
       ])
       if (previousRequests) {
         queryClient.setQueryData<GuestMeal[]>(
-          ["guest-meals", "pending"],
+          ["guest-meals", "self", "pending"],
           previousRequests.filter((request) => request.id !== deletedId)
         )
       }
@@ -28,7 +31,7 @@ export function useDeleteGuestMealRequest() {
     onError: (error, deletedId, context) => {
       if (context?.previousRequests) {
         queryClient.setQueryData(
-          ["guest-meals", "pending"],
+          ["guest-meals", "self", "pending"],
           context.previousRequests
         )
       }
@@ -42,7 +45,9 @@ export function useDeleteGuestMealRequest() {
       }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["guest-meals", "pending"] })
+      queryClient.invalidateQueries({
+        queryKey: ["guest-meals", "self", "pending"],
+      })
     },
   })
 }
@@ -56,7 +61,9 @@ export function useCreateGuestMeal(onOpenChange?: (open: boolean) => void) {
       if (result.status === "success") {
         onOpenChange?.(false)
         toast.success("Guest meal request created successfully.")
-        queryClient.invalidateQueries({ queryKey: ["guest-meals", "pending"] })
+        queryClient.invalidateQueries({
+          queryKey: ["guest-meals", "self", "pending"],
+        })
       } else if (result.status === "error") {
         toast.error(result.message)
       }
