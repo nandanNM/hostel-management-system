@@ -34,6 +34,7 @@ model Hostel {
   activityLogs        ActivityLog[]       @relation("HostelActivity")
   userMealEvents      UserMealEvent[]
   Media               Media[]
+  mealScheduleEntries MealScheduleEntry[]
 
   @@map("hostels")
 }
@@ -416,6 +417,48 @@ model Media {
   @@map("posr_media")
 }
 
+model MenuItem {
+  id                  String                        @id @default(cuid())
+  name                String                        @unique // e.g., "Fish", "Egg", "Veg", "Chicken", "Alu", "Soyabean", "Papad", "Ruti"
+  costPerUnit         Float // Cost per serving/unit: 45.0, 50.0, 55.0, 60.0, etc.
+  createdAt           DateTime                      @default(now())
+  updatedAt           DateTime                      @updatedAt
+  mealScheduleEntries MenuItemOnMealScheduleEntry[]
+
+  @@map("menu_items")
+}
+
+model MealScheduleEntry {
+  id        String       @id @default(cuid())
+  hostelId  String
+  hostel    Hostel       @relation(fields: [hostelId], references: [id], onDelete: Cascade)
+  dayOfWeek DayOfWeek
+  mealTime  MealTimeType
+
+  menuItems MenuItemOnMealScheduleEntry[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([hostelId, dayOfWeek, mealTime])
+  @@map("meal_schedule_entries")
+}
+
+model MenuItemOnMealScheduleEntry {
+  id                  String @id @default(cuid())
+  mealScheduleEntryId String
+  menuItemId          String
+
+  mealScheduleEntry MealScheduleEntry @relation(fields: [mealScheduleEntryId], references: [id], onDelete: Cascade)
+  menuItem          MenuItem          @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([mealScheduleEntryId, menuItemId])
+  @@map("menu_item_on_meal_schedule_entries")
+}
+
 model UserMealEvent {
   id     String @id @default(cuid())
   userId String @map("user_id")
@@ -540,4 +583,14 @@ enum MealEventType {
   REQUEST
   STAFF_NOTE
   OTHER
+}
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
 }

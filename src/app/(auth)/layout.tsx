@@ -1,10 +1,18 @@
+import { redirect } from "next/navigation"
 import { GalleryVerticalEnd } from "lucide-react"
+
+import { requireUser } from "@/lib/require-user"
 
 export default async function Layout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const session = await requireUser()
+  if (session) {
+    if (session.user.onboardingCompleted) return redirect("/")
+    return redirect("/onboarding")
+  }
   return (
     <main className="grid min-h-svh lg:grid-cols-2">
       <div className="flex flex-col gap-4 p-6 md:p-10">

@@ -5,7 +5,7 @@ import { GuestMeal } from "@/generated/prisma"
 import { RiLoader3Fill } from "@remixicon/react"
 import { useQuery } from "@tanstack/react-query"
 import { format } from "date-fns"
-import { Plus, Trash2Icon, UtensilsCrossedIcon } from "lucide-react"
+import { Loader2, Plus, Trash2Icon, UtensilsCrossedIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import kyInstance from "@/lib/ky"
@@ -58,7 +58,7 @@ export default function GuestMealsPage() {
   }
 
   if (isPending) {
-    return <RiLoader3Fill size={30} className="mx-auto my-10 animate-spin" />
+    return <Loader2 className="mx-auto my-10 size-6 animate-spin" />
   }
   return (
     <main className="flex flex-col items-center justify-center px-4 py-6 md:px-6 lg:px-12">
