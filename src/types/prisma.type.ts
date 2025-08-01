@@ -29,3 +29,17 @@ export type GetMealWithUser = Prisma.MealGetPayload<{
     }
   }
 }>
+export type GetUsersWithMeal = Prisma.UserGetPayload<{
+  select: {
+    id: true
+    name: true
+    email: true
+    image: true
+    meals: {
+      select: {
+        id: true
+        type: true
+      }
+    }
+  }
+}>
