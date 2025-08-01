@@ -1,9 +1,8 @@
 "use client"
 
 import { useEffect } from "react"
-import { RiLoader3Fill } from "@remixicon/react"
 import { useQuery } from "@tanstack/react-query"
-import { Bell } from "lucide-react"
+import { Bell, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 
 import { GetNotificationWithIssuer } from "@/types/prisma.type"
@@ -32,7 +31,7 @@ export default function NotificationsList() {
   }, [markAsRead])
 
   if (isPending) {
-    return <RiLoader3Fill size={30} className="mx-auto my-10 animate-spin" />
+    return <Loader2 className="mx-auto my-10 size-6 animate-spin" />
   }
   if (isError && error) {
     toast.error(error.message)

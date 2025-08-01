@@ -88,7 +88,7 @@ export function UpdateMealSheet({ meal, ...props }: UpdateMealSheetProps) {
     <Sheet {...props}>
       <SheetContent className="flex flex-col gap-6 sm:max-w-md">
         <SheetHeader className="text-left">
-          <SheetTitle>Update task</SheetTitle>
+          <SheetTitle>Update Meal</SheetTitle>
           <SheetDescription>
             Update the task details and save the changes
           </SheetDescription>

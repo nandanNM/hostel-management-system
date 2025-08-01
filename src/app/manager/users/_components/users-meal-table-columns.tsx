@@ -9,6 +9,7 @@ import {
   Copy,
   Edit2,
   Eye,
+  Gavel,
   MoreHorizontal,
   RefreshCcw,
   XCircle,
@@ -33,6 +34,7 @@ import UserAvatar from "@/components/UserAvatar"
 
 import { updateUserMealStatus } from "../_lib/actions"
 import { getMealStatusIcon, getNonVegTypeIcon } from "../_lib/utils"
+import { CreateFineSheet } from "./issue-fine-user-sheet"
 import { UpdateMealSheet } from "./update-users-meal-sheet"
 
 export function getColumns(): ColumnDef<GetMealWithUser>[] {
@@ -149,6 +151,10 @@ export function getColumns(): ColumnDef<GetMealWithUser>[] {
       cell: function Cell({ row }) {
         const [showUpdateMealSheet, setShowUpdateMealSheet] =
           React.useState(false)
+
+        const [showCreateFineSheet, setShowCreateFineSheet] =
+          React.useState(false)
+
         const meal = row.original
         const handleAction = async (action: string) => {
           switch (action) {
@@ -204,6 +210,11 @@ export function getColumns(): ColumnDef<GetMealWithUser>[] {
               onOpenChange={setShowUpdateMealSheet}
               meal={row.original}
             />
+            <CreateFineSheet
+              open={showCreateFineSheet}
+              onOpenChange={setShowCreateFineSheet}
+              targetUserId={meal.userId}
+            />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-8 w-8 p-0">
@@ -233,6 +244,13 @@ export function getColumns(): ColumnDef<GetMealWithUser>[] {
                 >
                   <Edit2 className="mr-2 h-4 w-4" />
                   Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onSelect={() => setShowCreateFineSheet(true)}
+                >
+                  <Gavel className="mr-2 h-4 w-4" />
+                  Issue Fine
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 {/* Meal Status Management */}

@@ -2,7 +2,13 @@
 
 import { unstable_noStore as noStore, revalidatePath } from "next/cache"
 import requireManager from "@/data/manager/require-manager"
-import { MealStatusType, NonVegType, Prisma } from "@/generated/prisma"
+import {
+  BillEntryType,
+  MealStatusType,
+  NonVegType,
+  NotificationType,
+  Prisma,
+} from "@/generated/prisma"
 import { ApiResponse } from "@/types"
 import z from "zod"
 
@@ -11,7 +17,7 @@ import prisma from "@/lib/prisma"
 import { parseEnumList } from "@/lib/utils"
 import { mealSchema } from "@/lib/validations"
 
-import { GetMealsSchema } from "./validations"
+import { CreateUserFineSchema, GetMealsSchema } from "./validations"
 
 interface MealsResponse {
   data: GetMealWithUser[]
@@ -79,6 +85,7 @@ export async function getMealsForManager(
         include: {
           user: {
             select: {
+              id: true,
               selfPhNo: true,
               image: true,
               name: true,
@@ -160,6 +167,81 @@ export async function updateUserMealStatus(
     return {
       status: "success",
       message: "Guest meal request approved successfully",
+    }
+  } catch (error) {
+    return {
+      status: "error",
+      message:
+        error instanceof Error
+          ? error.message
+          : "An unexpected error occurred. Please try again later.",
+    }
+  }
+}
+export async function issueFineToUser({
+  targetUserId,
+  fineAmount,
+  fineReason,
+  fineDueDate,
+}: CreateUserFineSchema): Promise<ApiResponse> {
+  const session = await requireManager()
+  if (!session?.user.hostelId)
+    return {
+      status: "error",
+      message: "Unauthorized - Hostel ID not found",
+    }
+  const hostelId = session.user.hostelId
+  const issuerUserId = session.user.id
+  try {
+    await prisma.$transaction(async (tx) => {
+      const newFine = await tx.userFine.create({
+        data: {
+          amount: Number(fineAmount),
+          reason: fineReason,
+          dueDate: fineDueDate,
+          status: "PENDING",
+          user: { connect: { id: targetUserId } },
+          hostel: { connect: { id: hostelId } },
+          issuer: { connect: { id: issuerUserId } },
+          issuedByHostel: { connect: { id: hostelId } },
+        },
+      })
+      const lastBill = await tx.userBill.findFirst({
+        where: { userId: targetUserId },
+        orderBy: { issueDate: "desc" },
+      })
+
+      const currentBalance = lastBill?.balanceRemaining ?? 0
+      const newBalance = currentBalance + newFine.amount
+      await tx.userBill.create({
+        data: {
+          type: BillEntryType.FINE_CHARGE,
+          amount: newFine.amount,
+          description: `Fine: ${newFine.reason}`,
+          balanceRemaining: newBalance,
+          isPaid: false,
+          issueDate: new Date(),
+          dueDate: newFine.dueDate,
+          user: { connect: { id: targetUserId } },
+          hostel: { connect: { id: hostelId } },
+          fine: { connect: { id: newFine.id } },
+        },
+      })
+      await tx.notification.create({
+        data: {
+          title: "New Fine Issued",
+          message: `You have received a fine of $${Number(fineAmount)} for: ${fineReason}.`,
+          type: NotificationType.FINE,
+          hostel: { connect: { id: hostelId } },
+          user: { connect: { id: targetUserId } },
+          issuer: { connect: { id: issuerUserId } },
+        },
+      })
+      //  return { newFine, newBillEntry }
+    })
+    return {
+      status: "success",
+      message: "Fine issued successfully",
     }
   } catch (error) {
     return {
