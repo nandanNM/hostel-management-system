@@ -40,7 +40,7 @@ export default function UserButton() {
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem asChild>
-            <Link href="/settings">
+            <Link href="#">
               <Settings className="mr-2 h-4 w-4" />
               <span>Settings</span>
             </Link>
@@ -63,12 +63,13 @@ export default function UserButton() {
           )}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
+        <DropdownMenuItem asChild variant="destructive">
           <button
-            onClick={() => signOut({ callbackUrl: "/" })}
+            onClick={() => signOut({ callbackUrl: "/login" })}
             className="flex w-full items-center"
           >
-            <LogOut className="mr-2 h-4 w-4" /> Sign Out
+            <LogOut className="mr-2 h-[1.2rem] w-[1.2rem]" />
+            Sign Out
           </button>
         </DropdownMenuItem>
       </DropdownMenuContent>

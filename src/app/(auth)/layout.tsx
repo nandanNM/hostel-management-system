@@ -1,17 +1,16 @@
 import { redirect } from "next/navigation"
+import { auth } from "@/auth"
 import { GalleryVerticalEnd } from "lucide-react"
-
-import { requireUser } from "@/lib/require-user"
 
 export default async function Layout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const session = await requireUser()
+  const session = await auth()
   if (session) {
-    if (session.user.onboardingCompleted) return redirect("/")
-    return redirect("/onboarding")
+    if (session.user.onboardingCompleted) redirect("/")
+    redirect("/onboarding/identity")
   }
   return (
     <main className="grid min-h-svh lg:grid-cols-2">

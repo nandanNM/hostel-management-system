@@ -1,4 +1,4 @@
-import { OnboardingIdentityForm } from "@/components/forms/onboarding-forms"
+import OnboardingIdentityForm from "../_components/onboarding-identity-form"
 
 export default function IdentityForm() {
   return <OnboardingIdentityForm />

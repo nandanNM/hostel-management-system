@@ -1,10 +1,10 @@
 "use server"
 
+import { auth } from "@/auth"
 import { UserStatusType } from "@/generated/prisma"
 import { ApiResponse } from "@/types"
 
 import prisma from "@/lib/prisma"
-import { requireUser } from "@/lib/require-user"
 import { onboardingSchema, User } from "@/lib/validations"
 
 export const createUserOnboarding = async (
@@ -12,7 +12,7 @@ export const createUserOnboarding = async (
 ): Promise<ApiResponse> => {
   try {
     const validation = await onboardingSchema.safeParseAsync(values)
-    const session = await requireUser()
+    const session = await auth()
     if (!session?.user.id) {
       return {
         status: "error",

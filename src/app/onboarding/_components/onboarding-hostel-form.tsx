@@ -2,12 +2,13 @@
 
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { HOSTAL_ID } from "@/constants/form.constants"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { useQuery } from "@tanstack/react-query"
 import { ArrowLeft, ArrowRight } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 
+import kyInstance from "@/lib/ky"
 import { onboardingBaseSchema } from "@/lib/validations"
 import { Button } from "@/components/ui/button"
 import {
@@ -25,7 +26,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { useOnboardingStore } from "@/app/(root)/onboarding/store"
+
+import { useOnboardingStore } from "../_lib/store"
 
 const hostelSchema = onboardingBaseSchema.pick({
   hostelId: true,
@@ -42,11 +44,19 @@ export default function OnboardingHostelForm() {
   )
   const institute = useOnboardingStore((state) => state.education?.institute)
   const setData = useOnboardingStore((state) => state.setData)
+
   const form = useForm<OnboardingHostelFormValues>({
     resolver: zodResolver(hostelSchema),
     defaultValues: {
       hostelId: "",
     },
+  })
+  const { data: hostels = [], isLoading } = useQuery({
+    queryKey: ["hostels"],
+    queryFn: async () =>
+      await kyInstance
+        .get("/api/hostels")
+        .json<{ id: string; name: string; address: string }[]>(),
   })
   function onSubmit(values: OnboardingHostelFormValues) {
     setData({
@@ -72,22 +82,29 @@ export default function OnboardingHostelForm() {
           name="hostelId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Hostel ID</FormLabel>
+              <FormLabel>Hostel</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue
-                      className="w-full"
-                      placeholder="Select your hostel ID"
-                    />
+                    <SelectValue placeholder="Select your hostel" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {HOSTAL_ID.map((tag) => (
-                    <SelectItem key={tag} value={tag}>
-                      {tag}
+                  {isLoading ? (
+                    <SelectItem disabled value="__loading">
+                      Loading...
                     </SelectItem>
-                  ))}
+                  ) : hostels.length > 0 ? (
+                    hostels.map((hostel) => (
+                      <SelectItem key={hostel.id} value={hostel.id}>
+                        {hostel.name}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem disabled value="__empty">
+                      No hostels found
+                    </SelectItem>
+                  )}
                 </SelectContent>
               </Select>
               <FormMessage />

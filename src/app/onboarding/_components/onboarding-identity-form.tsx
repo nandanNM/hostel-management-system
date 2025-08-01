@@ -34,7 +34,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { useOnboardingStore } from "@/app/(root)/onboarding/store"
+
+import { useOnboardingStore } from "../_lib/store"
 
 const identitySchema = onboardingBaseSchema.pick({
   name: true,

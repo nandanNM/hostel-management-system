@@ -40,9 +40,9 @@ export const NavItems = () => {
 
     {
       name: "Settings",
-      href: "/settings",
+      href: "#",
       icon: <RiToolsFill size={20} />,
-      active: isNavItemActive(pathname, "/settings"),
+      active: isNavItemActive(pathname, "/#"),
       position: "bottom",
     },
   ]

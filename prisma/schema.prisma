@@ -60,7 +60,7 @@ model User {
   address             String?
   bio                 String?
   role                UserRoleType   @default(STUDENT)
-  status              UserStatusType @default(PENDING_ONBOARDING)
+  status              UserStatusType @default(INACTIVE)
   joinDate            DateTime?      @map("join_date")
   onboardingCompleted Boolean        @default(false) @map("onboarding_completed")
   mealPreference      Json           @default("{}") @map("meal_preference")
@@ -502,7 +502,6 @@ enum UserRoleType {
 }
 
 enum UserStatusType {
-  PENDING_ONBOARDING
   ACTIVE
   INACTIVE
   SUSPENDED

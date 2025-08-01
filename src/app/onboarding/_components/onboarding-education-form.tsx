@@ -18,7 +18,8 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { useOnboardingStore } from "@/app/(root)/onboarding/store"
+
+import { useOnboardingStore } from "../_lib/store"
 
 type EducationFormValues = z.infer<typeof educationSchema>
 export default function OnboardingEducationForm() {

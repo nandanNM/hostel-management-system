@@ -29,9 +29,9 @@ import {
 } from "@/components/ui/select"
 import { P } from "@/components/custom/p"
 import LoadingButton from "@/components/LoadingButton"
-import { useOnboardingStore } from "@/app/(root)/onboarding/store"
 
-import { createUserOnboarding } from "./action"
+import { createUserOnboarding } from "../_lib/action"
+import { useOnboardingStore } from "../_lib/store"
 
 export default function OnboardingMealForm() {
   const router = useRouter()
@@ -51,11 +51,15 @@ export default function OnboardingMealForm() {
     resolver: zodResolver(mealSchema),
     defaultValues: {
       type: "NON_VEG",
-      nonVegType: "NONE",
+      nonVegType: "CHICKEN",
     },
   })
 
   function onSubmit(values: CreateMealFormValues) {
+    if (values.type === "VEG" && values.nonVegType !== "NONE") {
+      toast.info("Please select none for non-veg type")
+      return
+    }
     startTransition(async () => {
       if (
         name &&

@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { GuestMeal } from "@/generated/prisma"
-import { RiLoader3Fill } from "@remixicon/react"
 import { useQuery } from "@tanstack/react-query"
 import { format } from "date-fns"
 import { Loader2, Plus, Trash2Icon, UtensilsCrossedIcon } from "lucide-react"
@@ -75,7 +74,7 @@ export default function GuestMealsPage() {
           </div>
           <Button onClick={() => setShowCreateGuestMealSheet(true)}>
             <Plus className="mr-2 size-4" />
-            Create
+            Create New Request
           </Button>
           <CreateGuestMealSheet
             open={showCreateGuestMealSheet}
@@ -144,7 +143,7 @@ function GuestMealsTable({ meals }: GuestMealsTableProps) {
                       disabled={isPendingDelete}
                     >
                       {isPendingDelete ? (
-                        <RiLoader3Fill className="h-4 w-4 animate-spin" />
+                        <Loader2 className="size-4 animate-spin" />
                       ) : (
                         <Trash2Icon className="h-4 w-4" />
                       )}
