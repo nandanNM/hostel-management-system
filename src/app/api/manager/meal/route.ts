@@ -215,6 +215,7 @@ export async function POST() {
           mealTime,
           totalMeal,
           hostelId,
+          date: todayStart,
           totalGuestMeal: guestTotalMeals,
           totalVeg: totalVeg + guestTotalVeg,
           totalNonvegChicken: totalNonvegChicken + guestTotalNonvegChicken,
