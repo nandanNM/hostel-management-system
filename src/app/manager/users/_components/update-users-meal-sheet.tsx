@@ -1,14 +1,20 @@
 "use client"
 
 import React from "react"
-import { MEAL_TYPE_OPTIONS, NON_VEG_OPTIONS } from "@/constants/form.constants"
+import {
+  DISLIKED_NON_VEG_TYPES,
+  MEAL_TYPE_OPTIONS,
+  NON_VEG_OPTIONS,
+} from "@/constants/form.constants"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { ReloadIcon } from "@radix-ui/react-icons"
-import { useForm } from "react-hook-form"
+import { CheckIcon } from "lucide-react"
+import { Controller, useForm } from "react-hook-form"
 import { toast } from "sonner"
 import z from "zod"
 
 import { GetMealWithUser } from "@/types/prisma.type"
+import { cn } from "@/lib/utils"
 import { mealSchema } from "@/lib/validations"
 import { tryCatch } from "@/hooks/try-catch"
 import { Button } from "@/components/ui/button"
@@ -36,6 +42,16 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet"
+import {
+  Tags,
+  TagsContent,
+  TagsEmpty,
+  TagsGroup,
+  TagsItem,
+  TagsList,
+  TagsTrigger,
+  TagsValue,
+} from "@/components/ui/tags"
 
 import { updateMeal } from "../_lib/actions"
 
@@ -52,13 +68,17 @@ export function UpdateMealSheet({ meal, ...props }: UpdateMealSheetProps) {
     defaultValues: {
       type: meal.type || "VEG",
       nonVegType: meal.nonVegType || "NONE",
+      dislikedNonVegTypes: meal.dislikedNonVegTypes || [],
     },
   })
 
+  const mealType = form.watch("type")
+  const isVeg = mealType === "VEG"
   React.useEffect(() => {
     form.reset({
       type: meal.type ?? "VEG",
       nonVegType: meal.nonVegType ?? "NONE",
+      dislikedNonVegTypes: meal.dislikedNonVegTypes ?? [],
     })
   }, [meal, form])
 
@@ -136,6 +156,7 @@ export function UpdateMealSheet({ meal, ...props }: UpdateMealSheetProps) {
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value ?? "none"}
+                      disabled={isVeg}
                     >
                       <FormControl>
                         <SelectTrigger>
@@ -155,6 +176,78 @@ export function UpdateMealSheet({ meal, ...props }: UpdateMealSheetProps) {
                 )}
               />
             </div>
+            <FormField
+              control={form.control}
+              name="dislikedNonVegTypes"
+              render={() => (
+                <FormItem>
+                  <FormLabel>Disliked Non-Veg Types</FormLabel>
+                  <FormControl>
+                    <Controller
+                      name="dislikedNonVegTypes"
+                      control={form.control}
+                      render={({ field: { onChange, value = [] } }) => (
+                        <Tags
+                          value={value}
+                          setValue={(newTags) => onChange(newTags || [])}
+                        >
+                          <TagsTrigger disabled={isVeg}>
+                            {value.map((tagId) => {
+                              const tagLabel = DISLIKED_NON_VEG_TYPES.find(
+                                (type) => type === tagId
+                              )
+                              return tagLabel ? (
+                                <TagsValue
+                                  key={tagId}
+                                  onRemove={() => {
+                                    onChange(value.filter((id) => id !== tagId))
+                                  }}
+                                >
+                                  {tagLabel}
+                                </TagsValue>
+                              ) : null
+                            })}
+                          </TagsTrigger>
+                          <TagsContent>
+                            <TagsList>
+                              <TagsEmpty />
+                              <TagsGroup>
+                                {DISLIKED_NON_VEG_TYPES.map((type) => (
+                                  <TagsItem
+                                    key={type}
+                                    value={type}
+                                    onSelect={() => {
+                                      if (value.includes(type)) {
+                                        onChange(
+                                          value.filter((id) => id !== type)
+                                        )
+                                      } else {
+                                        onChange([...value, type])
+                                      }
+                                    }}
+                                  >
+                                    {type}
+                                    <CheckIcon
+                                      className={cn(
+                                        "ml-auto h-4 w-4",
+                                        value.includes(type)
+                                          ? "opacity-100"
+                                          : "opacity-0"
+                                      )}
+                                    />
+                                  </TagsItem>
+                                ))}
+                              </TagsGroup>
+                            </TagsList>
+                          </TagsContent>
+                        </Tags>
+                      )}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <SheetFooter className="gap-2 pt-2 sm:space-x-0">
               <SheetClose asChild>

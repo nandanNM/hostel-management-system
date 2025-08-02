@@ -6,9 +6,19 @@ export const RELIGION_OPTIONS = [
   "CHRISTIAN",
   "OTHER",
 ] as const
-export const HOSTAL_TAG = ["PG1"] as const
-export const HOSTAL_ID = ["cmdlctfl60000vgmowlgayigo", "PG2"] as const
 export const MEAL_TYPE_OPTIONS = ["VEG", "NON_VEG"] as const
 export const MEAL_TIME_OPTIONS = ["LUNCH", "DINNER"] as const
-export const NON_VEG_OPTIONS = ["CHICKEN", "FISH", "EGG", "NONE"] as const
+export const NON_VEG_OPTIONS = [
+  "CHICKEN",
+  "FISH",
+  "EGG",
+  "MUTTON",
+  "NONE",
+] as const
 export const MEAL_STATUS_OPTIONS = ["PENDING", "APPROVED", "REJECTED"] as const
+export const DISLIKED_NON_VEG_TYPES = [
+  "CHICKEN",
+  "FISH",
+  "EGG",
+  "MUTTON",
+] as const

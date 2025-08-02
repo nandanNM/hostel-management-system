@@ -43,10 +43,15 @@ export const educationSchema = z
 
 // Meal preferences
 export const mealSchema = z.object({
-  type: z.enum(["VEG", "NON_VEG"]),
+  type: z.enum(["VEG", "NON_VEG"], {
+    required_error: "Meal type is required.",
+  }),
   nonVegType: z
     .enum(["CHICKEN", "FISH", "EGG", "NONE", "MUTTON"])
     .default("NONE")
+    .optional(),
+  dislikedNonVegTypes: z
+    .array(z.enum(["CHICKEN", "FISH", "EGG", "MUTTON", "NONE"]))
     .optional(),
 })
 

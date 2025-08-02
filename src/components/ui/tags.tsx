@@ -127,7 +127,7 @@ export const TagsTrigger = ({
           (Array.isArray(children) &&
             children.every((child) => child === null))) && (
           <span className="text-muted-foreground px-2 py-px">
-            Select tags...
+            Select an option...
           </span>
         )}
       </div>
@@ -152,16 +152,14 @@ export const TagsValue = ({
     <Badge className={cn("flex items-center gap-2", className)} {...props}>
       {children}
       {onRemove && (
-        <Button
+        <button
           type="button"
-          variant="ghost"
-          size="icon"
-          className="hover:text-muted-foreground size-auto h-auto cursor-pointer p-0"
+          className="size-auto h-auto cursor-pointer p-0"
           onClick={handleRemove}
           aria-label={`Remove ${children} tag`}
         >
           <XIcon size={12} />
-        </Button>
+        </button>
       )}
     </Badge>
   )
