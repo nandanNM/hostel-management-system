@@ -185,6 +185,8 @@ export function GuestRequestsList() {
                             updateMutation.mutate({
                               id: request.id,
                               status: "APPROVED",
+                              requestedUserId: request.userId,
+                              amount: request.mealCharge,
                             })
                           }
                           disabled={updateMutation.isPending}
@@ -200,6 +202,8 @@ export function GuestRequestsList() {
                             updateMutation.mutate({
                               id: request.id,
                               status: "REJECTED",
+                              requestedUserId: request.userId,
+                              amount: request.mealCharge,
                             })
                           }
                           disabled={updateMutation.isPending}

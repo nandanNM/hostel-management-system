@@ -55,7 +55,7 @@ export async function createGuestMeal(values: GuestMeal): Promise<ApiResponse> {
       }
     }
 
-    await prisma.guestMeal.create({
+    const meal = await prisma.guestMeal.create({
       data: {
         ...values,
         nonVegType: values.nonVegType ?? "NONE",
@@ -63,6 +63,20 @@ export async function createGuestMeal(values: GuestMeal): Promise<ApiResponse> {
         hostelId: session.user.hostelId,
       },
     })
+    prisma.activityLog
+      .create({
+        data: {
+          userId: session.user.id,
+          hostelId: session.user.hostelId,
+          actionType: "CREATE",
+          entityType: "GUEST_MEAL",
+          entityId: meal.id,
+          details: `Guest meal request created for ${values.mealTime.toLowerCase()} on ${values.date.toLocaleDateString()} with ${values.nonVegType === "NONE" ? "vegitarian" : values.nonVegType}.`,
+        },
+      })
+      .catch((err) => {
+        console.error("Activity log creation failed:", err)
+      })
     return {
       status: "success",
       message: "Guest meal created successfully. 🎉",

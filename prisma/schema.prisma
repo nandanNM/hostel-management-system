@@ -379,11 +379,11 @@ model Notification {
 }
 
 model ActivityLog {
-  id     String  @id @default(cuid())
-  userId String? @map("user_id")
+  id     String @id @default(cuid())
+  userId String @map("user_id")
 
-  hostelId String? @map("hostel_id")
-  hostel   Hostel? @relation("HostelActivity", fields: [hostelId], references: [id], onDelete: SetNull)
+  hostelId String @map("hostel_id")
+  hostel   Hostel @relation("HostelActivity", fields: [hostelId], references: [id], onDelete: Cascade)
 
   actionType String   @map("action_type")
   entityType String?  @map("entity_type")
@@ -395,7 +395,7 @@ model ActivityLog {
   ipAddress  String?  @map("ip_address")
   userAgent  String?  @map("user_agent")
 
-  user User? @relation("UserActivity", fields: [userId], references: [id], onDelete: SetNull)
+  user User @relation("UserActivity", fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([hostelId])
   @@map("activity_logs")

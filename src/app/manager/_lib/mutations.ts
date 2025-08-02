@@ -13,14 +13,21 @@ import { updateGuestMealStatus } from "./action"
 type UpdateGuestMealInput = {
   id: string
   status: GuestMealStatusType
+  requestedUserId: string
+  amount: number
 }
 
 export function useUpdateGuestMealStatus() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ id, status }: UpdateGuestMealInput) =>
-      updateGuestMealStatus({ requestId: id, status }),
+    mutationFn: async ({
+      id,
+      status,
+      requestedUserId,
+      amount,
+    }: UpdateGuestMealInput) =>
+      updateGuestMealStatus({ requestId: id, status, requestedUserId, amount }),
 
     onMutate: async ({ id }) => {
       await queryClient.cancelQueries({
