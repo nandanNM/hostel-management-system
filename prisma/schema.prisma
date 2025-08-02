@@ -142,14 +142,14 @@ model VerificationToken {
 }
 
 model Meal {
-  id         String         @id @default(cuid())
-  userId     String         @unique @map("user_id")
-  type       MealType
-  nonVegType NonVegType     @default(NONE)
-  status     MealStatusType @default(INACTIVE)
-
-  hostelId String @map("hostel_id")
-  hostel   Hostel @relation(fields: [hostelId], references: [id], onDelete: Cascade)
+  id                  String         @id @default(cuid())
+  userId              String         @unique @map("user_id")
+  type                MealType
+  nonVegType          NonVegType     @default(NONE)
+  status              MealStatusType @default(INACTIVE)
+  dislikedNonVegTypes NonVegType[]   @default([]) @map("disliked_non_veg_types")
+  hostelId            String         @map("hostel_id")
+  hostel              Hostel         @relation(fields: [hostelId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -318,19 +318,19 @@ model UserFine {
 model DailyMealActivity {
   id       String       @id @default(cuid())
   mealTime MealTimeType
+  hostelId String       @map("hostel_id")
+  hostel   Hostel       @relation(fields: [hostelId], references: [id], onDelete: Cascade)
 
-  hostelId String @map("hostel_id")
-  hostel   Hostel @relation(fields: [hostelId], references: [id], onDelete: Cascade)
-
-  totalMeal          Int      @map("total_meals")
-  totalGuestMeal     Int      @map("total_guest_meals")
-  totalVeg           Int      @map("total_veg")
-  totalNonvegChicken Int      @map("total_nonveg_chicken")
-  totalNonvegFish    Int      @map("total_nonveg_fish")
-  totalNonvegEgg     Int      @map("total_nonveg_egg")
-  date               DateTime @map("meal_date")
-  createdAt          DateTime @default(now()) @map("created_at")
-  updatedAt          DateTime @updatedAt @map("updated_at")
+  totalMeal          Int         @map("total_meals")
+  totalGuestMeal     Int         @map("total_guest_meals")
+  totalVeg           Int         @map("total_veg")
+  totalNonvegChicken Int         @map("total_nonveg_chicken")
+  totalNonvegFish    Int         @map("total_nonveg_fish")
+  totalNonvegEgg     Int         @map("total_nonveg_egg")
+  date               DateTime    @map("meal_date")
+  actualNonVegServed NonVegType? @map("actual_non_veg_served")
+  createdAt          DateTime    @default(now()) @map("created_at")
+  updatedAt          DateTime    @updatedAt @map("updated_at")
 
   @@unique([hostelId, mealTime, createdAt])
   @@index([hostelId, mealTime, createdAt])
@@ -476,7 +476,6 @@ model UserMealEvent {
   user User @relation(fields: [userId], references: [id])
 
   @@index([hostelId, userId, date, mealTime])
-  @@index([hostelId, date, mealTime])
   @@index([hostelId])
   @@map("user_meal_events")
 }
@@ -577,8 +576,6 @@ enum BillEntryType {
 }
 
 enum MealEventType {
-  OPT_OUT
-  OPT_IN
   REQUEST
   STAFF_NOTE
   OTHER

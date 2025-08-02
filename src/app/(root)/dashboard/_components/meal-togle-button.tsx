@@ -52,7 +52,7 @@ export default function MealToggleButton() {
     toast.error(error.message)
   }
   return (
-    <div className="mb-4 flex items-center gap-2">
+    <div className="flex items-center gap-2">
       <div className="inline-flex items-center gap-2 [--primary:var(--color-indigo-500)] [--ring:var(--color-indigo-300)] in-[.dark]:[--primary:var(--color-indigo-500)] in-[.dark]:[--ring:var(--color-indigo-900)]">
         <Switch
           id={id}

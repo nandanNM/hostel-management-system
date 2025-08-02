@@ -11,6 +11,7 @@ import {
   Users,
 } from "lucide-react"
 import { User } from "next-auth"
+import { signOut } from "next-auth/react"
 
 import {
   DropdownMenu,
@@ -191,8 +192,13 @@ export default function AppSideBar({ state, user }: AppSideBarProps) {
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem variant="destructive">
-                  <LogOut className="mr-2 h-[1.2rem] w-[1.2rem]" />
-                  Logout
+                  <button
+                    onClick={() => signOut({ callbackUrl: "/login" })}
+                    className="flex w-full items-center"
+                  >
+                    <LogOut className="mr-2 h-[1.2rem] w-[1.2rem]" />
+                    Sign Out
+                  </button>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

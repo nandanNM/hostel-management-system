@@ -57,7 +57,7 @@ export default function GuestMealsPage() {
   }
 
   if (isPending) {
-    return <Loader2 className="mx-auto my-10 size-6 animate-spin" />
+    return <Loader2 className="mx-auto my-6 size-6 animate-spin" />
   }
   return (
     <main className="flex flex-col items-center justify-center px-4 py-6 md:px-6 lg:px-12">

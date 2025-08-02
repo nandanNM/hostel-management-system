@@ -7,6 +7,7 @@ import { requireUser } from "@/lib/require-user"
 import { Separator } from "@/components/ui/separator"
 import { P } from "@/components/custom/p"
 
+import { MealMessageDialog } from "./_components/meal-message-dialog"
 import MealTogleButton from "./_components/meal-togle-button"
 import UserActivity from "./_components/user-activity"
 import UserDetails from "./_components/user-details.tsx"
@@ -40,7 +41,11 @@ export default async function Page() {
   return (
     <div className="w-full md:mx-8 lg:mx-auto">
       <h2 className="text-foreground mb-4 font-bold">User Dashboard</h2>
-      <MealTogleButton />
+      <div className="flex w-full items-center gap-6 pb-4 md:gap-12">
+        <MealTogleButton />
+        <MealMessageDialog />
+      </div>
+
       <Separator />
       <div className="mx-auto max-w-7xl px-2 py-8 sm:px-6 lg:px-8">
         <div className="mb-8">

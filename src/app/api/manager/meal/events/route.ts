@@ -17,11 +17,11 @@ export async function GET() {
     const mealTime = getCurrentMealSlot()
     const todayStart = startOfDay(new Date())
     const todayEnd = endOfDay(new Date())
-    const data = await prisma.userMealEvent.findFirst({
+    const data = await prisma.userMealEvent.findMany({
       where: {
         mealTime: mealTime,
         hostelId: session.user.hostelId,
-        createdAt: {
+        date: {
           gte: todayStart,
           lte: todayEnd,
         },

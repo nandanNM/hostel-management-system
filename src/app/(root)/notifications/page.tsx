@@ -31,7 +31,7 @@ export default function NotificationsList() {
   }, [markAsRead])
 
   if (isPending) {
-    return <Loader2 className="mx-auto my-10 size-6 animate-spin" />
+    return <Loader2 className="mx-auto my-6 size-6 animate-spin" />
   }
   if (isError && error) {
     toast.error(error.message)
