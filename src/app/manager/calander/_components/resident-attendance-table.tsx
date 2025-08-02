@@ -33,7 +33,7 @@ type ResidentAttendanceTableProps = {
   isLoading: boolean
 }
 
-const ITEMS_PER_PAGE = 5 // Default to show 5 users per page
+const ITEMS_PER_PAGE = 5
 
 export function ResidentAttendanceTable({
   allResidents,
@@ -60,7 +60,7 @@ export function ResidentAttendanceTable({
     return allResidents.filter(
       (resident) =>
         (resident.name?.toLowerCase().includes(lowerCaseQuery) ?? false) ||
-        resident.id.toLowerCase().includes(lowerCaseQuery)
+        resident.email.toLowerCase().includes(lowerCaseQuery)
     )
   }, [allResidents, searchQuery])
 
@@ -86,8 +86,8 @@ export function ResidentAttendanceTable({
   }
 
   return (
-    <div className="container mx-auto py-8">
-      <div className="mb-4 max-w-sm">
+    <div className="mx-auto w-full">
+      <div className="mb-4 max-w-md">
         <Input
           type="text"
           placeholder="Search residents by name or email..."
@@ -96,7 +96,7 @@ export function ResidentAttendanceTable({
             setSearchQuery(e.target.value)
             setCurrentPage(1)
           }}
-          className="max-w-sm"
+          className="w-full"
           aria-label="Search residents"
         />
       </div>
