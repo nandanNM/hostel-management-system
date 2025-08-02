@@ -419,8 +419,8 @@ model Media {
 
 model MenuItem {
   id                  String                        @id @default(cuid())
-  name                String                        @unique // e.g., "Fish", "Egg", "Veg", "Chicken", "Alu", "Soyabean", "Papad", "Ruti"
-  costPerUnit         Float // Cost per serving/unit: 45.0, 50.0, 55.0, 60.0, etc.
+  name                String                        @unique
+  costPerUnit         Float
   createdAt           DateTime                      @default(now())
   updatedAt           DateTime                      @updatedAt
   mealScheduleEntries MenuItemOnMealScheduleEntry[]

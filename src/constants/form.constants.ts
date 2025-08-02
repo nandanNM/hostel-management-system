@@ -22,3 +22,9 @@ export const DISLIKED_NON_VEG_TYPES = [
   "EGG",
   "MUTTON",
 ] as const
+
+export const MEAL_EVENT_TYPE_OPTIONS = [
+  "REQUEST",
+  "STAFF_NOTE",
+  "OTHER",
+] as const

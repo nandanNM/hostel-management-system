@@ -2,7 +2,10 @@
 
 import type React from "react"
 import { useState } from "react"
-import { MEAL_TIME_OPTIONS } from "@/constants/form.constants"
+import {
+  MEAL_EVENT_TYPE_OPTIONS,
+  MEAL_TIME_OPTIONS,
+} from "@/constants/form.constants"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation } from "@tanstack/react-query"
 import { addDays, format, isAfter, isBefore, startOfDay } from "date-fns"
@@ -66,6 +69,7 @@ export function MealMessageDialog() {
     defaultValues: {
       mealTime: getCurrentMealSlot(),
       date: new Date(),
+      type: "REQUEST",
       message: "",
     },
   })
@@ -160,6 +164,35 @@ export function MealMessageDialog() {
                       {MEAL_TIME_OPTIONS.map((mealTime) => (
                         <SelectItem key={mealTime} value={mealTime}>
                           {mealTime}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Type */}
+            <FormField
+              control={form.control}
+              name="type"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Type</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {MEAL_EVENT_TYPE_OPTIONS.map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {type}
                         </SelectItem>
                       ))}
                     </SelectContent>

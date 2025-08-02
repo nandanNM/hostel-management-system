@@ -23,11 +23,7 @@ export async function GET() {
         hostelId: session.user.hostelId,
         NOT: {
           status: {
-            in: [
-              UserStatusType.PENDING_ONBOARDING,
-              UserStatusType.FORMA,
-              UserStatusType.INACTIVE,
-            ],
+            in: [UserStatusType.FORMA, UserStatusType.INACTIVE],
           },
         },
       },
