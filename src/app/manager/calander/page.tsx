@@ -45,7 +45,7 @@ export default function HostelManagementPage() {
       return await kyInstance
         .get(
           `/api/manager/meal/attendance-summary?month=${month + 1}&year=${year}`
-        ) // Corrected month to month + 1
+        )
         .json<AttendanceSummaryResponse>()
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -213,7 +213,7 @@ const CalendarAndDetails = ({
   if (isAttendanceLoading && !attendanceSummary) {
   }
   if (isResidentsLoading && !residents) {
-    // Optionally show loading toast
+    //loading toast
   }
 
   return (
