@@ -42,7 +42,6 @@ export async function GET(req: NextRequest) {
           gte: fromDate,
           lte: toDate,
         },
-        isPresent: true,
       },
       select: {
         mealTime: true,
