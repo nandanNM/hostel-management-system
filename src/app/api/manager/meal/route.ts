@@ -57,11 +57,13 @@ export async function POST() {
     if (!session?.user.id) {
       return Response.json({ error: "Unauthorized" }, { status: 401 })
     }
-    if (!session?.user.hostelId)
+
+    if (!session?.user.hostelId) {
       return Response.json(
-        { error: "Unauthorized - Hostel ID not found " },
+        { error: "Unauthorized - Hostel ID not found" },
         { status: 401 }
       )
+    }
 
     if (session.user.role !== UserRoleType.MANAGER) {
       return Response.json(
@@ -70,11 +72,11 @@ export async function POST() {
       )
     }
 
+    // Check for already generated meal activity
     const mealTime = getCurrentMealSlot()
     const todayStart = startOfDay(new Date())
     const todayEnd = endOfDay(new Date())
 
-    // Check if the meal activity has already been generated today
     const alreadyGenerated = await prisma.dailyMealActivity.findFirst({
       where: {
         mealTime,
@@ -86,6 +88,8 @@ export async function POST() {
     if (alreadyGenerated) {
       return Response.json({ error: "Already Generated" }, { status: 400 })
     }
+
+    // Fetch meal schedule for the current day and time
     const dayOfWeek = format(todayStart, "EEEE").toUpperCase() as DayOfWeek
     const entry = await prisma.mealScheduleEntry.findFirst({
       where: {
@@ -108,8 +112,11 @@ export async function POST() {
         { status: 400 }
       )
     }
+
+    // Determine hostel’s non-veg offering for today
     const todayMenuItems = entry.menuItems.map((i) => i.menuItem.name)
     let hostelDailyOffering: NonVegType = NonVegType.NONE
+
     for (const itemName of todayMenuItems) {
       const nonVegType = getNonVegTypeFromItemName(itemName)
       if (nonVegType !== NonVegType.NONE) {
@@ -117,7 +124,8 @@ export async function POST() {
         break
       }
     }
-    // Fetch all regular meals and today's active guest meals
+
+    // Fetch regular and guest meals
     const [allRegularMeals, allActiveGuestMeals] = await Promise.all([
       prisma.meal.findMany({
         where: {
@@ -160,29 +168,26 @@ export async function POST() {
       }),
     ])
 
-    // Count meals by type for regular users
+    // Initialize counters
     const attendanceRecordsToCreate: MealAttendanceToCreate[] = []
     let totalVeg = 0
     let totalNonvegChicken = 0
     let totalNonvegFish = 0
     let totalNonvegEgg = 0
 
+    // Count meals by type for regular users
     for (const meal of allRegularMeals) {
       let actualNonVegServed: NonVegType = NonVegType.NONE
 
       if (meal.type === MealType.VEG) {
         totalVeg++
-        actualNonVegServed = NonVegType.NONE
       } else {
-        // meal.type === MealType.NON_VEG
-        // Apply the new calculation logic to determine what the user actually gets
         actualNonVegServed = calculateActualNonVegMeal(
           meal.nonVegType,
-          meal.dislikedNonVegTypes as NonVegType[], // Cast to the correct array type
+          meal.dislikedNonVegTypes as NonVegType[],
           hostelDailyOffering
         )
 
-        // Increment the correct counter based on the calculated actual meal
         switch (actualNonVegServed) {
           case NonVegType.CHICKEN:
             totalNonvegChicken++
@@ -193,16 +198,14 @@ export async function POST() {
           case NonVegType.EGG:
             totalNonvegEgg++
             break
-          case NonVegType.NONE:
           default:
-            totalVeg++ // If they end up with a vegetarian meal
+            totalVeg++
             break
         }
       }
 
-      // Add the attendance record with the calculated actualNonVegServed
       attendanceRecordsToCreate.push({
-        hostelId: session.user.hostelId as string,
+        hostelId: session.user.hostelId,
         userId: meal.userId,
         mealTime,
         date: todayStart,
@@ -210,7 +213,7 @@ export async function POST() {
       })
     }
 
-    // Count meals by type for guest meals
+    // Count guest meals by type
     let guestTotalMeals = 0
     let guestTotalVeg = 0
     let guestTotalNonvegChicken = 0
@@ -223,7 +226,7 @@ export async function POST() {
 
       if (guestMeal.type === MealType.VEG) {
         guestTotalVeg += numMeals
-      } else if (guestMeal.type === MealType.NON_VEG) {
+      } else {
         switch (guestMeal.nonVegType) {
           case NonVegType.CHICKEN:
             guestTotalNonvegChicken += numMeals
@@ -238,18 +241,14 @@ export async function POST() {
       }
     }
 
-    // Total meals includes both regular and guest entries
+    // Create meal activity and attendance records
     const totalMeal = allActiveGuestMeals.length + allRegularMeals.length
 
-    // Create attendance records for active users
-
-    // Create meal activity record and attendance records in parallel
-    const hostelId = session.user.hostelId
     const createdMealActivityPromise = prisma.dailyMealActivity.create({
       data: {
         mealTime,
         totalMeal,
-        hostelId,
+        hostelId: session.user.hostelId,
         date: todayStart,
         actualNonVegServed: hostelDailyOffering,
         totalGuestMeal: guestTotalMeals,
@@ -264,12 +263,23 @@ export async function POST() {
       data: attendanceRecordsToCreate,
     })
 
-    const [createdMealActivity] = await Promise.all([
+    const [activityResult, attendanceResult] = await Promise.allSettled([
       createdMealActivityPromise,
       createMealAttendancePromise,
     ])
 
-    return Response.json(createdMealActivity)
+    if (activityResult.status === "fulfilled") {
+      if (attendanceResult.status === "rejected") {
+        console.warn("Attendance creation failed:", attendanceResult.reason)
+      }
+      return Response.json(activityResult.value, { status: 200 })
+    } else {
+      console.error("Meal activity creation failed:", activityResult.reason)
+      return Response.json(
+        { error: "Failed to create meal activity" },
+        { status: 500 }
+      )
+    }
   } catch (error) {
     console.error(error)
     return Response.json({ error: "Internal Server Error" }, { status: 500 })
