@@ -1,5 +1,4 @@
-import { DataTable } from "@/components/table/data-table"
-
+import { DataTable } from "../audits/data-table"
 import { userColumns, UserRow } from "./columns"
 
 const getUsers = async (): Promise<UserRow[]> => {

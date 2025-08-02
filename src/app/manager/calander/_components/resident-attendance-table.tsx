@@ -87,10 +87,10 @@ export function ResidentAttendanceTable({
 
   return (
     <div className="container mx-auto py-8">
-      <div className="mb-4">
+      <div className="mb-4 max-w-sm">
         <Input
           type="text"
-          placeholder="Search residents by name or room..."
+          placeholder="Search residents by name or email..."
           value={searchQuery}
           onChange={(e) => {
             setSearchQuery(e.target.value)
@@ -134,7 +134,7 @@ export function ResidentAttendanceTable({
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="flex flex-wrap gap-2">
+                  <TableCell>
                     {resident.meals.map((m, idx) => (
                       <span
                         key={idx}

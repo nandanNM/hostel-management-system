@@ -1,4 +1,5 @@
 import { cookies } from "next/headers"
+import requireAdmin from "@/data/admin/require-admin"
 
 import { SidebarProvider } from "@/components/ui/sidebar"
 import AppSideBar from "@/components/admin/AppSideBar"
@@ -9,11 +10,12 @@ export default async function Layout({
 }: {
   children: React.ReactNode
 }) {
+  const { user } = await requireAdmin()
   const cookieStore = await cookies()
   const defaultOpen = cookieStore.get("sidebar_state")?.value === "true"
   return (
     <SidebarProvider defaultOpen={defaultOpen}>
-      <AppSideBar state="ADMIN" />
+      <AppSideBar state="ADMIN" user={user} />
       <main className="w-full">
         <Navbar />
         <div className="p-3">
