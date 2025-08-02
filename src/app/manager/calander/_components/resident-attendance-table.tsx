@@ -43,9 +43,7 @@ export function ResidentAttendanceTable({
   const [searchQuery, setSearchQuery] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
 
-  const lunchPresentIds = new Set(
-    selectedDateAttendance.lunch.map((r) => r.email)
-  ) // Corrected to use r.email
+  const lunchPresentIds = new Set(selectedDateAttendance.lunch.map((r) => r.id))
   const dinnerPresentIds = new Set(
     selectedDateAttendance.dinner.map((r) => r.id)
   )
@@ -77,10 +75,27 @@ export function ResidentAttendanceTable({
     }
   }
 
+  // Check if there's any attendance data for the selected date
+  const hasAttendanceData =
+    selectedDateAttendance.lunch.length > 0 ||
+    selectedDateAttendance.dinner.length > 0
+
   if (isLoading) {
     return (
       <div className="text-muted-foreground py-4 text-center">
         Loading residents...
+      </div>
+    )
+  }
+
+  // Show message when no attendance data is available for the selected date
+  if (!hasAttendanceData) {
+    return (
+      <div className="text-muted-foreground py-8 text-center">
+        <p className="mb-2 text-lg font-medium">No attendance data available</p>
+        <p className="text-sm">
+          No lunch or dinner attendance has been recorded for this date.
+        </p>
       </div>
     )
   }
@@ -145,7 +160,7 @@ export function ResidentAttendanceTable({
                     ))}
                   </TableCell>
                   <TableCell className="text-center">
-                    {lunchPresentIds.has(resident.email) ? (
+                    {lunchPresentIds.has(resident.id) ? (
                       <CheckIcon
                         className="mx-auto h-4 w-4 text-green-500"
                         aria-label="Present for lunch"
