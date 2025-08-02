@@ -143,7 +143,7 @@ export const TagsValue = ({
   onRemove,
   ...props
 }: TagsValueProps & { onRemove?: () => void }) => {
-  const handleRemove: MouseEventHandler<HTMLButtonElement> = (event) => {
+  const handleRemove: MouseEventHandler<HTMLDivElement> = (event) => {
     event.preventDefault()
     event.stopPropagation()
     onRemove?.()
@@ -152,14 +152,21 @@ export const TagsValue = ({
     <Badge className={cn("flex items-center gap-2", className)} {...props}>
       {children}
       {onRemove && (
-        <button
-          type="button"
-          className="size-auto h-auto cursor-pointer p-0"
+        <div
+          className="hover:text-muted-foreground flex size-auto h-auto cursor-pointer items-center justify-center p-0"
           onClick={handleRemove}
           aria-label={`Remove ${children} tag`}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault()
+              onRemove?.()
+            }
+          }}
         >
           <XIcon size={12} />
-        </button>
+        </div>
       )}
     </Badge>
   )

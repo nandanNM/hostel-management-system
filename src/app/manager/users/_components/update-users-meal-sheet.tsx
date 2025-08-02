@@ -249,7 +249,7 @@ export function UpdateMealSheet({ meal, ...props }: UpdateMealSheetProps) {
               )}
             />
 
-            <SheetFooter className="gap-2 pt-2 sm:space-x-0">
+            <SheetFooter className="gap-2 p-0 pt-2 sm:space-x-0">
               <SheetClose asChild>
                 <Button type="button" variant="outline">
                   Cancel
