@@ -1,4 +1,5 @@
 import {
+  DayOfWeek,
   GuestMealStatusType,
   MealStatusType,
   MealType,
@@ -6,11 +7,17 @@ import {
   UserRoleType,
   UserStatusType,
 } from "@/generated/prisma"
-import { endOfDay, startOfDay } from "date-fns"
+import { endOfDay, format, startOfDay } from "date-fns"
 
 import getSession from "@/lib/get-session"
 import prisma from "@/lib/prisma"
 import { getCurrentMealSlot } from "@/lib/utils"
+
+import {
+  calculateActualNonVegMeal,
+  getNonVegTypeFromItemName,
+  MealAttendanceToCreate,
+} from "./_lib/utils"
 
 export async function GET() {
   try {
@@ -26,18 +33,14 @@ export async function GET() {
         { status: 401 }
       )
 
-    const today = new Date()
+    const todayStart = startOfDay(new Date())
     const mealTime = getCurrentMealSlot()
 
     const data = await prisma.dailyMealActivity.findFirst({
       where: {
         hostelId: user.hostelId,
         mealTime,
-        createdAt: {
-          //TODO: Immplemant date filter hare
-          gte: startOfDay(today),
-          lte: endOfDay(today),
-        },
+        date: todayStart,
       },
     })
 
@@ -76,18 +79,44 @@ export async function POST() {
       where: {
         mealTime,
         hostelId: session.user.hostelId,
-        //TODO: Immplemant date filter hare
-        createdAt: {
-          gte: todayStart,
-          lte: todayEnd,
-        },
+        date: todayStart,
       },
     })
 
     if (alreadyGenerated) {
       return Response.json({ error: "Already Generated" }, { status: 400 })
     }
+    const dayOfWeek = format(todayStart, "EEEE").toUpperCase() as DayOfWeek
+    const entry = await prisma.mealScheduleEntry.findFirst({
+      where: {
+        hostelId: session.user.hostelId,
+        dayOfWeek,
+        mealTime,
+      },
+      include: {
+        menuItems: {
+          include: {
+            menuItem: true,
+          },
+        },
+      },
+    })
 
+    if (!entry) {
+      return Response.json(
+        { error: "No meal schedule entry found" },
+        { status: 400 }
+      )
+    }
+    const todayMenuItems = entry.menuItems.map((i) => i.menuItem.name)
+    let hostelDailyOffering: NonVegType = NonVegType.NONE
+    for (const itemName of todayMenuItems) {
+      const nonVegType = getNonVegTypeFromItemName(itemName)
+      if (nonVegType !== NonVegType.NONE) {
+        hostelDailyOffering = nonVegType
+        break
+      }
+    }
     // Fetch all regular meals and today's active guest meals
     const [allRegularMeals, allActiveGuestMeals] = await Promise.all([
       prisma.meal.findMany({
@@ -104,6 +133,7 @@ export async function POST() {
           type: true,
           nonVegType: true,
           status: true,
+          dislikedNonVegTypes: true,
           user: {
             select: {
               status: true,
@@ -130,29 +160,30 @@ export async function POST() {
       }),
     ])
 
-    // Filter only active meals where both meal and user are active
-    // const allActiveRegularMeals = allRegularMeals.filter(
-    //   (meal) =>
-    //     meal.status === MealStatusType.ACTIVE &&
-    //     meal.user.status === UserStatusType.ACTIVE
-    // )
-
-    // // Active users (whether meal status active or not), for attendance
-    // const activeUsers = allRegularMeals.filter(
-    //   (meal) => meal.user.status === UserStatusType.ACTIVE
-    // )
-
     // Count meals by type for regular users
+    const attendanceRecordsToCreate: MealAttendanceToCreate[] = []
     let totalVeg = 0
     let totalNonvegChicken = 0
     let totalNonvegFish = 0
     let totalNonvegEgg = 0
 
     for (const meal of allRegularMeals) {
+      let actualNonVegServed: NonVegType = NonVegType.NONE
+
       if (meal.type === MealType.VEG) {
         totalVeg++
-      } else if (meal.type === MealType.NON_VEG) {
-        switch (meal.nonVegType) {
+        actualNonVegServed = NonVegType.NONE
+      } else {
+        // meal.type === MealType.NON_VEG
+        // Apply the new calculation logic to determine what the user actually gets
+        actualNonVegServed = calculateActualNonVegMeal(
+          meal.nonVegType,
+          meal.dislikedNonVegTypes as NonVegType[], // Cast to the correct array type
+          hostelDailyOffering
+        )
+
+        // Increment the correct counter based on the calculated actual meal
+        switch (actualNonVegServed) {
           case NonVegType.CHICKEN:
             totalNonvegChicken++
             break
@@ -162,8 +193,21 @@ export async function POST() {
           case NonVegType.EGG:
             totalNonvegEgg++
             break
+          case NonVegType.NONE:
+          default:
+            totalVeg++ // If they end up with a vegetarian meal
+            break
         }
       }
+
+      // Add the attendance record with the calculated actualNonVegServed
+      attendanceRecordsToCreate.push({
+        hostelId: session.user.hostelId as string,
+        userId: meal.userId,
+        mealTime,
+        date: todayStart,
+        mealId: meal.id,
+      })
     }
 
     // Count meals by type for guest meals
@@ -198,40 +242,34 @@ export async function POST() {
     const totalMeal = allActiveGuestMeals.length + allRegularMeals.length
 
     // Create attendance records for active users
-    const attendanceRecordsToCreate = allRegularMeals.map((meal) => ({
-      hostelId: session.user.hostelId as string,
-      userId: meal.userId,
-      mealTime,
-      date: todayStart,
-      isPresent: meal.status === MealStatusType.ACTIVE ? true : false, // Already filtered for active users
-      mealId: meal.id,
-    }))
 
     // Create meal activity record and attendance records in parallel
     const hostelId = session.user.hostelId
-    const mealActivity = await prisma.$transaction(async (tx) => {
-      const createdMealActivity = await tx.dailyMealActivity.create({
-        data: {
-          mealTime,
-          totalMeal,
-          hostelId,
-          date: todayStart,
-          totalGuestMeal: guestTotalMeals,
-          totalVeg: totalVeg + guestTotalVeg,
-          totalNonvegChicken: totalNonvegChicken + guestTotalNonvegChicken,
-          totalNonvegFish: totalNonvegFish + guestTotalNonvegFish,
-          totalNonvegEgg: totalNonvegEgg + guestTotalNonvegEgg,
-        },
-      })
-
-      await tx.mealAttendance.createMany({
-        data: attendanceRecordsToCreate,
-      })
-
-      return createdMealActivity
+    const createdMealActivityPromise = prisma.dailyMealActivity.create({
+      data: {
+        mealTime,
+        totalMeal,
+        hostelId,
+        date: todayStart,
+        actualNonVegServed: hostelDailyOffering,
+        totalGuestMeal: guestTotalMeals,
+        totalVeg: totalVeg + guestTotalVeg,
+        totalNonvegChicken: totalNonvegChicken + guestTotalNonvegChicken,
+        totalNonvegFish: totalNonvegFish + guestTotalNonvegFish,
+        totalNonvegEgg: totalNonvegEgg + guestTotalNonvegEgg,
+      },
     })
 
-    return Response.json(mealActivity)
+    const createMealAttendancePromise = prisma.mealAttendance.createMany({
+      data: attendanceRecordsToCreate,
+    })
+
+    const [createdMealActivity] = await Promise.all([
+      createdMealActivityPromise,
+      createMealAttendancePromise,
+    ])
+
+    return Response.json(createdMealActivity)
   } catch (error) {
     console.error(error)
     return Response.json({ error: "Internal Server Error" }, { status: 500 })
