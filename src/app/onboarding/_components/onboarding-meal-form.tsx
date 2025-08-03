@@ -109,7 +109,7 @@ export default function OnboardingMealForm() {
           useOnboardingStore.persist.clearStorage()
           form.reset()
           toast.success(result.message)
-          redirect("/dashboard")
+          redirect("/not-user/inactive")
         } else if (result.status === "error") {
           toast.error(result.message)
         }

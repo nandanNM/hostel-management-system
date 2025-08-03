@@ -1,5 +1,4 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
 
 import kyInstance from "@/lib/ky"
 
@@ -12,8 +11,6 @@ export function useMarkNotificationsAsRead() {
       queryClient.setQueryData(["notifications", "unread-count"], 0)
       queryClient.invalidateQueries({ queryKey: ["notifications"] })
     },
-    onError: () => {
-      toast.error("Failed to mark notifications as read")
-    },
+    onError: () => {},
   })
 }

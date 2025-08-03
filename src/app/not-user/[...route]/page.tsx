@@ -10,10 +10,23 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 
-export default function StatusPage({ params }: { params: { route: string } }) {
-  const hideBackButtonRoutes = ["suspended", "inactive"]
-  const shouldShowBackButton = !hideBackButtonRoutes.includes(params.route)
+export default async function StatusPage({
+  params,
+}: {
+  params: { route?: string | string[] }
+}) {
+  const awaitParams = await params
+  let route: string
+  if (Array.isArray(awaitParams.route)) {
+    route = awaitParams.route[0] || "unknown"
+  } else if (typeof awaitParams.route === "string") {
+    route = awaitParams.route
+  } else {
+    route = "unknown"
+  }
 
+  const hideBackButtonRoutes = ["suspended", "inactive"]
+  const shouldShowBackButton = !hideBackButtonRoutes.includes(route)
   const routeMessages: Record<string, { title: string; description: string }> =
     {
       suspended: {
@@ -29,15 +42,13 @@ export default function StatusPage({ params }: { params: { route: string } }) {
       banned: {
         title: "Access Denied",
         description:
-          "You’ve been banned from accessing this section. Contact support if this is a mistake.",
+          "You've been banned from accessing this section. Contact support if this is a mistake.",
       },
     }
-
-  const message = routeMessages[params.route] ?? {
+  const message = routeMessages[route] ?? {
     title: "Unknown Status",
     description: "We couldn't determine your access level.",
   }
-
   return (
     <div className="flex min-h-screen items-center justify-center">
       <Card className="w-full max-w-md">

@@ -76,7 +76,7 @@ export default function MealToggleButton() {
               ? "default"
               : currentStatus === "INACTIVE"
                 ? "destructive"
-                : "secondary" // for SUSPENDED
+                : "secondary"
         }
         size="sm"
         className="ml-2"
