@@ -193,7 +193,7 @@ export default function AppSideBar({ state, user }: AppSideBarProps) {
                 <DropdownMenuItem variant="destructive">
                   <Link href="/api/auth/signout?callbackUrl=/login">
                     <button className="flex w-full items-center">
-                      <LogOut className="mr-2 h-[1.2rem] w-[1.2rem]" />
+                      <LogOut className="text-destructive mr-2 h-[1.2rem] w-[1.2rem]" />
                       Sign Out
                     </button>
                   </Link>

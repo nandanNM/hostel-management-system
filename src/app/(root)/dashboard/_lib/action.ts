@@ -2,6 +2,7 @@
 
 import { BillEntryType, MealStatusType } from "@/generated/prisma"
 import { ApiResponse } from "@/types"
+import { endOfMonth, startOfMonth } from "date-fns"
 
 import prisma from "@/lib/prisma"
 import { requireUser } from "@/lib/require-user"
@@ -62,6 +63,7 @@ export async function getUserDeshboardStats() {
       message: "Unauthorized - You are not a boarder member",
     }
   }
+  const now = new Date()
   const [
     balanceRemainingSumResult,
     totalPaymentsResult,
@@ -88,6 +90,10 @@ export async function getUserDeshboardStats() {
     prisma.mealAttendance.count({
       where: {
         userId: session.user.id,
+        date: {
+          gte: startOfMonth(now),
+          lte: endOfMonth(now),
+        },
       },
     }),
   ])

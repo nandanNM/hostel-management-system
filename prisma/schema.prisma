@@ -397,7 +397,7 @@ model ActivityLog {
 
   user User @relation("UserActivity", fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([hostelId])
+  @@index([hostelId, userId])
   @@map("activity_logs")
 }
 

@@ -1,3 +1,4 @@
+import { Metadata } from "next"
 import { cookies } from "next/headers"
 import requireManager from "@/data/manager/require-manager"
 
@@ -5,6 +6,9 @@ import { SidebarProvider } from "@/components/ui/sidebar"
 import AppSideBar from "@/components/admin/AppSideBar"
 import Navbar from "@/components/admin/Navbar"
 
+export const metadata: Metadata = {
+  title: "Manager",
+}
 export default async function Layout({
   children,
 }: {

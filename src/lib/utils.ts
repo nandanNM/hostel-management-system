@@ -3,6 +3,7 @@ import {
   format,
   formatDate as formatDateFn,
   formatDistanceToNowStrict,
+  getHours,
 } from "date-fns"
 import { twMerge } from "tailwind-merge"
 
@@ -85,4 +86,13 @@ export function parseEnumList<T extends string>(
     .split(".")
     .map((v) => v.trim())
     .filter((v): v is T => Object.values(enumObject).includes(v as T))
+}
+
+export function isActiveTime(date: Date = new Date()): boolean {
+  const hour = getHours(date)
+
+  const isMorningInactive = hour >= 6 && hour < 12
+  const isEveningInactive = hour >= 18 && hour < 24
+
+  return !(isMorningInactive || isEveningInactive)
 }

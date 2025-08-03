@@ -9,7 +9,6 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import UserAvatar from "@/components/UserAvatar"
 
 interface UserActivityProps {
   userId: string
@@ -52,20 +51,19 @@ export default async function UserActivity({ userId }: UserActivityProps) {
               {activityLogs.map((log) => (
                 <div
                   key={log.id}
-                  className="hover:bg-muted flex items-start gap-3 rounded-md p-2"
+                  className="bg-muted/40 hover:bg-muted flex items-start gap-3 rounded-lg px-4 py-3 transition-colors"
                 >
-                  <UserAvatar
-                    className="h-8 w-8 border"
-                    avatarUrl="https://avatars.githubusercontent.com/u/1486366"
-                  />
-                  <div className="grid flex-1 gap-1">
-                    <div className="text-sm leading-none font-medium">
+                  <div className="bg-primary mt-1 h-2.5 w-2.5 shrink-0 rounded-full" />
+                  <div className="grid gap-1 text-sm">
+                    <p className="text-foreground font-medium">
                       {log.details ||
-                        `${log.actionType} on ${log.entityType || "System"}${log.entityId ? ` (ID: ${log.entityId})` : ""}`}
-                    </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                        `${log.actionType} on ${log.entityType || "System"}${
+                          log.entityId ? ` (ID: ${log.entityId})` : ""
+                        }`}
+                    </p>
+                    <p className="text-muted-foreground text-xs">
                       {format(log.timestamp, "yyyy-MM-dd HH:mm")}
-                    </div>
+                    </p>
                   </div>
                 </div>
               ))}

@@ -4,12 +4,13 @@ import { useId } from "react"
 import { MealStatusType } from "@/generated/prisma"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useQuery } from "@tanstack/react-query"
+import { Loader2 } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import z from "zod"
 
 import kyInstance from "@/lib/ky"
-import { cn } from "@/lib/utils"
+import { Badge } from "@/components/ui/crazxy-ui/badge"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 
@@ -67,23 +68,27 @@ export default function MealToggleButton() {
         </Label>
       </div>
 
-      <span
-        className={cn(
-          "ml-2 rounded px-2 py-1 text-sm font-medium transition-colors",
-          {
-            "bg-green-100 text-green-800": currentStatus === "ACTIVE",
-            "bg-red-100 text-red-800": currentStatus === "INACTIVE",
-            "bg-yellow-100 text-yellow-800": currentStatus === "SUSPENDED",
-            "text-gray-800": isPending,
-          }
-        )}
+      <Badge
+        variant={
+          isPending
+            ? "outline"
+            : currentStatus === "ACTIVE"
+              ? "default"
+              : currentStatus === "INACTIVE"
+                ? "destructive"
+                : "secondary" // for SUSPENDED
+        }
+        size="sm"
+        className="ml-2"
       >
-        {isPending
-          ? "Loading..."
-          : currentStatus === "SUSPENDED"
-            ? "Meal status: Suspended"
-            : `Meal status: ${currentStatus === "ACTIVE" ? "ON" : "OFF"}`}
-      </span>
+        {isPending ? (
+          <Loader2 className="mr-2 size-4 animate-spin" />
+        ) : currentStatus === "SUSPENDED" ? (
+          "Meal status: Suspended"
+        ) : (
+          `Meal status: ${currentStatus === "ACTIVE" ? "ON" : "OFF"}`
+        )}
+      </Badge>
     </div>
   )
 }

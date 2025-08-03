@@ -6,7 +6,7 @@ import { ChefHat, Leaf, TrendingUp, Utensils } from "lucide-react"
 import { toast } from "sonner"
 
 import kyInstance from "@/lib/ky"
-import { formatRelativeDate } from "@/lib/utils"
+import { formatRelativeDate, isActiveTime } from "@/lib/utils"
 import {
   Card,
   CardContent,
@@ -21,6 +21,7 @@ import { useGenerateMealData } from "../_lib/mutations"
 export function MealDataCard() {
   const { mutate: generateMealData, isPending: isGenerating } =
     useGenerateMealData()
+  const activeTime = isActiveTime()
   const {
     data: mealData,
     isLoading,
@@ -55,6 +56,7 @@ export function MealDataCard() {
       <CardContent className="space-y-4">
         {!mealData && (
           <LoadingButton
+            disabled={activeTime}
             loading={isGenerating}
             onClick={() => generateMealData()}
             className="w-full sm:w-auto"
@@ -62,6 +64,7 @@ export function MealDataCard() {
             {"Generate Today's Meal Data"}
           </LoadingButton>
         )}
+
         {mealData && (
           <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
             <Card>

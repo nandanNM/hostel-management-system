@@ -2,7 +2,14 @@
 
 import { GuestMeal, MealType } from "@/generated/prisma"
 import { useQuery } from "@tanstack/react-query"
-import { Clock, Leaf, Loader2, Users, Utensils } from "lucide-react"
+import {
+  CircleAlert,
+  Clock,
+  Leaf,
+  Loader2,
+  Users,
+  Utensils,
+} from "lucide-react"
 
 import kyInstance from "@/lib/ky"
 import { formatRelativeDate } from "@/lib/utils"
@@ -86,6 +93,17 @@ export function GuestRequestsList() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          <div className="mb-2 rounded-md border border-red-500/50 px-4 py-3 text-red-600">
+            <p className="text-sm">
+              <CircleAlert
+                className="me-3 -mt-0.5 inline-flex opacity-60"
+                size={16}
+                aria-hidden="true"
+              />
+              Failed to fetch guest meal requests. Please refresh the page
+              before generating meal data.
+            </p>
+          </div>
           <P variant="error">
             {error.message || "Failed to load guest meal requests."}
           </P>

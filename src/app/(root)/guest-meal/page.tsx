@@ -4,7 +4,13 @@ import { useState } from "react"
 import { GuestMeal } from "@/generated/prisma"
 import { useQuery } from "@tanstack/react-query"
 import { format } from "date-fns"
-import { Loader2, Plus, Trash2Icon, UtensilsCrossedIcon } from "lucide-react"
+import {
+  InfoIcon,
+  Loader2,
+  Plus,
+  Trash2Icon,
+  UtensilsCrossedIcon,
+} from "lucide-react"
 import { toast } from "sonner"
 
 import kyInstance from "@/lib/ky"
@@ -60,11 +66,22 @@ export default function GuestMealsPage() {
     return <Loader2 className="mx-auto my-6 size-6 animate-spin" />
   }
   return (
-    <main className="flex flex-col items-center justify-center px-4 py-6 md:px-6 lg:px-12">
+    <main className="flex flex-col items-center justify-center">
+      <div className="mb-3 rounded-md border px-4 py-3">
+        <p className="text-sm">
+          <InfoIcon
+            className="me-3 -mt-0.5 inline-flex text-blue-500"
+            size={16}
+            aria-hidden="true"
+          />
+          If Your guest meal request has been approved, then the meal charge has
+          been added to your bill.
+        </p>
+      </div>
       <Card className="w-full max-w-4xl shadow-sm">
-        <CardHeader className="flex flex-col gap-2 border-b md:flex-row md:items-center md:justify-between">
+        <CardHeader className="flex flex-col gap-3 border-b md:flex-row md:items-center md:justify-between">
           <div>
-            <CardTitle className="text-foreground flex items-center gap-2 text-2xl font-bold">
+            <CardTitle className="text-foreground flex items-center gap-3 text-2xl font-bold">
               <UtensilsCrossedIcon className="text-primary h-6 w-6" />
               Guest Meal Requests
             </CardTitle>

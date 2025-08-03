@@ -26,7 +26,7 @@ export default function NavBar() {
             navItems={navItems}
           />
           <Link href="/" className="font-bold">
-            Next-PG1 v5
+            HMS-PG1 v1
           </Link>
         </div>
         <div className="flex items-center justify-center gap-2">

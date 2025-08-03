@@ -75,7 +75,7 @@ async function OverviewCards() {
       icon: Utensils,
       value: totalAttendance ?? 0,
       color: "blue",
-      subtitle: "Total meals taken",
+      subtitle: "this month",
     },
   ]
 

@@ -81,7 +81,7 @@ export function MealMessageDialog() {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button>
+        <Button variant="outline">
           <SendIcon className="mr-2 h-4 w-4" /> Send Meal Message
         </Button>
       </DialogTrigger>

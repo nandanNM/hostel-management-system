@@ -1,11 +1,10 @@
 import { Suspense } from "react"
 import { Metadata } from "next"
 import { notFound } from "next/navigation"
-import { Loader2 } from "lucide-react"
+import { Loader2, TriangleAlert } from "lucide-react"
 
 import { requireUser } from "@/lib/require-user"
 import { Separator } from "@/components/ui/separator"
-import { P } from "@/components/custom/p"
 
 import { MealMessageDialog } from "./_components/meal-message-dialog"
 import MealTogleButton from "./_components/meal-togle-button"
@@ -19,29 +18,22 @@ export const metadata: Metadata = {
 export default async function Page() {
   const { user } = await requireUser()
   if (!user?.id) return notFound()
-  if (user.status === "INACTIVE")
-    return (
-      <div className="w-full md:mx-8 lg:mx-auto">
-        <P className="text-destructive text-center text-balance">
-          You are not a boarder member and cannot access this page. Please
-          contact the admin or a boarder member.
-        </P>
-      </div>
-    )
-
-  if (user.status === "BANNED")
-    return (
-      <div className="w-full md:mx-8 lg:mx-auto">
-        <P className="text-destructive text-center text-balance">
-          You are banned and cannot access this page. Please contact the admin.
-        </P>
-      </div>
-    )
 
   return (
     <div className="w-full md:mx-8 lg:mx-auto">
       <h2 className="text-foreground mb-4 font-bold">User Dashboard</h2>
-      <div className="flex w-full items-center gap-6 pb-4 md:gap-12">
+      <div className="rounded-md border px-4 py-3">
+        <p className="text-sm">
+          <TriangleAlert
+            className="me-3 -mt-0.5 inline-flex text-amber-500"
+            size={16}
+            aria-hidden="true"
+          />
+          You&apos;ve toggled your meal status multiple times in a short period.
+          Continued misuse may result in temporary suspension.
+        </p>
+      </div>
+      <div className="flex w-full items-center gap-6 py-4 md:gap-12">
         <MealTogleButton />
         <MealMessageDialog />
       </div>
