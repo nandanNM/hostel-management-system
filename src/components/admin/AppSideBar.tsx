@@ -7,7 +7,7 @@ import {
   LogOut,
   Plus,
   Projector,
-  Settings,
+  Settings2,
   Users,
 } from "lucide-react"
 import { User } from "next-auth"
@@ -30,6 +30,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarRail,
 } from "@/components/ui/sidebar"
 
 import { Separator } from "../ui/separator"
@@ -54,7 +55,7 @@ const items = [
   {
     title: "Settings",
     url: "settings",
-    icon: Settings,
+    icon: Settings2,
   },
 ]
 interface AppSideBarProps {
@@ -97,9 +98,6 @@ export default function AppSideBar({ state, user }: AppSideBarProps) {
                       <span>{item.title}</span>
                     </Link>
                   </SidebarMenuButton>
-                  {/* {item.title === "Inbox" && (
-                    <SidebarMenuBadge>24</SidebarMenuBadge>
-                  )} */}
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>
@@ -186,7 +184,7 @@ export default function AppSideBar({ state, user }: AppSideBarProps) {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem>
-                  <Settings className="mr-2 h-[1.2rem] w-[1.2rem]" />
+                  <Settings2 className="mr-2 h-[1.2rem] w-[1.2rem]" />
                   Settings
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -202,6 +200,7 @@ export default function AppSideBar({ state, user }: AppSideBarProps) {
             </DropdownMenu>
           </SidebarMenuItem>
         </SidebarMenu>
+        <SidebarRail />
       </SidebarFooter>
     </Sidebar>
   )

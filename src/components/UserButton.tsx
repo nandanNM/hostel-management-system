@@ -1,8 +1,7 @@
 import Image from "next/image"
 import Link from "next/link"
 import avatarPlaceholder from "@/assets/avatar-placeholder.png"
-import { RiUserSettingsLine as Settings } from "@remixicon/react"
-import { ChefHatIcon, Lock, LogOut } from "lucide-react"
+import { ChefHatIcon, Lock, LogOut, Settings2 } from "lucide-react"
 import { signOut, useSession } from "next-auth/react"
 
 import { Button } from "./ui/button"
@@ -41,7 +40,7 @@ export default function UserButton() {
         <DropdownMenuGroup>
           <DropdownMenuItem asChild>
             <Link href="#">
-              <Settings className="mr-2 h-4 w-4" />
+              <Settings2 className="mr-2 h-4 w-4" />
               <span>Settings</span>
             </Link>
           </DropdownMenuItem>

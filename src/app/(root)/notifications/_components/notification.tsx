@@ -6,7 +6,7 @@ import {
   Clock,
   CreditCard,
   Megaphone,
-  Settings,
+  Settings2,
   UtensilsCrossed,
 } from "lucide-react"
 
@@ -59,7 +59,7 @@ export default function Notification({ notification }: NotificationProps) {
       href: "/announcements",
     },
     SYSTEM: {
-      icon: <Settings className="size-6" />,
+      icon: <Settings2 className="size-6" />,
       bgColor: "bg-gray-50 dark:bg-gray-950/20",
       iconColor: "text-gray-600 bg-gray-100 dark:bg-gray-900/30",
       badge: "System",

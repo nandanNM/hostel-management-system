@@ -2,7 +2,15 @@
 
 import type { DailyMealActivity } from "@/generated/prisma"
 import { useQuery } from "@tanstack/react-query"
-import { ChefHat, Leaf, TrendingUp, Utensils } from "lucide-react"
+import {
+  ChefHat,
+  Drumstick,
+  Egg,
+  Fish,
+  Leaf,
+  TrendingUp,
+  Utensils,
+} from "lucide-react"
 import { toast } from "sonner"
 
 import kyInstance from "@/lib/ky"
@@ -39,7 +47,6 @@ export function MealDataCard() {
   }
 
   if (isLoading && !mealData) return <ManagerPageSkeleton />
-
   return (
     <Card>
       <CardHeader>
@@ -66,62 +73,82 @@ export function MealDataCard() {
         )}
 
         {mealData && (
-          <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
-            <Card>
-              <CardContent className="p-6 text-center">
-                <div className="mb-2 flex items-center justify-center gap-2">
-                  <Leaf className="h-5 w-5 text-green-600" />
-                  <h4 className="font-semibold">Vegetarian</h4>
+          <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-3">
+            {/* Vegetarian Meals Card */}
+            <Card className="py-4 shadow-lg transition-shadow duration-300 hover:shadow-xl">
+              <CardContent className="p-2 text-center">
+                <div className="mb-3 flex items-center justify-center gap-2">
+                  <Leaf className="h-6 w-6 text-green-600" />
+                  <h4 className="text-lg font-semibold text-green-700">
+                    Vegetarian Meals
+                  </h4>
                 </div>
-                <p className="text-3xl font-bold text-green-600">
+                <p className="text-5xl font-extrabold text-green-600">
                   {mealData.totalVeg}
                 </p>
-                <p className="text-muted-foreground text-sm">meals today</p>
+                <p className="text-muted-foreground mt-1 text-sm">
+                  meals today
+                </p>
               </CardContent>
             </Card>
-            <Card>
-              <CardContent className="p-6">
+
+            {/* Non-Vegetarian Meals Card */}
+            <Card className="py-4 shadow-lg transition-shadow duration-300 hover:shadow-xl">
+              <CardContent className="p-3">
                 <div className="mb-4 flex items-center justify-center gap-2">
-                  <Utensils className="h-5 w-5 text-orange-600" />
-                  <h4 className="font-semibold text-orange-600">
+                  <Utensils className="h-6 w-6 text-orange-600" />
+                  <h4 className="text-lg font-semibold text-orange-600">
                     Non-Vegetarian Meals
                   </h4>
                 </div>
-                <div className="grid grid-cols-3 gap-4 text-center">
-                  <div>
-                    <p className="text-2xl font-bold text-orange-500">
-                      {mealData.totalNonvegEgg}
-                    </p>
-                    <p className="text-muted-foreground text-sm">Egg</p>
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-orange-500">
-                      {mealData.totalNonvegFish}
-                    </p>
-                    <p className="text-muted-foreground text-sm">Fish</p>
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-orange-500">
-                      {mealData.totalNonvegChicken}
-                    </p>
-                    <p className="text-muted-foreground text-sm">Chicken</p>
-                  </div>
+                <div className="flex items-center justify-around text-center">
+                  {mealData.actualNonVegServed === "EGG" && (
+                    <div className="flex flex-col items-center">
+                      <Egg className="mb-1 h-6 w-6 text-orange-500" />
+                      <p className="text-3xl font-bold text-orange-500">
+                        {mealData.totalNonvegEgg}
+                      </p>
+                      <p className="text-muted-foreground text-sm">Egg</p>
+                    </div>
+                  )}
+                  {mealData.actualNonVegServed === "FISH" && (
+                    <div className="flex flex-col items-center">
+                      <Fish className="mb-1 h-6 w-6 text-orange-500" />
+                      <p className="text-3xl font-bold text-orange-500">
+                        {mealData.totalNonvegFish}
+                      </p>
+                      <p className="text-muted-foreground text-sm">Fish</p>
+                    </div>
+                  )}
+                  {mealData.actualNonVegServed === "CHICKEN" && (
+                    <div className="flex flex-col items-center">
+                      <Drumstick className="mb-1 h-6 w-6 text-orange-500" />
+                      <p className="text-3xl font-bold text-orange-500">
+                        {mealData.totalNonvegChicken}
+                      </p>
+                      <p className="text-muted-foreground text-sm">Chicken</p>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
-            <Card>
-              <CardContent className="p-6 text-center">
-                <div className="mb-2 flex items-center justify-center gap-2">
-                  <ChefHat className="text-primary h-5 w-5" />
-                  <h3 className="text-primary font-semibold">Total Meals</h3>
+
+            {/* Total Meals Card */}
+            <Card className="py-4 shadow-lg transition-shadow duration-300 hover:shadow-xl">
+              <CardContent className="p-3 text-center">
+                <div className="mb-3 flex items-center justify-center gap-2">
+                  <ChefHat className="text-primary h-6 w-6" />
+                  <h3 className="text-primary text-lg font-semibold">
+                    Total Meals
+                  </h3>
                 </div>
-                <p className="text-primary text-3xl font-bold">
+                <p className="text-primary text-5xl font-extrabold">
                   {mealData.totalMeal}
                 </p>
-                <p className="text-muted-foreground text-sm">
+                <p className="text-muted-foreground mt-1 text-sm">
                   including guest meals
                 </p>
-                <div className="mt-3 flex items-center justify-center gap-2 text-sm">
+                <div className="mt-4 flex items-center justify-center gap-2 text-sm">
                   <span className="text-muted-foreground">Guest Meals:</span>
                   <span className="text-muted-foreground font-semibold">
                     {mealData.totalGuestMeal}
