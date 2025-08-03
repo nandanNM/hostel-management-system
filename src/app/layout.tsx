@@ -1,4 +1,4 @@
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 
 import "./globals.css"
 
@@ -7,21 +7,43 @@ import AuthProvider from "@/context/AuthProvider"
 import ReactQueryProvider from "@/context/ReactQueryProvider"
 import { ThemeProvider } from "@/context/theme-provider"
 
+import { siteConfig } from "@/config/site"
 import { cn } from "@/lib/utils"
 import { Toaster } from "@/components/ui/sonner"
 
 const outfit = Outfit({
   variable: "--font-outfit-sans",
   subsets: ["latin"],
-  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL(siteConfig.url),
   title: {
-    template: "%s | PG1",
-    default: "PG1",
+    default: siteConfig.name,
+    template: `%s | ${siteConfig.name}`,
   },
-  description: "The hostal managment systam",
+  description: siteConfig.description,
+  creator: "codernandan",
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: siteConfig.url,
+    title: siteConfig.name,
+    description: siteConfig.description,
+    siteName: siteConfig.name,
+  },
+  icons: {
+    icon: "/icon.png",
+  },
+  manifest: `${siteConfig.url}/site.webmanifest`,
+}
+
+export const viewport: Viewport = {
+  colorScheme: "dark light",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "white" },
+    { media: "(prefers-color-scheme: dark)", color: "black" },
+  ],
 }
 
 export default function RootLayout({
@@ -42,7 +64,6 @@ export default function RootLayout({
             >
               {children}
             </ThemeProvider>
-
             <Toaster />
           </ReactQueryProvider>
         </body>

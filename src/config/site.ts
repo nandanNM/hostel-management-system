@@ -1,14 +1,10 @@
-import { env } from "@/env"
-
 export type SiteConfig = typeof siteConfig
 
 export const siteConfig = {
-  name: "Table",
-  description:
-    "Shadcn table component with server side sorting, pagination, and filtering",
+  name: "PG1",
+  description: "The hostal managment systam for PG1",
   url:
-    env.NODE_ENV === "development"
+    process.env.NODE_ENV === "development"
       ? "http://localhost:3000"
-      : "https://shadcn-table-vert.vercel.app",
-  links: { github: "https://github.com/whoisseth/shadcn-table" },
+      : "https://dev.dlbhawan.in",
 }

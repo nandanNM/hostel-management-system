@@ -1,0 +1,14 @@
+{
+  "name": "DL Bhawan",
+  "short_name": "PG1",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#C45A1A",
+  "background_color": "#ffffff",
+  "display": "standalone"
+}
