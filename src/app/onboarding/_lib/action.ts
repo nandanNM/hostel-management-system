@@ -1,9 +1,9 @@
 "use server"
 
 import { auth } from "@/auth"
-import { UserStatusType } from "@/generated/prisma"
 import { ApiResponse } from "@/types"
 
+import { UserStatusType } from "@/lib/generated/prisma"
 import prisma from "@/lib/prisma"
 import { onboardingSchema, User } from "@/lib/validations"
 

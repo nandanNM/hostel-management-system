@@ -1,6 +1,5 @@
 import React, { cache, Suspense } from "react"
 import { notFound } from "next/navigation"
-import { User } from "@/generated/prisma"
 import { MealPreference } from "@/types"
 import { formatDate } from "date-fns"
 import {
@@ -14,6 +13,7 @@ import {
   Wallet,
 } from "lucide-react"
 
+import { User } from "@/lib/generated/prisma"
 import prisma from "@/lib/prisma"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"

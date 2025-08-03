@@ -1,6 +1,5 @@
 "use client"
 
-import type { DailyMealActivity } from "@/generated/prisma"
 import { useQuery } from "@tanstack/react-query"
 import {
   ChefHat,
@@ -13,6 +12,7 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 
+import type { DailyMealActivity } from "@/lib/generated/prisma"
 import kyInstance from "@/lib/ky"
 import { formatRelativeDate, isActiveTime } from "@/lib/utils"
 import {

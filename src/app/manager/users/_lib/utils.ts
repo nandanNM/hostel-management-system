@@ -1,4 +1,3 @@
-import { MealStatusType, NonVegType } from "@/generated/prisma"
 import {
   CheckCircledIcon,
   CrossCircledIcon,
@@ -6,6 +5,8 @@ import {
   StopwatchIcon,
 } from "@radix-ui/react-icons"
 import { Beef, CircleIcon, Egg, Fish, X } from "lucide-react"
+
+import { MealStatusType, NonVegType } from "@/lib/generated/prisma"
 
 export function getNonVegTypeIcon(type: NonVegType) {
   const iconMap = {

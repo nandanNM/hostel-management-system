@@ -1,8 +1,8 @@
 "use server"
 
 import { redirect } from "next/navigation"
-import { UserStatusType } from "@/generated/prisma"
 
+import { UserStatusType } from "@/lib/generated/prisma"
 import getSession from "@/lib/get-session"
 
 export default async function requireManager() {

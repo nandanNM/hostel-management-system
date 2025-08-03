@@ -2,17 +2,17 @@
 
 import { unstable_noStore as noStore, revalidatePath } from "next/cache"
 import requireManager from "@/data/manager/require-manager"
+import { ApiResponse } from "@/types"
+import z from "zod"
+
+import { GetMealWithUser } from "@/types/prisma.type"
 import {
   BillEntryType,
   MealStatusType,
   NonVegType,
   NotificationType,
   Prisma,
-} from "@/generated/prisma"
-import { ApiResponse } from "@/types"
-import z from "zod"
-
-import { GetMealWithUser } from "@/types/prisma.type"
+} from "@/lib/generated/prisma"
 import prisma from "@/lib/prisma"
 import { parseEnumList } from "@/lib/utils"
 import { mealSchema } from "@/lib/validations"

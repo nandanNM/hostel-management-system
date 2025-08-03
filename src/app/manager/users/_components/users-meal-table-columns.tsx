@@ -1,7 +1,6 @@
 "use client"
 
 import * as React from "react"
-import { MealStatusType, NonVegType } from "@/generated/prisma"
 import { ColumnDef } from "@tanstack/react-table"
 import {
   CheckCircle,
@@ -17,6 +16,7 @@ import {
 import { toast } from "sonner"
 
 import { GetMealWithUser } from "@/types/prisma.type"
+import { MealStatusType, NonVegType } from "@/lib/generated/prisma"
 import { getErrorMessage } from "@/lib/handle-error"
 import { formatDate } from "@/lib/utils"
 import { Button } from "@/components/ui/button"

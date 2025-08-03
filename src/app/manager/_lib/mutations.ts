@@ -1,11 +1,11 @@
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { toast } from "sonner"
+
 import {
   DailyMealActivity,
   GuestMeal,
   GuestMealStatusType,
-} from "@/generated/prisma"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
-
+} from "@/lib/generated/prisma"
 import kyInstance from "@/lib/ky"
 
 import { updateGuestMealStatus } from "./action"

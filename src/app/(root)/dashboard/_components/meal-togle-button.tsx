@@ -1,7 +1,6 @@
 "use client"
 
 import { useId } from "react"
-import { MealStatusType } from "@/generated/prisma"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useQuery } from "@tanstack/react-query"
 import { Loader2 } from "lucide-react"
@@ -9,6 +8,7 @@ import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import z from "zod"
 
+import { MealStatusType } from "@/lib/generated/prisma"
 import kyInstance from "@/lib/ky"
 import { Badge } from "@/components/ui/crazxy-ui/badge"
 import { Label } from "@/components/ui/label"

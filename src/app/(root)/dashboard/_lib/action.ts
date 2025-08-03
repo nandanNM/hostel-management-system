@@ -1,9 +1,9 @@
 "use server"
 
-import { BillEntryType, MealStatusType } from "@/generated/prisma"
 import { ApiResponse } from "@/types"
 import { endOfMonth, startOfMonth } from "date-fns"
 
+import { BillEntryType, MealStatusType } from "@/lib/generated/prisma"
 import prisma from "@/lib/prisma"
 import { requireUser } from "@/lib/require-user"
 

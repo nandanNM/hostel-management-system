@@ -1,5 +1,4 @@
-import { GuestMealStatusType } from "@/generated/prisma"
-
+import { GuestMealStatusType } from "@/lib/generated/prisma"
 import getSession from "@/lib/get-session"
 import prisma from "@/lib/prisma"
 

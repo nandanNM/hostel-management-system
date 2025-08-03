@@ -1,13 +1,13 @@
 "use server"
 
 import requireManager from "@/data/manager/require-manager"
+import { ApiResponse } from "@/types"
+
 import {
   BillEntryType,
   GuestMealStatusType,
   NotificationType,
-} from "@/generated/prisma"
-import { ApiResponse } from "@/types"
-
+} from "@/lib/generated/prisma"
 import prisma from "@/lib/prisma"
 
 export async function updateGuestMealStatus({

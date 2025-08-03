@@ -1,7 +1,7 @@
-import { GuestMeal } from "@/generated/prisma"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 
+import { GuestMeal } from "@/lib/generated/prisma"
 import { GuestMeal as GuestMealValidation } from "@/lib/validations"
 
 import { createGuestMeal, deleteGuestMealRequest } from "./action"

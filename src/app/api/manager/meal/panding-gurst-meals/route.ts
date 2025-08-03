@@ -1,6 +1,6 @@
-import { UserRoleType } from "@/generated/prisma"
 import { endOfDay, startOfDay } from "date-fns"
 
+import { UserRoleType } from "@/lib/generated/prisma"
 import getSession from "@/lib/get-session"
 import prisma from "@/lib/prisma"
 import { getCurrentMealSlot } from "@/lib/utils"

@@ -1,6 +1,6 @@
-import { BillEntryType } from "@/generated/prisma"
 import { compareDesc, format } from "date-fns"
 
+import { BillEntryType } from "@/lib/generated/prisma"
 import prisma from "@/lib/prisma"
 import { Badge } from "@/components/ui/badge"
 import {

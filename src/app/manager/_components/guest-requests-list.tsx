@@ -1,6 +1,5 @@
 "use client"
 
-import { GuestMeal, MealType } from "@/generated/prisma"
 import { useQuery } from "@tanstack/react-query"
 import {
   CircleAlert,
@@ -11,6 +10,7 @@ import {
   Utensils,
 } from "lucide-react"
 
+import { GuestMeal, MealType } from "@/lib/generated/prisma"
 import kyInstance from "@/lib/ky"
 import { formatRelativeDate } from "@/lib/utils"
 import {

@@ -1,6 +1,5 @@
 import type { JSX } from "react" // Import JSX to fix the lint error
 import Link from "next/link"
-import { NotificationType } from "@/generated/prisma"
 import {
   AlertTriangle,
   Clock,
@@ -11,6 +10,7 @@ import {
 } from "lucide-react"
 
 import { GetNotificationWithIssuer } from "@/types/prisma.type"
+import { NotificationType } from "@/lib/generated/prisma"
 import { cn, formatRelativeDate } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import UserAvatar from "@/components/UserAvatar"

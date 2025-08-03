@@ -1,3 +1,5 @@
+import { endOfDay, format, startOfDay } from "date-fns"
+
 import {
   DayOfWeek,
   GuestMealStatusType,
@@ -6,9 +8,7 @@ import {
   NonVegType,
   UserRoleType,
   UserStatusType,
-} from "@/generated/prisma"
-import { endOfDay, format, startOfDay } from "date-fns"
-
+} from "@/lib/generated/prisma"
 import getSession from "@/lib/get-session"
 import prisma from "@/lib/prisma"
 import { getCurrentMealSlot } from "@/lib/utils"

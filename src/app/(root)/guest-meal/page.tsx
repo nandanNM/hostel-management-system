@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { GuestMeal } from "@/generated/prisma"
 import { useQuery } from "@tanstack/react-query"
 import { format } from "date-fns"
 import {
@@ -13,6 +12,7 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 
+import { GuestMeal } from "@/lib/generated/prisma"
 import kyInstance from "@/lib/ky"
 import {
   AlertDialog,

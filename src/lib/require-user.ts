@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation"
-import { UserStatusType } from "@/generated/prisma"
 import { Session } from "next-auth"
+
+import { UserStatusType } from "@/lib/generated/prisma"
 
 import getSession from "./get-session"
 

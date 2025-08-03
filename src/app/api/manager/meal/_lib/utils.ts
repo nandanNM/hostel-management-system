@@ -1,4 +1,4 @@
-import { MealTimeType, NonVegType } from "@/generated/prisma"
+import { MealTimeType, NonVegType } from "@/lib/generated/prisma"
 
 export const getNonVegTypeFromItemName = (itemName: string): NonVegType => {
   const lowerCaseItem = itemName.toLowerCase()

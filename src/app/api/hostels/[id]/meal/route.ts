@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
-import { DayOfWeek, MealTimeType } from "@/generated/prisma"
 
+import { DayOfWeek, MealTimeType } from "@/lib/generated/prisma"
 import prisma from "@/lib/prisma"
 
 const MENU_ITEM_COSTS: Record<string, number> = {

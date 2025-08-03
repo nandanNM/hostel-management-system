@@ -1,5 +1,4 @@
-import { UserRoleType, UserStatusType } from "@/generated/prisma"
-
+import { UserRoleType, UserStatusType } from "@/lib/generated/prisma"
 import getSession from "@/lib/get-session"
 import prisma from "@/lib/prisma"
 

@@ -1,4 +1,4 @@
-import { Prisma } from "@/generated/prisma"
+import { Prisma } from "@/lib/generated/prisma"
 
 export type GetNotificationWithIssuer = Prisma.NotificationGetPayload<{
   include: {

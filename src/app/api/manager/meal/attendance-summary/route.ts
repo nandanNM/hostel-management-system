@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
-import { MealTimeType } from "@/generated/prisma"
 import { format } from "date-fns"
 
+import { MealTimeType } from "@/lib/generated/prisma"
 import getSession from "@/lib/get-session"
 import prisma from "@/lib/prisma"
 

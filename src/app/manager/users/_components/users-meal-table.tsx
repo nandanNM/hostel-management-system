@@ -2,10 +2,10 @@
 "use memo"
 
 import * as React from "react"
-import { MealStatusType, NonVegType } from "@/generated/prisma"
 import { type DataTableFilterField } from "@/types"
 
 import { GetMealWithUser } from "@/types/prisma.type"
+import { MealStatusType, NonVegType } from "@/lib/generated/prisma"
 import { useDataTable } from "@/hooks/use-data-table"
 import { DataTable } from "@/components/data-table/data-table"
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar"

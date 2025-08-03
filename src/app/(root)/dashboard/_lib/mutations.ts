@@ -1,6 +1,7 @@
-import { MealStatusType } from "@/generated/prisma"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
+
+import { MealStatusType } from "@/lib/generated/prisma"
 
 import { toggleMealStatus } from "./action"
 
