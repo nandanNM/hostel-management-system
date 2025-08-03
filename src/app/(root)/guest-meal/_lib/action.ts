@@ -80,7 +80,7 @@ export async function createGuestMeal(values: GuestMeal): Promise<ApiResponse> {
         nonVegType: values.nonVegType ?? "NONE",
         userId: session.user.id,
         hostelId: session.user.hostelId,
-        mealCharge: charge?.costPerUnit || 50,
+        mealCharge: (charge?.costPerUnit ?? 50) * values.numberOfMeals,
       },
     })
     prisma.activityLog
