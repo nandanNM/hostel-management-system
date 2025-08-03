@@ -13,10 +13,10 @@ const MENU_ITEM_COSTS: Record<string, number> = {
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id: hostelId } = params
+    const { id: hostelId } = await params
     const body = await req.json()
     const { schedule } = body
 

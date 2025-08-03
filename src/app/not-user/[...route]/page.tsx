@@ -13,7 +13,7 @@ import {
 export default async function StatusPage({
   params,
 }: {
-  params: { route?: string | string[] }
+  params: Promise<{ route?: string | string[] }>
 }) {
   const awaitParams = await params
   let route: string

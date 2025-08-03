@@ -9,7 +9,7 @@ import { getMealsForManager } from "./_lib/actions"
 import { getMealsSchema } from "./_lib/validations"
 
 export interface UsersPageProps {
-  searchParams: SearchParams
+  searchParams: Promise<SearchParams>
 }
 export default async function UsersPage({ searchParams }: UsersPageProps) {
   const resolvedSearchParams = await searchParams

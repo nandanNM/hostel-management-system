@@ -1,5 +1,4 @@
-import { DataTable } from "@/components/table/data-table"
-
+import { DataTable } from "../audits/data-table"
 import { columns, Payment } from "./columns"
 
 const getData = async (): Promise<Payment[]> => {

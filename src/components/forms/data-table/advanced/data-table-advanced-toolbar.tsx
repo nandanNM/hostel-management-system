@@ -8,9 +8,9 @@ import type { Table } from "@tanstack/react-table"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { DataTableFilterCombobox } from "@/components/data-table/advanced/data-table-filter-combobox"
 import { DataTableViewOptions } from "@/components/data-table/data-table-view-options"
 
+import { DataTableFilterCombobox } from "./data-table-filter-combobox"
 import { DataTableFilterItem } from "./data-table-filter-item"
 import { DataTableMultiFilter } from "./data-table-multi-filter"
 
