@@ -38,6 +38,8 @@ export async function updateGuestMealStatus({
       },
       data: {
         status: status,
+        approvedAt: status === "APPROVED" ? new Date() : null,
+        approvedBy: status === "APPROVED" ? session.user.id : null,
       },
     })
 

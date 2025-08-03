@@ -84,7 +84,6 @@ export const guestMealSchema = z
       .string()
       .length(10, "Phone must be 10 digits")
       .regex(/^\d+$/, "Phone must be numbers only"),
-    mealCharge: z.number().positive("Charge must be positive"),
     ...mealSchema.shape,
   })
   .refine(

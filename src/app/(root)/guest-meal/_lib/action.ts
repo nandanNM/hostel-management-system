@@ -54,6 +54,25 @@ export async function createGuestMeal(values: GuestMeal): Promise<ApiResponse> {
         message: "Unauthorized",
       }
     }
+    const name =
+      values.type === "VEG"
+        ? "Veg"
+        : values.nonVegType
+          ? values.nonVegType.charAt(0).toUpperCase() +
+            values.nonVegType.slice(1).toLowerCase()
+          : ""
+
+    const charge = await prisma.menuItem.findFirst({
+      where: {
+        name: {
+          contains: name,
+          mode: "insensitive",
+        },
+      },
+      select: {
+        costPerUnit: true,
+      },
+    })
 
     const meal = await prisma.guestMeal.create({
       data: {
@@ -61,6 +80,7 @@ export async function createGuestMeal(values: GuestMeal): Promise<ApiResponse> {
         nonVegType: values.nonVegType ?? "NONE",
         userId: session.user.id,
         hostelId: session.user.hostelId,
+        mealCharge: charge?.costPerUnit || 50,
       },
     })
     prisma.activityLog

@@ -66,7 +66,6 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
       mealTime: "LUNCH",
       numberOfMeals: 1,
       date: new Date(),
-      mealCharge: 0,
     },
   })
 
@@ -271,7 +270,7 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
                   </FormItem>
                 )}
               />
-              <FormField
+              {/* <FormField
                 control={form.control}
                 name="mealCharge"
                 render={({ field }) => (
@@ -291,7 +290,7 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
                     <FormMessage />
                   </FormItem>
                 )}
-              />
+              /> */}
               <SheetFooter className="gap-2 p-0 sm:space-x-0">
                 <SheetClose asChild>
                   <Button type="button" variant="outline">
