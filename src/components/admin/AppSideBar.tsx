@@ -69,10 +69,15 @@ export default function AppSideBar({ state, user }: AppSideBarProps) {
       <SidebarHeader className="py-4">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild>
+            <SidebarMenuButton
+              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              asChild
+            >
               <Link href="/">
                 <UserAvatar size={32} avatarUrl={user.image} />
-                <span>{user.name}</span>
+                <span className="truncate data-[state=collapsed]:hidden">
+                  {user.name}
+                </span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -177,9 +182,15 @@ export default function AppSideBar({ state, user }: AppSideBarProps) {
           <SidebarMenuItem>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <SidebarMenuButton className="flex items-center justify-center">
-                  <UserAvatar size={32} avatarUrl={user.image} /> {user.name}
-                  <ChevronUp className="ml-auto" />
+                <SidebarMenuButton
+                  size="lg"
+                  className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                >
+                  <UserAvatar size={32} avatarUrl={user.image} />
+                  <span className="truncate data-[state=collapsed]:hidden">
+                    {user.name}
+                  </span>
+                  <ChevronUp className="ml-auto data-[state=collapsed]:hidden" />
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
