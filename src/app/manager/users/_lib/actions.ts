@@ -102,7 +102,7 @@ export async function getMealsForManager(
       totalRows,
       pageCount: Math.ceil(totalRows / per_page),
     }
-  } catch (error) {
+  } catch {
     throw new Error("Failed to retrieve meal data.")
   }
 }
@@ -193,7 +193,24 @@ export async function issueFineToUser({
   const hostelId = session.user.hostelId
   const issuerUserId = session.user.id
   try {
-    await prisma.$transaction(async (tx) => {
+    const fineAmountNumber = Number(fineAmount)
+    if (isNaN(fineAmountNumber) || fineAmountNumber <= 0) {
+      return {
+        status: "error",
+        message: "Invalid fine amount provided",
+      }
+    }
+    const lastBill = await prisma.userBill.findFirst({
+      where: {
+        userId: targetUserId,
+        hostelId: hostelId,
+      },
+      orderBy: { createdAt: "desc" },
+    })
+    console.log(
+      `Fine Debug - User: ${targetUserId}, Last Bill: ${JSON.stringify(lastBill)}`
+    )
+    const result = await prisma.$transaction(async (tx) => {
       const newFine = await tx.userFine.create({
         data: {
           amount: Number(fineAmount),
@@ -206,14 +223,12 @@ export async function issueFineToUser({
           issuedByHostel: { connect: { id: hostelId } },
         },
       })
-      const lastBill = await tx.userBill.findFirst({
-        where: { userId: targetUserId },
-        orderBy: { issueDate: "desc" },
-      })
-
-      const currentBalance = lastBill?.balanceRemaining ?? 0
-      const newBalance = currentBalance + newFine.amount
-      await tx.userBill.create({
+      const currentDue = lastBill?.balanceRemaining ?? 0
+      const newBalance = currentDue + fineAmountNumber
+      console.log(
+        `Fine Debug - User: ${targetUserId}, Current Balance: ${currentDue}, Fine Amount: ${fineAmountNumber}, New Balance: ${newBalance}`
+      )
+      const newBillEntry = await tx.userBill.create({
         data: {
           type: BillEntryType.FINE_CHARGE,
           amount: newFine.amount,
@@ -227,17 +242,23 @@ export async function issueFineToUser({
           fine: { connect: { id: newFine.id } },
         },
       })
-      await tx.notification.create({
-        data: {
-          title: "New Fine Issued",
-          message: `You have received a fine of $${Number(fineAmount)} for: ${fineReason}.`,
-          type: NotificationType.FINE,
-          hostel: { connect: { id: hostelId } },
-          user: { connect: { id: targetUserId } },
-          issuer: { connect: { id: issuerUserId } },
-        },
-      })
-      //  return { newFine, newBillEntry }
+      console.log(
+        `Fine Debug - User: ${newBillEntry.userId}, Current Balance: ${newBillEntry.balanceRemaining}, Fine Amount: ${newBillEntry.amount}, New Balance: ${newBillEntry.balanceRemaining}`
+      )
+      return { newFine, newBillEntry, newBalance, success: true }
+    })
+    if (!result || !result.success) {
+      throw new Error("Transaction completed but returned invalid result")
+    }
+    prisma.notification.create({
+      data: {
+        title: "New Fine Issued",
+        message: `You have received a fine of $${Number(fineAmount)} for: ${fineReason}.`,
+        type: NotificationType.FINE,
+        hostel: { connect: { id: hostelId } },
+        user: { connect: { id: targetUserId } },
+        issuer: { connect: { id: issuerUserId } },
+      },
     })
     return {
       status: "success",

@@ -44,14 +44,17 @@ export async function updateGuestMealStatus({
     })
 
     if (status === "APPROVED") {
-      await prisma.$transaction(async (tx) => {
-        const lastBill = await tx.userBill.findFirst({
-          where: { userId: requestedUserId },
-          orderBy: { issueDate: "desc" },
-        })
+      const lastBill = await prisma.userBill.findFirst({
+        where: {
+          userId: requestedUserId,
+          hostelId: session.user.hostelId,
+        },
+        orderBy: { createdAt: "desc" },
+      })
 
-        const currentBalance = lastBill?.balanceRemaining ?? 0
-        const newBalance = currentBalance + amount
+      await prisma.$transaction(async (tx) => {
+        const currentDue = lastBill?.balanceRemaining ?? 0
+        const newBalance = currentDue + amount
 
         await tx.userBill.create({
           data: {

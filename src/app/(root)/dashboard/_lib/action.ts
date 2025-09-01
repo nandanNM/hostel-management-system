@@ -3,7 +3,7 @@
 import { ApiResponse } from "@/types"
 import { endOfMonth, startOfMonth } from "date-fns"
 
-import { BillEntryType, MealStatusType } from "@/lib/generated/prisma"
+import { MealStatusType } from "@/lib/generated/prisma"
 import prisma from "@/lib/prisma"
 import { requireUser } from "@/lib/require-user"
 
@@ -51,7 +51,7 @@ export async function toggleMealStatus(
 
 export async function getUserDeshboardStats() {
   const session = await requireUser()
-  if (!session?.user.id) {
+  if (!session?.user.id || !session?.user.hostelId) {
     return {
       status: "error",
       message: "Unauthorized",
@@ -64,42 +64,37 @@ export async function getUserDeshboardStats() {
     }
   }
   const now = new Date()
-  const [
-    balanceRemainingSumResult,
-    totalPaymentsResult,
-    totalMealAttendanceCount,
-  ] = await Promise.all([
-    prisma.userBill.aggregate({
-      _sum: {
-        balanceRemaining: true,
-      },
-      where: {
-        userId: session.user.id,
-        balanceRemaining: { gt: 0 },
-      },
-    }),
-    prisma.userBill.aggregate({
-      _sum: {
-        amount: true,
-      },
-      where: {
-        userId: session.user.id,
-        type: BillEntryType.PAYMENT,
-      },
-    }),
-    prisma.mealAttendance.count({
-      where: {
-        userId: session.user.id,
-        date: {
-          gte: startOfMonth(now),
-          lte: endOfMonth(now),
+  const [balanceRemainingDue, totalPaymentsResult, totalMealAttendanceCount] =
+    await Promise.all([
+      prisma.userBill.findFirst({
+        where: {
+          userId: session.user.id,
+          hostelId: session.user.hostelId, // Add hostel filter
         },
-      },
-    }),
-  ])
-  const totalBalanceRemaining =
-    balanceRemainingSumResult._sum.balanceRemaining ?? 0
-  const totalPayments = totalPaymentsResult._sum.amount ?? 0
+        orderBy: { createdAt: "desc" },
+        select: { balanceRemaining: true },
+      }),
+      prisma.userPayment.aggregate({
+        _sum: {
+          paidAmount: true,
+        },
+        where: {
+          userId: session.user.id,
+          hostelId: session.user.hostelId, // Add hostel filter},
+        },
+      }),
+      prisma.mealAttendance.count({
+        where: {
+          userId: session.user.id,
+          date: {
+            gte: startOfMonth(now),
+            lte: endOfMonth(now),
+          },
+        },
+      }),
+    ])
+  const totalBalanceRemaining = balanceRemainingDue?.balanceRemaining ?? 0
+  const totalPayments = totalPaymentsResult._sum.paidAmount ?? 0
   const totalAttendance = totalMealAttendanceCount ?? 0
 
   return {
