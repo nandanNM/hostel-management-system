@@ -1,4 +1,5 @@
-import { endOfDay, format, startOfDay } from "date-fns"
+import { endOfDay, startOfDay } from "date-fns"
+import { formatInTimeZone, toZonedTime } from "date-fns-tz"
 
 import {
   DayOfWeek,
@@ -54,7 +55,7 @@ export async function GET() {
 export async function POST() {
   try {
     const session = await getSession()
-
+    const timeZone = "Asia/Kolkata"
     if (!session?.user.id) {
       return Response.json({ error: "Unauthorized" }, { status: 401 })
     }
@@ -73,9 +74,11 @@ export async function POST() {
       )
     }
 
+    const now = new Date()
+    const zonedDate = toZonedTime(now, timeZone)
     // Check for already generated meal activity
     const mealTime = getCurrentMealSlot()
-    const todayStart = startOfDay(new Date())
+    const todayStart = startOfDay(zonedDate)
     const todayEnd = endOfDay(new Date())
 
     const alreadyGenerated = await prisma.dailyMealActivity.findFirst({
@@ -91,7 +94,11 @@ export async function POST() {
     }
 
     // Fetch meal schedule for the current day and time
-    const dayOfWeek = format(todayStart, "EEEE").toUpperCase() as DayOfWeek
+    const dayOfWeek = formatInTimeZone(
+      new Date(),
+      timeZone,
+      "EEEE"
+    ).toUpperCase() as DayOfWeek
     const entry = await prisma.mealScheduleEntry.findFirst({
       where: {
         hostelId: session.user.hostelId,
@@ -128,7 +135,7 @@ export async function POST() {
       }
     }
 
-    //console.log(`Today's hostel offering: ${hostelDailyOffering}`)
+    console.log(`Today's hostel offering: ${hostelDailyOffering}`)
 
     // Fetch regular meals and guest meals
     const [allRegularMeals, allActiveGuestMeals] = await Promise.all([
