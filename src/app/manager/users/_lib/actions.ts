@@ -207,9 +207,9 @@ export async function issueFineToUser({
       },
       orderBy: { createdAt: "desc" },
     })
-    console.log(
-      `Fine Debug - User: ${targetUserId}, Last Bill: ${JSON.stringify(lastBill)}`
-    )
+    // console.log(
+    //   `Fine Debug - User: ${targetUserId}, Last Bill: ${JSON.stringify(lastBill)}`
+    // )
     const result = await prisma.$transaction(async (tx) => {
       const newFine = await tx.userFine.create({
         data: {
@@ -225,9 +225,9 @@ export async function issueFineToUser({
       })
       const currentDue = lastBill?.balanceRemaining ?? 0
       const newBalance = currentDue + fineAmountNumber
-      console.log(
-        `Fine Debug - User: ${targetUserId}, Current Balance: ${currentDue}, Fine Amount: ${fineAmountNumber}, New Balance: ${newBalance}`
-      )
+      // console.log(
+      //   `Fine Debug - User: ${targetUserId}, Current Balance: ${currentDue}, Fine Amount: ${fineAmountNumber}, New Balance: ${newBalance}`
+      // )
       const newBillEntry = await tx.userBill.create({
         data: {
           type: BillEntryType.FINE_CHARGE,
@@ -242,9 +242,9 @@ export async function issueFineToUser({
           fine: { connect: { id: newFine.id } },
         },
       })
-      console.log(
-        `Fine Debug - User: ${newBillEntry.userId}, Current Balance: ${newBillEntry.balanceRemaining}, Fine Amount: ${newBillEntry.amount}, New Balance: ${newBillEntry.balanceRemaining}`
-      )
+      // console.log(
+      //   `Fine Debug - User: ${newBillEntry.userId}, Current Balance: ${newBillEntry.balanceRemaining}, Fine Amount: ${newBillEntry.amount}, New Balance: ${newBillEntry.balanceRemaining}`
+      // )
       return { newFine, newBillEntry, newBalance, success: true }
     })
     if (!result || !result.success) {
@@ -253,7 +253,7 @@ export async function issueFineToUser({
     prisma.notification.create({
       data: {
         title: "New Fine Issued",
-        message: `You have received a fine of $${Number(fineAmount)} for: ${fineReason}.`,
+        message: `You have received a fine of ₹${Number(fineAmount)} for: ${fineReason}.`,
         type: NotificationType.FINE,
         hostel: { connect: { id: hostelId } },
         user: { connect: { id: targetUserId } },

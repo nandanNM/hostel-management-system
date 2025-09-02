@@ -17,65 +17,34 @@ export const getNonVegTypeFromItemName = (itemName: string): NonVegType => {
 export const calculateActualNonVegMeal = (
   userPrimaryPreference: NonVegType,
   userDislikedNonVegs: NonVegType[],
-  hostelDailyOffering: NonVegType
+  hostelDailyOffering?: NonVegType | null
 ): NonVegType => {
-  // If the user's primary preference is NONE, they are always vegetarian.
-  if (userPrimaryPreference === NonVegType.NONE) {
+  // Fixed priority chain: MUTTON → CHICKEN → FISH → EGG → VEG
+  const PRIORITY_CHAIN: NonVegType[] = [
+    NonVegType.MUTTON,
+    NonVegType.CHICKEN,
+    NonVegType.FISH,
+    NonVegType.EGG,
+    NonVegType.NONE,
+  ]
+
+  // If user is strictly vegetarian → always VEG
+  if (userPrimaryPreference === NonVegType.NONE) return NonVegType.NONE
+
+  // If hostel is not serving any valid non-veg today → VEG
+  if (!hostelDailyOffering || hostelDailyOffering === NonVegType.NONE)
     return NonVegType.NONE
-  }
 
-  // Define the fallback priority chain for non-veg items.
-  const nonVegPriority = [NonVegType.CHICKEN, NonVegType.FISH, NonVegType.EGG]
+  // Get the index where today's offering sits in the chain
+  const startIndex = PRIORITY_CHAIN.indexOf(hostelDailyOffering)
+  if (startIndex === -1) return NonVegType.NONE
 
-  // The simplified logic is based on what is being offered today.
-  switch (hostelDailyOffering) {
-    case NonVegType.CHICKEN:
-      // On Chicken day, the only option is Chicken, or Veg if it's disliked.
-      if (!userDislikedNonVegs.includes(NonVegType.CHICKEN)) {
-        return NonVegType.CHICKEN
-      }
-      break
-
-    case NonVegType.FISH:
-      // On Fish day, a user who prefers Chicken and dislikes Fish will get Egg.
-      if (
-        userPrimaryPreference === NonVegType.CHICKEN &&
-        userDislikedNonVegs.includes(NonVegType.FISH)
-      ) {
-        if (!userDislikedNonVegs.includes(NonVegType.EGG)) {
-          return NonVegType.EGG
-        }
-      } else {
-        // For all other cases on Fish day, if they don't dislike Fish, they get it.
-        if (!userDislikedNonVegs.includes(NonVegType.FISH)) {
-          return NonVegType.FISH
-        }
-      }
-      break
-
-    case NonVegType.EGG:
-      // On Egg day, if they don't dislike Egg, they get it.
-      if (!userDislikedNonVegs.includes(NonVegType.EGG)) {
-        return NonVegType.EGG
-      }
-      break
-
-    default:
-      // If no specific non-veg is offered, try to fall back to their preference
-      // from the general priority list, assuming these are always available as alternatives.
-      for (const option of nonVegPriority) {
-        if (
-          userPrimaryPreference === option &&
-          !userDislikedNonVegs.includes(option)
-        ) {
-          return option
-        }
-      }
-      break
-  }
-
-  // If no suitable non-veg option was found, the final fallback is always Vegetarian.
-  return NonVegType.NONE
+  // From hostel’s offering downward in priority, find the first option the user accepts
+  return (
+    PRIORITY_CHAIN.slice(startIndex).find(
+      (option) => !userDislikedNonVegs.includes(option)
+    ) ?? NonVegType.NONE
+  )
 }
 
 export interface MealAttendanceToCreate {

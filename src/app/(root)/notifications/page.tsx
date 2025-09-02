@@ -27,8 +27,10 @@ export default function NotificationsList() {
   })
 
   useEffect(() => {
-    markAsRead()
-  }, [markAsRead])
+    if (notifications?.length) {
+      markAsRead()
+    }
+  }, [notifications, markAsRead])
 
   if (isPending) {
     return <Loader2 className="mx-auto my-6 size-6 animate-spin" />

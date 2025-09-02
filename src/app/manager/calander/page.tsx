@@ -39,9 +39,9 @@ export default function HostelManagementPage() {
   } = useQuery({
     queryKey: ["attendance-summary", "manager", month + 1, year],
     queryFn: async () => {
-      console.log(
-        `Fetching attendance summary for month: ${month + 1}, year: ${year}`
-      )
+      // console.log(
+      //   `Fetching attendance summary for month: ${month + 1}, year: ${year}`
+      // )
       return await kyInstance
         .get(
           `/api/manager/meal/attendance-summary?month=${month + 1}&year=${year}`
@@ -81,9 +81,9 @@ export default function HostelManagementPage() {
 
   const selectedDateMeals = useMemo(() => {
     if (!selectedDate) return []
-    console.log(
-      `Recalculating selectedDateMeals for: ${selectedDate?.toDateString()}`
-    )
+    // console.log(
+    //   `Recalculating selectedDateMeals for: ${selectedDate?.toDateString()}`
+    // )
     return mealData.filter((meal) =>
       isSameDay(new Date(meal.endAt), selectedDate)
     )
@@ -94,9 +94,9 @@ export default function HostelManagementPage() {
     if (!selectedDate || !residents || !attendanceSummary)
       return { lunch: [], dinner: [] }
 
-    console.log(
-      `Recalculating selectedDateAttendance for: ${selectedDate?.toDateString()}`
-    )
+    // console.log(
+    //   `Recalculating selectedDateAttendance for: ${selectedDate?.toDateString()}`
+    // )
     const dateKey = format(selectedDate, "yyyy-MM-dd")
     const dailyAttendance = attendanceSummary[dateKey] || {
       lunch: [],

@@ -94,7 +94,7 @@ export function useGenerateMealData() {
     },
 
     onError: async (err) => {
-      console.log(err)
+      //console.log(err)
       toast.error(
         err.message || "An unexpected error occurred. Please try again later."
       )

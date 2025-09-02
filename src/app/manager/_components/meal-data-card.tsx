@@ -14,7 +14,7 @@ import { toast } from "sonner"
 
 import type { DailyMealActivity } from "@/lib/generated/prisma"
 import kyInstance from "@/lib/ky"
-import { formatRelativeDate, isActiveTime } from "@/lib/utils"
+import { formatRelativeDate } from "@/lib/utils"
 import {
   Card,
   CardContent,
@@ -29,7 +29,7 @@ import { useGenerateMealData } from "../_lib/mutations"
 export function MealDataCard() {
   const { mutate: generateMealData, isPending: isGenerating } =
     useGenerateMealData()
-  const activeTime = isActiveTime()
+  // const activeTime = isActiveTime()
   const {
     data: mealData,
     isLoading,
@@ -63,7 +63,7 @@ export function MealDataCard() {
       <CardContent className="space-y-4">
         {!mealData && (
           <LoadingButton
-            disabled={activeTime}
+            // disabled={activeTime}
             loading={isGenerating}
             onClick={() => generateMealData()}
             className="w-full sm:w-auto"
@@ -102,33 +102,28 @@ export function MealDataCard() {
                   </h4>
                 </div>
                 <div className="flex items-center justify-around text-center">
-                  {mealData.actualNonVegServed === "EGG" && (
-                    <div className="flex flex-col items-center">
-                      <Egg className="mb-1 h-6 w-6 text-orange-500" />
-                      <p className="text-3xl font-bold text-orange-500">
-                        {mealData.totalNonvegEgg}
-                      </p>
-                      <p className="text-muted-foreground text-sm">Egg</p>
-                    </div>
-                  )}
-                  {mealData.actualNonVegServed === "FISH" && (
-                    <div className="flex flex-col items-center">
-                      <Fish className="mb-1 h-6 w-6 text-orange-500" />
-                      <p className="text-3xl font-bold text-orange-500">
-                        {mealData.totalNonvegFish}
-                      </p>
-                      <p className="text-muted-foreground text-sm">Fish</p>
-                    </div>
-                  )}
-                  {mealData.actualNonVegServed === "CHICKEN" && (
-                    <div className="flex flex-col items-center">
-                      <Drumstick className="mb-1 h-6 w-6 text-orange-500" />
-                      <p className="text-3xl font-bold text-orange-500">
-                        {mealData.totalNonvegChicken}
-                      </p>
-                      <p className="text-muted-foreground text-sm">Chicken</p>
-                    </div>
-                  )}
+                  <div className="flex flex-col items-center">
+                    <Egg className="mb-1 h-6 w-6 text-orange-500" />
+                    <p className="text-3xl font-bold text-orange-500">
+                      {mealData.totalNonvegEgg}
+                    </p>
+                    <p className="text-muted-foreground text-sm">Egg</p>
+                  </div>
+
+                  <div className="flex flex-col items-center">
+                    <Fish className="mb-1 h-6 w-6 text-orange-500" />
+                    <p className="text-3xl font-bold text-orange-500">
+                      {mealData.totalNonvegFish}
+                    </p>
+                    <p className="text-muted-foreground text-sm">Fish</p>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <Drumstick className="mb-1 h-6 w-6 text-orange-500" />
+                    <p className="text-3xl font-bold text-orange-500">
+                      {mealData.totalNonvegChicken}
+                    </p>
+                    <p className="text-muted-foreground text-sm">Chicken</p>
+                  </div>
                 </div>
               </CardContent>
             </Card>

@@ -200,7 +200,7 @@ export function getColumns(): ColumnDef<GetMealWithUser>[] {
               break
             case "view":
             default:
-              console.log(`${action} meal for meal:`, meal.id)
+            //console.log(`${action} meal for meal:`, meal.id)
           }
         }
         return (

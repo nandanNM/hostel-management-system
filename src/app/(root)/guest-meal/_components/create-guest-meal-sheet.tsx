@@ -50,8 +50,7 @@ import LoadingButton from "@/components/LoadingButton"
 
 import { useCreateGuestMeal } from "../_lib/mutations"
 
-interface createGuestMealSheetProps
-  extends React.ComponentPropsWithRef<typeof Sheet> {}
+type createGuestMealSheetProps = React.ComponentPropsWithRef<typeof Sheet>
 
 export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
   const { mutate: createGuestMeal, isPending: isCreatePending } =
