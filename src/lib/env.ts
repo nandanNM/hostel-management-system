@@ -1,5 +1,3 @@
-import { config } from "dotenv"
-import { expand } from "dotenv-expand"
 import { z, ZodError } from "zod"
 
 const envSchema = z.object({
@@ -7,8 +5,6 @@ const envSchema = z.object({
   AUTH_GOOGLE_ID: z.string().min(1),
   DATABASE_URL: z.string().min(1),
 })
-
-expand(config())
 
 try {
   envSchema.parse(process.env)
