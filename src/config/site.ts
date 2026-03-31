@@ -6,5 +6,5 @@ export const siteConfig = {
   url:
     process.env.NODE_ENV === "development"
       ? "http://localhost:3000"
-      : "https://dev.dlbhawan.in",
+      : "https://mess.pghall1.in",
 }

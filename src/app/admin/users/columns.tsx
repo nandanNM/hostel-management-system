@@ -124,7 +124,7 @@ export const userColumns: ColumnDef<UserRow>[] = [
 
       const handleAction = (action: string) => {
         // In a real app, you would call your API here
-        console.log(`${action} user:`, user.id)
+        // console.log(`${action} user:`, user.id)
       }
 
       return (
