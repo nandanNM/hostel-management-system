@@ -12,17 +12,15 @@ const MENU_ITEM_COSTS: Record<string, number> = {
 }
 
 export async function POST(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  req: NextRequest
 ) {
   try {
-    const { id: hostelId } = await params
     const body = await req.json()
     const { schedule } = body
 
-    if (!hostelId || !schedule) {
+    if (!schedule) {
       return NextResponse.json(
-        { error: "Missing hostelId or schedule" },
+        { error: "Missing schedule" },
         { status: 400 }
       )
     }
@@ -73,7 +71,6 @@ export async function POST(
           .filter(Boolean)
 
         entriesToCreate.push({
-          hostelId,
           dayOfWeek: day as DayOfWeek,
           mealTime: mealTime as MealTimeType,
           menuItems: {

@@ -37,11 +37,7 @@ export default function Page() {
 
       {/* Meal Data Generation */}
       <MealDataCard />
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Today's Recipes */}
-        {/* <RecipesList recipes={todayRecipes} /> */}
-
-        {/* Meal Messages */}
+      <div className="grid grid-cols-1 gap-6">
         <MessagesList />
       </div>
 

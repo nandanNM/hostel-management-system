@@ -95,8 +95,8 @@ export default function AppSideBar({ state, user }: AppSideBarProps) {
                     <Link
                       href={
                         item.url === "/"
-                          ? `/${state.toLocaleLowerCase()}`
-                          : `/${state.toLocaleLowerCase()}/${item.url}`
+                          ? `/${state.toLowerCase()}`
+                          : `/${state.toLowerCase()}/${item.url}`
                       }
                     >
                       <item.icon />

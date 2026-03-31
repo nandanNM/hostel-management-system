@@ -3,9 +3,6 @@
 import { useQuery } from "@tanstack/react-query"
 import {
   ChefHat,
-  Drumstick,
-  Egg,
-  Fish,
   Leaf,
   TrendingUp,
   Utensils,
@@ -94,37 +91,19 @@ export function MealDataCard() {
 
             {/* Non-Vegetarian Meals Card */}
             <Card className="py-4 shadow-lg transition-shadow duration-300 hover:shadow-xl">
-              <CardContent className="p-3">
-                <div className="mb-4 flex items-center justify-center gap-2">
+              <CardContent className="p-2 text-center">
+                <div className="mb-3 flex items-center justify-center gap-2">
                   <Utensils className="h-6 w-6 text-orange-600" />
-                  <h4 className="text-lg font-semibold text-orange-600">
+                  <h4 className="text-lg font-semibold text-orange-700">
                     Non-Vegetarian Meals
                   </h4>
                 </div>
-                <div className="flex items-center justify-around text-center">
-                  <div className="flex flex-col items-center">
-                    <Egg className="mb-1 h-6 w-6 text-orange-500" />
-                    <p className="text-3xl font-bold text-orange-500">
-                      {mealData.totalNonvegEgg}
-                    </p>
-                    <p className="text-muted-foreground text-sm">Egg</p>
-                  </div>
-
-                  <div className="flex flex-col items-center">
-                    <Fish className="mb-1 h-6 w-6 text-orange-500" />
-                    <p className="text-3xl font-bold text-orange-500">
-                      {mealData.totalNonvegFish}
-                    </p>
-                    <p className="text-muted-foreground text-sm">Fish</p>
-                  </div>
-                  <div className="flex flex-col items-center">
-                    <Drumstick className="mb-1 h-6 w-6 text-orange-500" />
-                    <p className="text-3xl font-bold text-orange-500">
-                      {mealData.totalNonvegChicken}
-                    </p>
-                    <p className="text-muted-foreground text-sm">Chicken</p>
-                  </div>
-                </div>
+                <p className="text-5xl font-extrabold text-orange-600">
+                  {mealData.totalNonvegChicken}
+                </p>
+                <p className="text-muted-foreground mt-1 text-sm">
+                  meals today
+                </p>
               </CardContent>
             </Card>
 

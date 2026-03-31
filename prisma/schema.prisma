@@ -8,37 +8,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Hostel {
-  id               String  @id @default(cuid())
-  name             String  @unique
-  address          String?
-  contactEmail     String? @unique
-  contactPhone     String?
-  isActive         Boolean @default(true)
-  subscriptionPlan String  @default("FREE_TRIAL")
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  users               User[]
-  meals               Meal[]
-  guestMeals          GuestMeal[]
-  userPayments        UserPayment[]
-  userBills           UserBill[]
-  userFines           UserFine[]          @relation("HostelFines")
-  issuedFines         UserFine[]          @relation("HostelFineIssuer")
-  audits              Audit[]
-  attendances         MealAttendance[]
-  dailyMealActivities DailyMealActivity[]
-  notifications       Notification[]      @relation("HostelNotifications")
-  activityLogs        ActivityLog[]       @relation("HostelActivity")
-  userMealEvents      UserMealEvent[]
-  Media               Media[]
-  mealScheduleEntries MealScheduleEntry[]
-
-  @@map("hostels")
-}
-
 model User {
   id             String    @id @default(cuid())
   name           String?
@@ -46,9 +15,6 @@ model User {
   emailVerified  DateTime? @map("email_verified")
   image          String?
   hashedPassword String?   @map("hashed_password")
-
-  hostelId String? @map("hostel_id")
-  hostel   Hostel? @relation(fields: [hostelId], references: [id], onDelete: SetNull)
 
   roomNo              String?        @map("room_id")
   gender              GenderType?
@@ -91,9 +57,7 @@ model User {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@unique([hostelId, email])
-  @@index([name, hostelId])
-  @@index([hostelId])
+  @@index([name])
   @@map("users")
 }
 
@@ -148,8 +112,6 @@ model Meal {
   nonVegType          NonVegType     @default(NONE)
   status              MealStatusType @default(INACTIVE)
   dislikedNonVegTypes NonVegType[]   @default([]) @map("disliked_non_veg_types")
-  hostelId            String         @map("hostel_id")
-  hostel              Hostel         @relation(fields: [hostelId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -157,16 +119,12 @@ model Meal {
   user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   attendances MealAttendance[]
 
-  @@index([hostelId])
   @@map("meals")
 }
 
 model Audit {
   id        String @id @default(cuid())
   auditorId String @map("auditor_id")
-
-  hostelId String @map("hostel_id")
-  hostel   Hostel @relation(fields: [hostelId], references: [id])
 
   date               DateTime
   riceExpenses       Float    @map("rice_expenses")
@@ -190,7 +148,6 @@ model Audit {
 
   approver User? @relation("AuditApprover", fields: [approvedBy], references: [id], onDelete: Restrict)
 
-  @@index([hostelId])
   @@map("audits")
 }
 
@@ -198,9 +155,6 @@ model UserPayment {
   id      String @id @default(cuid())
   userId  String @map("user_id")
   auditId String @map("audit_id")
-
-  hostelId String @map("hostel_id")
-  hostel   Hostel @relation(fields: [hostelId], references: [id])
 
   paidAmount Float             @map("paid_amount")
   starus     PaymentStatusType
@@ -217,16 +171,12 @@ model UserPayment {
 
   processor User? @relation("PaymentProcessor", fields: [processedBy], references: [id], onDelete: Restrict)
 
-  @@index([hostelId])
   @@map("user_payments")
 }
 
 model UserBill {
   id     String @id @default(cuid())
   userId String @map("user_id")
-
-  hostelId String @map("hostel_id")
-  hostel   Hostel @relation(fields: [hostelId], references: [id])
 
   auditId          String?       @map("audit_id")
   fineId           String?       @map("fine_id")
@@ -248,16 +198,12 @@ model UserBill {
   guestMeal GuestMeal?   @relation(fields: [guestMealId], references: [id])
   payment   UserPayment? @relation(fields: [paymentId], references: [id])
 
-  @@index([hostelId])
   @@map("user_bills")
 }
 
 model GuestMeal {
   id     String @id @default(cuid())
   userId String @map("user_id")
-
-  hostelId String @map("hostel_id")
-  hostel   Hostel @relation(fields: [hostelId], references: [id], onDelete: Cascade)
 
   name          String
   numberOfMeals Int                 @map("number_of_meals")
@@ -277,7 +223,6 @@ model GuestMeal {
 
   approver User? @relation("GuestMealApprover", fields: [approvedBy], references: [id], onDelete: Restrict)
 
-  @@index([hostelId])
   @@map("guest_meals")
 }
 
@@ -285,16 +230,10 @@ model UserFine {
   id     String @id @default(cuid())
   userId String @map("user_id")
 
-  hostelId String @map("hostel_id")
-  hostel   Hostel @relation("HostelFines", fields: [hostelId], references: [id])
-
   amount   Float
   reason   String
   status   FineStatusType @default(PENDING)
   issuedBy String         @map("issued_by")
-
-  issuedByHostelId String @map("issued_by_hostel_id")
-  issuedByHostel   Hostel @relation("HostelFineIssuer", fields: [issuedByHostelId], references: [id])
 
   dueDate   DateTime  @map("due_date")
   paidDate  DateTime? @map("paid_date")
@@ -310,16 +249,12 @@ model UserFine {
 
   waiver User? @relation("FineWaiver", fields: [waivedBy], references: [id], onDelete: Restrict)
 
-  @@index([hostelId])
-  @@index([issuedByHostelId])
   @@map("user_fines")
 }
 
 model DailyMealActivity {
   id       String       @id @default(cuid())
   mealTime MealTimeType
-  hostelId String       @map("hostel_id")
-  hostel   Hostel       @relation(fields: [hostelId], references: [id], onDelete: Cascade)
 
   totalMeal          Int         @map("total_meals")
   totalGuestMeal     Int         @map("total_guest_meals")
@@ -332,9 +267,8 @@ model DailyMealActivity {
   createdAt          DateTime    @default(now()) @map("created_at")
   updatedAt          DateTime    @updatedAt @map("updated_at")
 
-  @@unique([hostelId, mealTime, createdAt])
-  @@index([hostelId, mealTime, createdAt])
-  @@index([hostelId])
+  @@unique([mealTime, createdAt])
+  @@index([mealTime, createdAt])
   @@map("daily_meal_activities")
 }
 
@@ -344,8 +278,6 @@ model MealAttendance {
   mealTime MealTimeType @map("meal_time")
   date     DateTime
   mealId   String?      @map("meal_id")
-  hostelId String       @map("hostel_id")
-  hostel   Hostel       @relation(fields: [hostelId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -353,8 +285,7 @@ model MealAttendance {
   user User  @relation(fields: [userId], references: [id])
   meal Meal? @relation(fields: [mealId], references: [id])
 
-  @@unique([hostelId, userId, date, mealTime])
-  @@index([hostelId])
+  @@unique([userId, date, mealTime])
   @@map("meal_attendances")
 }
 
@@ -364,9 +295,6 @@ model Notification {
   message     String
   recipientId String
 
-  hostelId String @map("hostel_id")
-  hostel   Hostel @relation("HostelNotifications", fields: [hostelId], references: [id], onDelete: Cascade)
-
   user      User             @relation("Recipient", fields: [recipientId], references: [id], onDelete: Cascade)
   issuerId  String
   issuer    User             @relation("Issuer", fields: [issuerId], references: [id], onDelete: Cascade)
@@ -374,16 +302,12 @@ model Notification {
   read      Boolean          @default(false)
   createdAt DateTime         @default(now()) @map("created_at")
 
-  @@index([hostelId])
   @@map("notifications")
 }
 
 model ActivityLog {
   id     String @id @default(cuid())
   userId String @map("user_id")
-
-  hostelId String @map("hostel_id")
-  hostel   Hostel @relation("HostelActivity", fields: [hostelId], references: [id], onDelete: Cascade)
 
   actionType String   @map("action_type")
   entityType String?  @map("entity_type")
@@ -397,24 +321,21 @@ model ActivityLog {
 
   user User @relation("UserActivity", fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([hostelId, userId])
+  @@index([userId])
   @@map("activity_logs")
 }
 
 model Media {
-  id     String    @id @default(cuid())
-  postId String?
-  entry  EntryType
-  url    String
+  id      String    @id @default(cuid())
+  auditId String?
+  entry   EntryType
+  url     String
 
-  hostelId String @map("hostel_id")
-  hostel   Hostel @relation(fields: [hostelId], references: [id], onDelete: Cascade)
-
-  post Audit? @relation(fields: [postId], references: [id], onDelete: SetNull)
+  post Audit? @relation(fields: [auditId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
 
-  @@map("posr_media")
+  @@map("audit_media")
 }
 
 model MenuItem {
@@ -430,8 +351,6 @@ model MenuItem {
 
 model MealScheduleEntry {
   id        String       @id @default(cuid())
-  hostelId  String
-  hostel    Hostel       @relation(fields: [hostelId], references: [id], onDelete: Cascade)
   dayOfWeek DayOfWeek
   mealTime  MealTimeType
 
@@ -440,7 +359,7 @@ model MealScheduleEntry {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([hostelId, dayOfWeek, mealTime])
+  @@unique([dayOfWeek, mealTime])
   @@map("meal_schedule_entries")
 }
 
@@ -463,9 +382,6 @@ model UserMealEvent {
   id     String @id @default(cuid())
   userId String @map("user_id")
 
-  hostelId String @map("hostel_id")
-  hostel   Hostel @relation(fields: [hostelId], references: [id], onDelete: Cascade)
-
   mealTime  MealTimeType
   date      DateTime
   type      MealEventType?
@@ -475,8 +391,7 @@ model UserMealEvent {
 
   user User @relation(fields: [userId], references: [id])
 
-  @@index([hostelId, userId, date, mealTime])
-  @@index([hostelId])
+  @@index([userId, date, mealTime])
   @@map("user_meal_events")
 }
 

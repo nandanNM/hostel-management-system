@@ -58,7 +58,6 @@ export default function OnboardingMealForm() {
   const gender = useOnboardingStore((state) => state.gender)
   const religion = useOnboardingStore((state) => state.religion)
   const address = useOnboardingStore((state) => state.address)
-  const hostelId = useOnboardingStore((state) => state.hostelId)
   const education = useOnboardingStore((state) => state.education)
 
   type CreateMealFormValues = z.infer<typeof mealSchema>
@@ -84,7 +83,6 @@ export default function OnboardingMealForm() {
         dob &&
         selfPhNo &&
         address &&
-        hostelId &&
         education
       ) {
         const { data: result, error } = await tryCatch(
@@ -96,7 +94,6 @@ export default function OnboardingMealForm() {
             selfPhNo,
             guardianPhNo,
             address,
-            hostelId,
             education,
             mealPreference: values,
           })
@@ -122,11 +119,15 @@ export default function OnboardingMealForm() {
   const isVeg = mealType === "VEG"
 
   useEffect(() => {
-    if (!useOnboardingStore.persist.hasHydrated) return
-    if (!hostelId) {
-      router.push("/onboarding/identity")
+    if (isVeg) {
+      form.setValue("nonVegType", "NONE")
+      form.setValue("dislikedNonVegTypes", [])
     }
-  }, [name, selfPhNo, dob, address, hostelId, education, router])
+  }, [isVeg, form])
+
+  useEffect(() => {
+    if (!useOnboardingStore.persist.hasHydrated) return
+  }, [name, selfPhNo, dob, address, education, router])
   return (
     <Form {...form}>
       <form
@@ -166,11 +167,12 @@ export default function OnboardingMealForm() {
             control={form.control}
             name="nonVegType"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className={cn(isVeg && "opacity-50 transition-opacity")}>
                 <FormLabel>Non-Veg Type</FormLabel>
                 <Select
                   onValueChange={field.onChange}
-                  defaultValue={field.value ?? "none"}
+                  value={field.value ?? "NONE"}
+                  disabled={isVeg}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -194,7 +196,7 @@ export default function OnboardingMealForm() {
           control={form.control}
           name="dislikedNonVegTypes"
           render={() => (
-            <FormItem>
+            <FormItem className={cn(isVeg && "opacity-50 transition-opacity")}>
               <FormLabel>Disliked Non-Veg Types</FormLabel>
               <FormControl>
                 <Controller

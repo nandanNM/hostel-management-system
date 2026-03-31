@@ -114,7 +114,7 @@ export function GuestRequestsList() {
   const currentRequests = pendingRequests || []
   const isAnyMutationPending = updateMutation.isPending
   return (
-    <Card className="w-full max-w-md">
+    <Card className="w-full">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Users className="h-5 w-5 text-blue-600" /> Pending Guest Meal

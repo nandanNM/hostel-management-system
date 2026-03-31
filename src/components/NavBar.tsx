@@ -9,6 +9,7 @@ import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 
 import { ThemeSwitcher } from "./ThemeSwitcher"
 import UserButton from "./UserButton"
+import { Badge } from "./ui/badge"
 
 export default function NavBar() {
   const navItems = NavItems()
@@ -26,7 +27,8 @@ export default function NavBar() {
             navItems={navItems}
           />
           <Link href="/" className="font-bold">
-            HMS-PG1 v1
+            HMS-PG1 
+            <Badge className="ml-2 rounded-full" variant="destructive">Beta</Badge>
           </Link>
         </div>
         <div className="flex items-center justify-center gap-2">

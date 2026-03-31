@@ -58,7 +58,6 @@ export const mealSchema = z.object({
 // Complete onboarding form
 export const onboardingBaseSchema = z.object({
   ...userSchema.shape,
-  hostelId: z.string().min(1, "Hostel ID required"),
   education: educationSchema,
   mealPreference: mealSchema,
 })

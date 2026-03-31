@@ -73,7 +73,7 @@ export function MessagesList() {
   const currentMessages = messages || []
 
   return (
-    <Card className="w-full max-w-md">
+      <Card className="w-full">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <MessageSquare className="h-5 w-5" /> Meal Messages

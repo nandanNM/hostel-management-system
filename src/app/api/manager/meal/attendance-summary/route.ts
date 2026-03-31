@@ -8,7 +8,7 @@ import prisma from "@/lib/prisma"
 export async function GET(req: NextRequest) {
   try {
     const session = await getSession()
-    if (!session?.user?.id || !session.user.hostelId) {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
@@ -37,7 +37,6 @@ export async function GET(req: NextRequest) {
 
     const attendance = await prisma.mealAttendance.findMany({
       where: {
-        hostelId: session.user.hostelId,
         date: {
           gte: fromDate,
           lte: toDate,

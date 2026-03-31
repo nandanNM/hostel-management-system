@@ -51,7 +51,7 @@ export async function toggleMealStatus(
 
 export async function getUserDeshboardStats() {
   const session = await requireUser()
-  if (!session?.user.id || !session?.user.hostelId) {
+  if (!session?.user.id) {
     return {
       status: "error",
       message: "Unauthorized",
@@ -69,7 +69,6 @@ export async function getUserDeshboardStats() {
       prisma.userBill.findFirst({
         where: {
           userId: session.user.id,
-          hostelId: session.user.hostelId, // Add hostel filter
         },
         orderBy: { createdAt: "desc" },
         select: { balanceRemaining: true },
@@ -80,7 +79,6 @@ export async function getUserDeshboardStats() {
         },
         where: {
           userId: session.user.id,
-          hostelId: session.user.hostelId, // Add hostel filter},
         },
       }),
       prisma.mealAttendance.count({
@@ -93,8 +91,13 @@ export async function getUserDeshboardStats() {
         },
       }),
     ])
+  console.log(
+    balanceRemainingDue,
+    totalPaymentsResult,
+    totalMealAttendanceCount
+  )
   const totalBalanceRemaining = balanceRemainingDue?.balanceRemaining ?? 0
-  const totalPayments = totalPaymentsResult._sum.paidAmount ?? 0
+  const totalPayments = totalPaymentsResult?._sum?.paidAmount ?? 0
   const totalAttendance = totalMealAttendanceCount ?? 0
 
   return {
@@ -108,7 +111,7 @@ export async function sendMealMessage(
   values: MealMessage
 ): Promise<ApiResponse> {
   const session = await requireUser()
-  if (!session?.user.id || !session?.user.hostelId) {
+  if (!session?.user.id) {
     return {
       status: "error",
       message: "Unauthorized",
@@ -124,7 +127,6 @@ export async function sendMealMessage(
     await prisma.userMealEvent.create({
       data: {
         userId: session.user.id,
-        hostelId: session.user.hostelId,
         ...values,
       },
     })
