@@ -1,5 +1,5 @@
-import OnboardingHostelForm from "../_components/onboarding-hostel-form"
+import { redirect } from "next/navigation"
 
 export default function HostelForm() {
-  return <OnboardingHostelForm />
+  redirect("/onboarding/meal")
 }

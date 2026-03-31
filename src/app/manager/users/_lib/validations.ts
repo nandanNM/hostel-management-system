@@ -18,7 +18,7 @@ export const getMealsSchema = searchParamsSchema
 export type GetMealsSchema = z.infer<typeof getMealsSchema>
 
 export const createUserFineSchema = z.object({
-  targetUserId: z.string(),
+  targetUserId: z.string().min(1, "User ID is required"),
   fineAmount: z.string().min(1, "Amount must be greater than 0"),
   fineReason: z.string().min(3, "Reason must be at least 3 characters"),
   fineDueDate: z.coerce.date().refine((date) => date > new Date(), {

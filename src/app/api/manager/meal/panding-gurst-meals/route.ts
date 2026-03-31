@@ -10,11 +10,7 @@ export async function GET() {
     const session = await getSession()
     if (!session?.user.id)
       return Response.json({ error: "Unauthorized" }, { status: 401 })
-    if (!session?.user.hostelId)
-      return Response.json(
-        { error: "Unauthorized - Hostel ID not found " },
-        { status: 401 }
-      )
+
     if (session.user.role !== UserRoleType.MANAGER)
       return Response.json(
         { error: "Unauthorized - You are not a manager" },
@@ -27,7 +23,6 @@ export async function GET() {
       where: {
         status: "PENDING",
         mealTime: mealTime,
-        hostelId: session.user.hostelId,
         date: {
           gte: todayStart,
           lte: todayEnd,

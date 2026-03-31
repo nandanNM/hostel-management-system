@@ -9,18 +9,13 @@ export async function GET() {
     const session = await getSession()
     if (!session?.user.id)
       return Response.json({ error: "Unauthorized" }, { status: 401 })
-    if (!session?.user.hostelId)
-      return Response.json(
-        { error: "Unauthorized - Hostel ID not found " },
-        { status: 401 }
-      )
+
     const mealTime = getCurrentMealSlot()
     const todayStart = startOfDay(new Date())
     const todayEnd = endOfDay(new Date())
     const data = await prisma.userMealEvent.findMany({
       where: {
         mealTime: mealTime,
-        hostelId: session.user.hostelId,
         date: {
           gte: todayStart,
           lte: todayEnd,

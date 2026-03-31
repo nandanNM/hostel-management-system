@@ -59,10 +59,14 @@ export function CreateFineSheet({
       fineDueDate: new Date(),
     },
   })
-
   function onSubmit(input: CreateUserFineSchema) {
     startTransition(async () => {
-      const { data, error } = await tryCatch(issueFineToUser(input))
+      const { data, error } = await tryCatch(
+        issueFineToUser({
+          ...input,
+          targetUserId,
+        })
+      )
 
       if (error) {
         toast.error("Failed to issue fine.")

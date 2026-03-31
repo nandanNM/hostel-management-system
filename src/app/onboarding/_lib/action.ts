@@ -39,7 +39,6 @@ export const createUserOnboarding = async (
       await prisma.meal.create({
         data: {
           ...values.mealPreference,
-          hostelId: values.hostelId,
           userId: session.user.id,
         },
       }),

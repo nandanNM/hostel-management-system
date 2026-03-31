@@ -1,6 +1,7 @@
 import Link from "next/link"
-import { ShieldX } from "lucide-react"
+import { MessageCircle, ShieldX } from "lucide-react"
 
+import { ADMIN_WHATSAPP_NUMBER } from "@/constants"
 import { buttonVariants } from "@/components/ui/button"
 import {
   Card,
@@ -25,54 +26,70 @@ export default async function StatusPage({
     route = "unknown"
   }
 
-  const hideBackButtonRoutes = ["suspended", "inactive"]
-  const shouldShowBackButton = !hideBackButtonRoutes.includes(route)
   const routeMessages: Record<string, { title: string; description: string }> =
     {
       suspended: {
         title: "Account Suspended",
         description:
-          "Your account is suspended. Please contact admin for help.",
+          "Your mess account has been suspended by the management. Please contact the administrator for any queries or to resume services.",
       },
       inactive: {
-        title: "Access Restricted",
+        title: "Registration Pending",
         description:
-          "Hey! You're not a boarder, which means you cannot perform this action.",
+          "Thank you for completing your onboarding! Your account is currently inactive as it awaits administrator approval. This usually takes 24 hours.",
       },
       banned: {
-        title: "Access Denied",
+        title: "Access Restricted",
         description:
-          "You've been banned from accessing this section. Contact support if this is a mistake.",
+          "Your access to the hostel management system has been restricted. Please contact support if you believe this is a mistake.",
       },
     }
+    
   const message = routeMessages[route] ?? {
-    title: "Unknown Status",
-    description: "We couldn't determine your access level.",
+    title: "Access Restricted",
+    description: "We couldn't determine your current access level. Please contact the hostel administrator for verification.",
   }
+
+  const whatsappUrl = `https://wa.me/${ADMIN_WHATSAPP_NUMBER}?text=${encodeURIComponent(
+    `Hello Admin, I am a boarder and I have a query regarding my account status (${route}).`
+  )}`
+
   return (
-    <div className="flex min-h-screen items-center justify-center">
-      <Card className="w-full max-w-md">
+    <div className="flex min-h-screen items-center justify-center p-4">
+      <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="text-center">
-          <div className="bg-destructive/10 mx-auto rounded-full p-4">
-            <ShieldX className="text-destructive size-16" />
+          <div className="bg-destructive/10 mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full">
+            <ShieldX className="text-destructive h-10 w-10" />
           </div>
-          <CardTitle className="text-2xl">{message.title}</CardTitle>
-          <CardDescription className="mx-auto max-w-xs">
+          <CardTitle className="text-2xl font-bold tracking-tight">{message.title}</CardTitle>
+          <CardDescription className="mx-auto mt-2 max-w-xs text-base">
             {message.description}
           </CardDescription>
         </CardHeader>
-        {shouldShowBackButton && (
-          <CardContent>
-            <Link
-              href="/"
-              className={buttonVariants({
-                className: "w-full",
-              })}
-            >
-              Back to home
-            </Link>
-          </CardContent>
-        )}
+        <CardContent className="flex flex-col gap-3">
+          <a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={buttonVariants({
+              variant: "lift",
+              className: "w-full gap-2",
+            })}
+          >
+            <MessageCircle className="h-5 w-5" />
+            Message the Admin
+          </a>
+          
+          <Link
+            href="/"
+            className={buttonVariants({
+              variant: "outline",
+              className: "w-full",
+            })}
+          >
+            Back to Home
+          </Link>
+        </CardContent>
       </Card>
     </div>
   )

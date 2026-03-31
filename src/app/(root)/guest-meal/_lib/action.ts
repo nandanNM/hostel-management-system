@@ -48,7 +48,7 @@ export async function createGuestMeal(values: GuestMeal): Promise<ApiResponse> {
   }
   try {
     const session = await requireUser()
-    if (!session?.user.id || !session?.user.hostelId) {
+    if (!session?.user.id) {
       return {
         status: "error",
         message: "Unauthorized",
@@ -79,7 +79,6 @@ export async function createGuestMeal(values: GuestMeal): Promise<ApiResponse> {
         ...values,
         nonVegType: values.nonVegType ?? "NONE",
         userId: session.user.id,
-        hostelId: session.user.hostelId,
         mealCharge: (charge?.costPerUnit ?? 50) * values.numberOfMeals,
       },
     })
@@ -87,7 +86,6 @@ export async function createGuestMeal(values: GuestMeal): Promise<ApiResponse> {
       .create({
         data: {
           userId: session.user.id,
-          hostelId: session.user.hostelId,
           actionType: "CREATE",
           entityType: "GUEST_MEAL",
           entityId: meal.id,

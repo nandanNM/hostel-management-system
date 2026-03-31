@@ -23,10 +23,10 @@ export async function updateGuestMealStatus({
 }): Promise<ApiResponse> {
   const session = await requireManager()
 
-  if (!session?.user.hostelId) {
+  if (!session) {
     return {
       status: "error",
-      message: "Unauthorized - Hostel ID not found",
+      message: "Unauthorized",
     }
   }
 
@@ -34,7 +34,6 @@ export async function updateGuestMealStatus({
     await prisma.guestMeal.update({
       where: {
         id: requestId,
-        hostelId: session.user.hostelId,
       },
       data: {
         status: status,
@@ -47,7 +46,6 @@ export async function updateGuestMealStatus({
       const lastBill = await prisma.userBill.findFirst({
         where: {
           userId: requestedUserId,
-          hostelId: session.user.hostelId,
         },
         orderBy: { createdAt: "desc" },
       })
@@ -65,7 +63,6 @@ export async function updateGuestMealStatus({
             issueDate: new Date(),
             guestMeal: { connect: { id: requestId } },
             user: { connect: { id: requestedUserId } },
-            hostel: { connect: { id: session.user.hostelId as string } },
           },
         })
       })
@@ -80,7 +77,6 @@ export async function updateGuestMealStatus({
               : `The guest will not be served during the selected meal time due to the request being ${status.toLowerCase()}.`
           }`,
           type: NotificationType.MEAL,
-          hostel: { connect: { id: session.user.hostelId } },
           user: { connect: { id: requestedUserId } },
           issuer: { connect: { id: session.user.id } },
         },

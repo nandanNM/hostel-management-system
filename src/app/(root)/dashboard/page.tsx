@@ -1,7 +1,7 @@
 import { Suspense } from "react"
 import { Metadata } from "next"
 import { notFound } from "next/navigation"
-import { Loader2, TriangleAlert } from "lucide-react"
+import { InfoIcon, Loader2, TriangleAlert } from "lucide-react"
 
 import { requireUser } from "@/lib/require-user"
 import { Separator } from "@/components/ui/separator"
@@ -22,6 +22,15 @@ export default async function Page() {
   return (
     <div className="w-full md:mx-8 lg:mx-auto">
       <h2 className="text-foreground mb-4 font-bold">User Dashboard</h2>
+      {user.role === "ADMIN" && (
+        <div className="mb-4 rounded-md border border-blue-500/50 bg-blue-50 px-4 py-3 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400">
+          <p className="flex items-center text-sm font-medium">
+            <InfoIcon className="mr-3 size-5" />
+            Admin Dashboard is currently under maintenance. Please wait for full
+            implementation.
+          </p>
+        </div>
+      )}
       <div className="rounded-md border px-4 py-3">
         <p className="text-sm">
           <TriangleAlert

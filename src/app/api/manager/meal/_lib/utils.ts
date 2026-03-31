@@ -48,7 +48,6 @@ export const calculateActualNonVegMeal = (
 }
 
 export interface MealAttendanceToCreate {
-  hostelId: string
   userId: string
   mealId: string
   mealTime: MealTimeType
