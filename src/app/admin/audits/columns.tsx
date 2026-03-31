@@ -158,7 +158,7 @@ export const auditColumns: ColumnDef<AuditRecord>[] = [
 
       const handleAction = (action: string) => {
         // In a real app, you would call your API here
-        console.log(`${action} audit:`, audit.id)
+        // console.log(`${action} audit:`, audit.id)
       }
 
       return (

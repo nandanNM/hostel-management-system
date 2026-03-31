@@ -18,7 +18,7 @@ interface Props {
 
 const AuthForm = ({ action }: Props) => {
   return (
-    <Card className="w-96 drop-shadow-2xl">
+    <Card className="w-full max-w-sm drop-shadow-2xl shadow-none md:shadow-2xl">
       <CardHeader>
         <CardTitle
           className={paragraphVariants({ size: "large", weight: "bold" })}

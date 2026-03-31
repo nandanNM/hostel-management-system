@@ -91,11 +91,11 @@ export async function getUserDeshboardStats() {
         },
       }),
     ])
-  console.log(
-    balanceRemainingDue,
-    totalPaymentsResult,
-    totalMealAttendanceCount
-  )
+  // console.log(
+  //   balanceRemainingDue,
+  //   totalPaymentsResult,
+  //   totalMealAttendanceCount
+  // )
   const totalBalanceRemaining = balanceRemainingDue?.balanceRemaining ?? 0
   const totalPayments = totalPaymentsResult?._sum?.paidAmount ?? 0
   const totalAttendance = totalMealAttendanceCount ?? 0

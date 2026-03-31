@@ -19,6 +19,26 @@ export default async function Home() {
           <span className="font-bold">+91 8509736585</span>.
         </p>
       </div>
+
+      <div className="mt-8 flex flex-col items-center justify-center gap-2 text-center">
+        <p className="text-muted-foreground text-sm font-medium">
+          🚀 Built with 💖 by{" "}
+          <a
+            href="https://codernandan.in"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-foreground hover:underline"
+          >
+            codernandan
+          </a>
+        </p>
+        <p className="text-muted-foreground text-xs">
+          🛠️ Maintained by{" "}
+          <span className="text-foreground font-semibold">
+            Suvadip Mahato
+          </span>
+        </p>
+      </div>
     </div>
   )
 }
