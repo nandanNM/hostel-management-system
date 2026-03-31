@@ -3,9 +3,6 @@
 import { useQuery } from "@tanstack/react-query"
 import {
   ChefHat,
-  Drumstick,
-  Egg,
-  Fish,
   Leaf,
   TrendingUp,
   Utensils,

@@ -12,8 +12,7 @@ const MENU_ITEM_COSTS: Record<string, number> = {
 }
 
 export async function POST(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  req: NextRequest
 ) {
   try {
     const body = await req.json()
