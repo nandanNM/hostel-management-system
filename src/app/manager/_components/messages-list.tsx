@@ -3,9 +3,9 @@
 import { useQuery } from "@tanstack/react-query"
 import { Loader2, MessageSquare } from "lucide-react"
 
-import type { GetUserMealEventWithUser } from "@/types/prisma.type"
+import { GetUserMealEventWithUser } from "@/types/prisma.type"
 import kyInstance from "@/lib/ky"
-import { formatRelativeDate } from "@/lib/utils"
+import { cn, formatRelativeDate } from "@/lib/utils"
 import {
   Card,
   CardContent,
@@ -96,6 +96,20 @@ export function MessagesList() {
                         <p className="text-foreground text-sm font-medium">
                           {message.user.name}
                         </p>
+                        {message.user.meals?.[0]?.type && (
+                          <span
+                            className={cn(
+                              "rounded-full px-1.5 py-0.5 text-[10px] font-bold",
+                              message.user.meals[0].type === "VEG"
+                                ? "bg-green-100 text-green-700"
+                                : "bg-orange-100 text-orange-700"
+                            )}
+                          >
+                            {message.user.meals[0].type === "VEG"
+                              ? "Veg"
+                              : `Non-Veg${message.user.meals[0].nonVegType !== "NONE" ? ` (${message.user.meals[0].nonVegType.toLowerCase()})` : ""}`}
+                          </span>
+                        )}
                         <span className="text-muted-foreground text-xs">
                           {formatRelativeDate(message.createdAt)}
                         </span>

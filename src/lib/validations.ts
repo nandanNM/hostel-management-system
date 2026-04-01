@@ -102,6 +102,17 @@ export const banUserSchema = z.object({
   bannedBy: z.string().min(1, "Banned by required"),
 })
 
+export const settingsSchema = z.object({
+  selfPhNo: z
+    .string()
+    .length(10, "Phone must be 10 digits")
+    .regex(/^\d+$/, "Phone must be numbers only"),
+  dob: z.date({
+    required_error: "Date of birth is required",
+  }),
+  address: z.string().min(1, "Address is required"),
+})
+
 export const changeRoleSchema = z.object({
   id: z.string().uuid(),
   role: z.enum(["guest", "user", "manager", "staff", "admin", "superadmin"]),
@@ -112,3 +123,4 @@ export type User = z.infer<typeof onboardingSchema>
 export type GuestMeal = z.infer<typeof guestMealSchema>
 export type BanUser = z.infer<typeof banUserSchema>
 export type ChangeRole = z.infer<typeof changeRoleSchema>
+export type Settings = z.infer<typeof settingsSchema>

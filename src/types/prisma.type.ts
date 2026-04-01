@@ -12,6 +12,12 @@ export type GetUserMealEventWithUser = Prisma.UserMealEventGetPayload<{
       select: {
         name: true
         email: true
+        meals: {
+          select: {
+            type: true
+            nonVegType: true
+          }
+        }
       }
     }
   }
