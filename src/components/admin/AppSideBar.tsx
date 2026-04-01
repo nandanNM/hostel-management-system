@@ -194,9 +194,11 @@ export default function AppSideBar({ state, user }: AppSideBarProps) {
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem>
-                  <Settings2 className="mr-2 h-[1.2rem] w-[1.2rem]" />
-                  Settings
+                <DropdownMenuItem asChild>
+                  <Link href="/manager/settings" className="flex w-full items-center">
+                    <Settings2 className="mr-2 h-[1.2rem] w-[1.2rem]" />
+                    Settings
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem variant="destructive">

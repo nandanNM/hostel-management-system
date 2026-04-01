@@ -54,7 +54,7 @@ export async function createGuestMeal(values: GuestMeal): Promise<ApiResponse> {
         message: "Unauthorized",
       }
     }
-    const name =
+    const searchName =
       values.type === "VEG"
         ? "Veg"
         : values.nonVegType
@@ -62,24 +62,33 @@ export async function createGuestMeal(values: GuestMeal): Promise<ApiResponse> {
             values.nonVegType.slice(1).toLowerCase()
           : ""
 
-    const charge = await prisma.menuItem.findFirst({
+    // Try to find exact match first, then fallback to contains
+    let MenuItemData = await prisma.menuItem.findFirst({
       where: {
         name: {
-          contains: name,
+          equals: searchName,
           mode: "insensitive",
         },
       },
-      select: {
-        costPerUnit: true,
-      },
     })
+
+    if (!MenuItemData) {
+      MenuItemData = await prisma.menuItem.findFirst({
+        where: {
+          name: {
+            contains: searchName,
+            mode: "insensitive",
+          },
+        },
+      })
+    }
 
     const meal = await prisma.guestMeal.create({
       data: {
         ...values,
         nonVegType: values.nonVegType ?? "NONE",
         userId: session.user.id,
-        mealCharge: (charge?.costPerUnit ?? 50) * values.numberOfMeals,
+        mealCharge: (MenuItemData?.costPerUnit ?? 60) * values.numberOfMeals,
       },
     })
     prisma.activityLog

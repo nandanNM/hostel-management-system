@@ -19,6 +19,17 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import LoadingButton from "@/components/LoadingButton"
 
 import { useGenerateMealData } from "../_lib/mutations"
@@ -59,14 +70,34 @@ export function MealDataCard() {
       </CardHeader>
       <CardContent className="space-y-4">
         {!mealData && (
-          <LoadingButton
-            // disabled={activeTime}
-            loading={isGenerating}
-            onClick={() => generateMealData()}
-            className="w-full sm:w-auto"
-          >
-            {"Generate Today's Meal Data"}
-          </LoadingButton>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <LoadingButton
+                // disabled={activeTime}
+                loading={isGenerating}
+                className="w-full sm:w-auto"
+              >
+                {"Generate Meal Count"}
+              </LoadingButton>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. Generating today&apos;s meal
+                  record will finalize the counts for the current meal slot.
+                  Please ensure all guest requests and meal messages have been
+                  reviewed.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={() => generateMealData()}>
+                  Continue
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         )}
 
         {mealData && (
