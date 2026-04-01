@@ -1,8 +1,8 @@
 import { endOfDay, startOfDay } from "date-fns"
+import { toZonedTime } from "date-fns-tz"
 
 import getSession from "@/lib/get-session"
 import prisma from "@/lib/prisma"
-import { getCurrentMealSlot } from "@/lib/utils"
 
 export async function GET() {
   try {
@@ -10,19 +10,26 @@ export async function GET() {
     if (!session?.user.id)
       return Response.json({ error: "Unauthorized" }, { status: 401 })
 
-    const mealTime = getCurrentMealSlot()
-    const todayStart = startOfDay(new Date())
-    const todayEnd = endOfDay(new Date())
+    const timeZone = "Asia/Kolkata"
+    const now = toZonedTime(new Date(), timeZone)
+    const todayStart = startOfDay(now)
+    const todayEnd = endOfDay(now)
+
     const data = await prisma.userMealEvent.findMany({
       where: {
-        mealTime: mealTime,
         date: {
           gte: todayStart,
           lte: todayEnd,
         },
       },
       include: {
-        user: { select: { name: true, email: true } },
+        user: {
+          select: {
+            name: true,
+            email: true,
+            meals: { select: { type: true, nonVegType: true } },
+          },
+        },
       },
       orderBy: { createdAt: "asc" },
     })

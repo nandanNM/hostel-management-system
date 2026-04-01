@@ -108,7 +108,12 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
                     <FormItem>
                       <FormLabel>Meal Type</FormLabel>
                       <Select
-                        onValueChange={field.onChange}
+                        onValueChange={(val: "VEG" | "NON_VEG") => {
+                          field.onChange(val)
+                          if (val === "VEG") {
+                            form.setValue("nonVegType", "NONE")
+                          }
+                        }}
                         defaultValue={field.value}
                       >
                         <FormControl>
@@ -119,7 +124,7 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
                         <SelectContent>
                           {MEAL_TYPE_OPTIONS.map((type) => (
                             <SelectItem key={type} value={type}>
-                              {type}
+                              {type === "NON_VEG" ? "Non-Veg" : "Veg"}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -128,33 +133,37 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="nonVegType"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Non-Veg Type</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select non-veg type" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {NON_VEG_OPTIONS.map((type) => (
-                            <SelectItem key={type} value={type}>
-                              {type}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {form.watch("type") === "NON_VEG" && (
+                  <FormField
+                    control={form.control}
+                    name="nonVegType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Non-Veg Type</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select non-veg type" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {NON_VEG_OPTIONS.filter(
+                              (type) => type !== "NONE"
+                            ).map((type) => (
+                              <SelectItem key={type} value={type}>
+                                {type.charAt(0) + type.slice(1).toLowerCase()}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
                 <FormField
                   control={form.control}
                   name="date"
@@ -220,7 +229,7 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
                         <SelectContent>
                           {MEAL_TIME_OPTIONS.map((time) => (
                             <SelectItem key={time} value={time}>
-                              {time}
+                              {time.charAt(0) + time.slice(1).toLowerCase()}
                             </SelectItem>
                           ))}
                         </SelectContent>

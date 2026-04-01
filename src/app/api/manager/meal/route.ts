@@ -25,8 +25,10 @@ export async function GET() {
         { status: 401 }
       )
 
-    const todayStart = startOfDay(new Date())
-    const mealTime = getCurrentMealSlot()
+    const timeZone = "Asia/Kolkata"
+    const now = toZonedTime(new Date(), timeZone)
+    const todayStart = startOfDay(now)
+    const mealTime = getCurrentMealSlot(now)
 
     const data = await prisma.dailyMealActivity.findFirst({
       where: {
@@ -60,7 +62,7 @@ export async function POST() {
 
     const now = new Date()
     const zonedDate = toZonedTime(now, timeZone)
-    const mealTime = getCurrentMealSlot()
+    const mealTime = getCurrentMealSlot(zonedDate)
     const todayStart = startOfDay(zonedDate)
     const todayEnd = endOfDay(zonedDate)
 

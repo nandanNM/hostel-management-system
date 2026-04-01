@@ -49,7 +49,7 @@ export function GuestRequestsList() {
     queryKey: ["guest-meals", "manager", "pending"],
     queryFn: () =>
       kyInstance
-        .get("/api/manager/meal/panding-gurst-meals")
+        .get("/api/manager/meal/pending-guest-meals")
         .json<GuestMeal[]>(),
     refetchOnWindowFocus: false,
   })
@@ -142,6 +142,12 @@ export function GuestRequestsList() {
                           ? "Vegetarian"
                           : "Non-Vegetarian"}
                       </Badge>
+                      {request.type === "NON_VEG" &&
+                        request.nonVegType !== "NONE" && (
+                          <Badge variant="outline" className="capitalize">
+                            {request.nonVegType.toLowerCase()}
+                          </Badge>
+                        )}
                     </div>
                     <div className="text-muted-foreground flex items-center gap-1 text-sm">
                       {getMealTypeIcon(request.type)}

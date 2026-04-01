@@ -1,9 +1,9 @@
 import { endOfDay, startOfDay } from "date-fns"
+import { toZonedTime } from "date-fns-tz"
 
 import { UserRoleType } from "@/lib/generated/prisma"
 import getSession from "@/lib/get-session"
 import prisma from "@/lib/prisma"
-import { getCurrentMealSlot } from "@/lib/utils"
 
 export async function GET() {
   try {
@@ -16,13 +16,14 @@ export async function GET() {
         { error: "Unauthorized - You are not a manager" },
         { status: 401 }
       )
-    const mealTime = getCurrentMealSlot()
-    const todayStart = startOfDay(new Date()).toISOString()
-    const todayEnd = endOfDay(new Date()).toISOString()
+    const timeZone = "Asia/Kolkata"
+    const now = toZonedTime(new Date(), timeZone)
+    const todayStart = startOfDay(now)
+    const todayEnd = endOfDay(now)
+
     const data = await prisma.guestMeal.findMany({
       where: {
         status: "PENDING",
-        mealTime: mealTime,
         date: {
           gte: todayStart,
           lte: todayEnd,
