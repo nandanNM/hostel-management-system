@@ -1,5 +1,8 @@
 "use client"
 
+import { Bell } from "lucide-react"
+import Link from "next/link"
+
 import { ThemeSwitcher } from "../ThemeSwitcher"
 import { SidebarTrigger } from "../ui/sidebar"
 
@@ -9,6 +12,9 @@ const Navbar = () => {
       {/* LEFT */}
       <SidebarTrigger />
       <div className="flex items-center gap-4">
+        <Link href="/manager/notifications" className="text-muted-foreground hover:text-foreground transition-colors mr-2">
+          <Bell size={20} />
+        </Link>
         <ThemeSwitcher />
       </div>
     </nav>
