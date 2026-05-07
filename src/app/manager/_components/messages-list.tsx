@@ -111,7 +111,7 @@ export function MessagesList() {
                           </span>
                         )}
                         <span className="text-muted-foreground text-xs">
-                          {formatRelativeDate(message.createdAt)}
+                          {formatRelativeDate(new Date(message.createdAt))}
                         </span>
                         <span className="text-muted-foreground text-xs">
                           {" "}
