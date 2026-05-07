@@ -2,6 +2,7 @@ import Link from "next/link"
 import {
   Calendar,
   ChevronUp,
+  ClipboardList,
   FileCheck,
   Home,
   LogOut,
@@ -108,6 +109,23 @@ export default function AppSideBar({ state, user }: AppSideBarProps) {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+        {state === "MANAGER" && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Reports</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <Link href="/manager/logs">
+                      <ClipboardList />
+                      <span>Logs</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
         {state === "ADMIN" && (
           <>
             {/* users */}
