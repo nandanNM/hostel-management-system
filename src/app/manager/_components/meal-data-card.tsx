@@ -64,7 +64,7 @@ export function MealDataCard() {
         </CardTitle>
         <CardDescription>
           {mealData
-            ? `View today's meal statistics and requirements generated at ${formatRelativeDate(mealData.createdAt)}`
+            ? `View today's meal statistics and requirements generated at ${formatRelativeDate(new Date(mealData.createdAt))}`
             : " Generate and view today's meal statistics and requirements"}
         </CardDescription>
       </CardHeader>
