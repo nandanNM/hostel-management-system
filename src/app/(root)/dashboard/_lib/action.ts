@@ -26,14 +26,21 @@ export async function toggleMealStatus(
     }
   }
   try {
-    await prisma.meal.update({
-      where: {
-        userId: session.user.id,
-      },
-      data: {
-        status,
-      },
-    })
+    await prisma.$transaction([
+      prisma.meal.update({
+        where: { userId: session.user.id },
+        data: { status },
+      }),
+      prisma.activityLog.create({
+        data: {
+          userId: session.user.id,
+          actionType: "MEAL_STATUS_CHANGE",
+          entityType: "MEAL",
+          newData: { status },
+          details: `Meal turned ${status === "ACTIVE" ? "ON" : "OFF"}`,
+        },
+      }),
+    ])
     return {
       status: "success",
       message: "Meal status updated successfully",
