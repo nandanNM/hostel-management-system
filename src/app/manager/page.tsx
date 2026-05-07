@@ -3,6 +3,7 @@ import { Calendar, InfoIcon } from "lucide-react"
 
 import { GuestRequestsList } from "./_components/guest-requests-list"
 import { MealDataCard } from "./_components/meal-data-card"
+import { MealStatusChangesList } from "./_components/meal-status-changes"
 import { MessagesList } from "./_components/messages-list"
 
 export default function Page() {
@@ -37,7 +38,8 @@ export default function Page() {
 
       {/* Meal Data Generation */}
       <MealDataCard />
-      <div className="grid grid-cols-1 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <MealStatusChangesList />
         <MessagesList />
       </div>
 
