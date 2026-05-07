@@ -1,5 +1,23 @@
 import { Prisma } from "@/lib/generated/prisma"
 
+export type GetMealStatusChangeLog = Prisma.ActivityLogGetPayload<{
+  include: {
+    user: {
+      select: {
+        name: true
+        email: true
+        meals: {
+          select: {
+            type: true
+            nonVegType: true
+            status: true
+          }
+        }
+      }
+    }
+  }
+}>
+
 export type GetNotificationWithIssuer = Prisma.NotificationGetPayload<{
   include: {
     issuer: true
