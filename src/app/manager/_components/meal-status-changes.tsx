@@ -1,6 +1,7 @@
 "use client"
 
 import { useQuery } from "@tanstack/react-query"
+import { format } from "date-fns"
 import { Loader2, ToggleLeft } from "lucide-react"
 
 import { GetMealStatusChangeLog } from "@/types/prisma.type"
@@ -135,7 +136,11 @@ export function MealStatusChangesList() {
                             </span>
                           )}
                           <span className="text-muted-foreground text-xs">
-                            {formatRelativeDate(log.timestamp)}
+                            {formatRelativeDate(new Date(log.timestamp))}
+                          </span>
+                          <span className="text-muted-foreground text-xs">
+                            &bull;{" "}
+                            {format(new Date(log.timestamp), "hh:mm a")}
                           </span>
                         </div>
                         <p className="text-muted-foreground text-xs">
