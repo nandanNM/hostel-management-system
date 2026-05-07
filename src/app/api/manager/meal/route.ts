@@ -1,16 +1,22 @@
-import { endOfDay, startOfDay } from "date-fns"
+import { endOfDay, format, startOfDay } from "date-fns"
 import { toZonedTime } from "date-fns-tz"
 
 import {
+  DayOfWeek,
+  GuestMealStatusType,
   MealStatusType,
   MealType,
+  NonVegType,
   UserRoleType,
   UserStatusType,
-  GuestMealStatusType,
 } from "@/lib/generated/prisma"
 import getSession from "@/lib/get-session"
 import prisma from "@/lib/prisma"
 import { getCurrentMealSlot } from "@/lib/utils"
+import {
+  calculateActualNonVegMeal,
+  getNonVegTypeFromItemName,
+} from "./_lib/utils"
 
 export async function GET() {
   try {
@@ -65,6 +71,7 @@ export async function POST() {
     const mealTime = getCurrentMealSlot(zonedDate)
     const todayStart = startOfDay(zonedDate)
     const todayEnd = endOfDay(zonedDate)
+    const dayOfWeek = format(zonedDate, "EEEE").toUpperCase() as DayOfWeek
 
     const alreadyGenerated = await prisma.dailyMealActivity.findFirst({
       where: {
@@ -75,6 +82,25 @@ export async function POST() {
 
     if (alreadyGenerated) {
       return Response.json({ error: "Already Generated" }, { status: 400 })
+    }
+
+    // Determine today's non-veg offering from the meal schedule
+    const todayScheduleEntry = await prisma.mealScheduleEntry.findUnique({
+      where: { dayOfWeek_mealTime: { dayOfWeek, mealTime } },
+      include: { menuItems: { include: { menuItem: true } } },
+    })
+
+    const hasSchedule = !!todayScheduleEntry
+    let hostelDailyOffering: NonVegType | null = null
+
+    if (hasSchedule && todayScheduleEntry.menuItems.length > 0) {
+      for (const mi of todayScheduleEntry.menuItems) {
+        const nvType = getNonVegTypeFromItemName(mi.menuItem.name)
+        if (nvType !== NonVegType.NONE) {
+          hostelDailyOffering = nvType
+          break
+        }
+      }
     }
 
     const [allRegularMeals, allActiveGuestMeals] = await Promise.all([
@@ -89,6 +115,8 @@ export async function POST() {
           id: true,
           userId: true,
           type: true,
+          nonVegType: true,
+          dislikedNonVegTypes: true,
         },
       }),
       prisma.guestMeal.findMany({
@@ -104,19 +132,34 @@ export async function POST() {
           id: true,
           numberOfMeals: true,
           type: true,
+          nonVegType: true,
         },
       }),
     ])
 
     let vegCount = 0
-    let nonVegCount = 0
+    let chickenCount = 0
+    let fishCount = 0
+    let eggCount = 0
     const attendanceRecordsToCreate: { userId: string; mealTime: "LUNCH" | "DINNER"; date: Date; mealId: string }[] = []
 
     for (const meal of allRegularMeals) {
       if (meal.type === MealType.VEG) {
         vegCount++
+      } else if (hasSchedule) {
+        // Apply priority chain: from today's offering downward, find the first type the user accepts
+        const actualType = calculateActualNonVegMeal(
+          meal.nonVegType !== NonVegType.NONE ? meal.nonVegType : NonVegType.CHICKEN,
+          meal.dislikedNonVegTypes,
+          hostelDailyOffering
+        )
+        if (actualType === NonVegType.CHICKEN) chickenCount++
+        else if (actualType === NonVegType.FISH) fishCount++
+        else if (actualType === NonVegType.EGG) eggCount++
+        else vegCount++ // disliked all available non-veg → falls back to veg
       } else {
-        nonVegCount++
+        // No schedule configured: count as generic non-veg in chickenCount for backward compat
+        chickenCount++
       }
 
       attendanceRecordsToCreate.push({
@@ -135,7 +178,10 @@ export async function POST() {
       if (guestMeal.type === MealType.VEG) {
         vegCount += numMeals
       } else {
-        nonVegCount += numMeals
+        // Guest meals are counted by their explicitly requested non-veg type
+        if (guestMeal.nonVegType === NonVegType.FISH) fishCount += numMeals
+        else if (guestMeal.nonVegType === NonVegType.EGG) eggCount += numMeals
+        else chickenCount += numMeals // CHICKEN, MUTTON, or NONE fallback
       }
     }
 
@@ -149,9 +195,10 @@ export async function POST() {
           date: todayStart,
           totalGuestMeal: guestTotalMeals,
           totalVeg: vegCount,
-          totalNonvegChicken: nonVegCount, // Keeping schema field but using for total Non-Veg
-          totalNonvegFish: 0,
-          totalNonvegEgg: 0,
+          totalNonvegChicken: chickenCount,
+          totalNonvegFish: fishCount,
+          totalNonvegEgg: eggCount,
+          actualNonVegServed: hostelDailyOffering,
         },
       })
 

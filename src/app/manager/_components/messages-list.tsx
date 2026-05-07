@@ -30,6 +30,7 @@ export function MessagesList() {
         .get("/api/manager/meal/events")
         .json<GetUserMealEventWithUser[]>(),
     refetchOnWindowFocus: false,
+    refetchInterval: 30000,
   })
 
   if (isLoading) {

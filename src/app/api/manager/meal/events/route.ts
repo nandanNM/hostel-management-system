@@ -17,7 +17,7 @@ export async function GET() {
 
     const data = await prisma.userMealEvent.findMany({
       where: {
-        date: {
+        createdAt: {
           gte: todayStart,
           lte: todayEnd,
         },

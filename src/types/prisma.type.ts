@@ -41,6 +41,29 @@ export type GetUserMealEventWithUser = Prisma.UserMealEventGetPayload<{
   }
 }>
 
+export type GetGuestMealWithUser = Prisma.GuestMealGetPayload<{
+  include: {
+    user: {
+      select: {
+        id: true
+        name: true
+        email: true
+      }
+    }
+  }
+}>
+
+export type GetActivityLogWithUser = Prisma.ActivityLogGetPayload<{
+  include: {
+    user: {
+      select: {
+        name: true
+        email: true
+      }
+    }
+  }
+}>
+
 export type GetMealWithUser = Prisma.MealGetPayload<{
   include: {
     user: {
