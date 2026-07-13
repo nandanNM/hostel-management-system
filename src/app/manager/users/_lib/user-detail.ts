@@ -9,118 +9,47 @@ import { BillEntryType } from "@/lib/generated/prisma"
 import prisma from "@/lib/prisma"
 import { ApiResponse } from "@/types"
 
-/**
- * Full billing/activity detail for one user, fetched with a single parallel
- * batch (no N+1). Balance is the latest ledger row's running balance; totals
- * come from indexed aggregates rather than summing rows in JS.
- */
-export async function getUserBillingDetail(userId: string) {
-  const session = await requireManager()
-  if (!session) throw new Error("Unauthorized")
+const CHARGE_TYPES = [
+  BillEntryType.MEAL_CHARGE,
+  BillEntryType.FINE_CHARGE,
+  BillEntryType.GUEST_MEAL_CHARGE,
+  BillEntryType.SECURITY_DEPOSIT,
+  BillEntryType.ADJUSTMENT_DEBIT,
+]
 
-  const [
-    user,
-    latestBill,
-    bills,
-    mealHistory,
-    guestMeals,
-    fines,
-    paidAgg,
-    chargedAgg,
-  ] = await Promise.all([
-      prisma.user.findUnique({
-        where: { id: userId },
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          image: true,
-          roomNo: true,
-          selfPhNo: true,
-          role: true,
-          status: true,
-          joinDate: true,
-          createdAt: true,
-        },
-      }),
-      prisma.userBill.findFirst({
-        where: { userId },
-        orderBy: { createdAt: "desc" },
-        select: { balanceRemaining: true },
-      }),
-      prisma.userBill.findMany({
-        where: { userId },
-        orderBy: { createdAt: "desc" },
-        take: 100,
-        select: {
-          id: true,
-          type: true,
-          amount: true,
-          description: true,
-          balanceRemaining: true,
-          isPaid: true,
-          issueDate: true,
-          dueDate: true,
-          createdAt: true,
-        },
-      }),
-      prisma.activityLog.findMany({
-        where: { userId, actionType: "MEAL_STATUS_CHANGE" },
-        orderBy: { timestamp: "desc" },
-        take: 50,
-        select: { id: true, details: true, newData: true, timestamp: true },
-      }),
-      prisma.guestMeal.findMany({
-        where: { userId },
-        orderBy: { date: "desc" },
-        take: 50,
-        select: {
-          id: true,
-          name: true,
-          date: true,
-          mealTime: true,
-          type: true,
-          nonVegType: true,
-          numberOfMeals: true,
-          mealCharge: true,
-          status: true,
-        },
-      }),
-      prisma.userFine.findMany({
-        where: { userId },
-        orderBy: { createdAt: "desc" },
-        take: 50,
-        select: {
-          id: true,
-          amount: true,
-          reason: true,
-          status: true,
-          dueDate: true,
-          paidDate: true,
-          createdAt: true,
-        },
-      }),
-      // PAYMENT ledger amounts are stored negative; negate the sum for total paid.
-      prisma.userBill.aggregate({
-        where: { userId, type: BillEntryType.PAYMENT },
-        _sum: { amount: true },
-      }),
-      prisma.userBill.aggregate({
-        where: {
-          userId,
-          type: {
-            in: [
-              BillEntryType.MEAL_CHARGE,
-              BillEntryType.FINE_CHARGE,
-              BillEntryType.GUEST_MEAL_CHARGE,
-              BillEntryType.SECURITY_DEPOSIT,
-              BillEntryType.ADJUSTMENT_DEBIT,
-            ],
-          },
-        },
-        _sum: { amount: true },
-      }),
-    ])
+/** Header summary for a user: identity + balance/paid/charged (parallel). */
+export async function getUserSummary(userId: string) {
+  await requireManager()
+
+  const [user, latestBill, paidAgg, chargedAgg] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        image: true,
+        roomNo: true,
+        selfPhNo: true,
+        role: true,
+        status: true,
+        joinDate: true,
+      },
+    }),
+    prisma.userBill.findFirst({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      select: { balanceRemaining: true },
+    }),
+    prisma.userBill.aggregate({
+      where: { userId, type: BillEntryType.PAYMENT },
+      _sum: { amount: true },
+    }),
+    prisma.userBill.aggregate({
+      where: { userId, type: { in: CHARGE_TYPES } },
+      _sum: { amount: true },
+    }),
+  ])
 
   if (!user) notFound()
 
@@ -131,17 +60,94 @@ export async function getUserBillingDetail(userId: string) {
       totalPaid: Math.abs(paidAgg._sum.amount ?? 0),
       totalCharged: chargedAgg._sum.amount ?? 0,
     },
-    bills,
-    payments: bills.filter((b) => b.type === BillEntryType.PAYMENT),
-    mealHistory,
-    guestMeals,
-    fines,
   }
 }
 
-export type UserBillingDetail = Awaited<
-  ReturnType<typeof getUserBillingDetail>
->
+export type UserSummary = Awaited<ReturnType<typeof getUserSummary>>
+
+const LEDGER_SELECT = {
+  id: true,
+  type: true,
+  amount: true,
+  description: true,
+  balanceRemaining: true,
+  isPaid: true,
+  createdAt: true,
+} as const
+
+export async function getUserBills(userId: string) {
+  await requireManager()
+  return prisma.userBill.findMany({
+    where: { userId },
+    orderBy: { createdAt: "desc" },
+    take: 500,
+    select: LEDGER_SELECT,
+  })
+}
+export type LedgerRow = Awaited<ReturnType<typeof getUserBills>>[number]
+
+export async function getUserPayments(userId: string) {
+  await requireManager()
+  return prisma.userBill.findMany({
+    where: { userId, type: BillEntryType.PAYMENT },
+    orderBy: { createdAt: "desc" },
+    take: 500,
+    select: LEDGER_SELECT,
+  })
+}
+
+export async function getUserMealHistory(userId: string) {
+  await requireManager()
+  return prisma.activityLog.findMany({
+    where: { userId, actionType: "MEAL_STATUS_CHANGE" },
+    orderBy: { timestamp: "desc" },
+    take: 500,
+    select: { id: true, details: true, timestamp: true },
+  })
+}
+export type MealHistoryRow = Awaited<
+  ReturnType<typeof getUserMealHistory>
+>[number]
+
+export async function getUserGuestMeals(userId: string) {
+  await requireManager()
+  return prisma.guestMeal.findMany({
+    where: { userId },
+    orderBy: { date: "desc" },
+    take: 500,
+    select: {
+      id: true,
+      name: true,
+      date: true,
+      mealTime: true,
+      type: true,
+      numberOfMeals: true,
+      mealCharge: true,
+      status: true,
+    },
+  })
+}
+export type GuestMealRow = Awaited<
+  ReturnType<typeof getUserGuestMeals>
+>[number]
+
+export async function getUserFines(userId: string) {
+  await requireManager()
+  return prisma.userFine.findMany({
+    where: { userId },
+    orderBy: { createdAt: "desc" },
+    take: 500,
+    select: {
+      id: true,
+      amount: true,
+      reason: true,
+      status: true,
+      dueDate: true,
+      createdAt: true,
+    },
+  })
+}
+export type FineRow = Awaited<ReturnType<typeof getUserFines>>[number]
 
 const recordPaymentSchema = z.object({
   userId: z.string().min(1),

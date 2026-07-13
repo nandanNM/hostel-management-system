@@ -1,16 +1,17 @@
-import { getUserBillingDetail } from "../_lib/user-detail"
-import { UserDetailView } from "../_components/user-detail-view"
+import { getUserBills } from "../_lib/user-detail"
+import { LedgerSection } from "../_components/user-section-tables"
 
-export default async function UserDetailPage({
+export default async function UserOverviewPage({
   params,
 }: {
   params: Promise<{ userId: string }>
 }) {
   const { userId } = await params
-  const data = await getUserBillingDetail(userId)
+  const data = await getUserBills(userId)
   return (
-    <div className="p-4 sm:p-6">
-      <UserDetailView data={data} backHref="/manager/users" />
-    </div>
+    <section className="space-y-3">
+      <h2 className="text-lg font-semibold">Account ledger</h2>
+      <LedgerSection data={data} />
+    </section>
   )
 }
