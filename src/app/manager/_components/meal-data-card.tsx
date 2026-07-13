@@ -9,6 +9,7 @@ import {
   TrendingUp,
   Utensils,
 } from "lucide-react"
+import { useSession } from "next-auth/react"
 import { toast } from "sonner"
 
 import type { DailyMealActivity } from "@/lib/generated/prisma"
@@ -38,6 +39,8 @@ import LoadingButton from "@/components/LoadingButton"
 import { useGenerateMealData } from "../_lib/mutations"
 
 export function MealDataCard() {
+  const { data: session } = useSession()
+  const isReadOnly = session?.user?.role === "MESS_PREFECT"
   const { mutate: generateMealData, isPending: isGenerating } =
     useGenerateMealData()
   // const activeTime = isActiveTime()
@@ -72,7 +75,13 @@ export function MealDataCard() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {!mealData && (
+        {!mealData && isReadOnly && (
+          <p className="text-muted-foreground text-sm">
+            Today&apos;s meal count hasn&apos;t been generated yet. Meal
+            generation is handled by the mess manager.
+          </p>
+        )}
+        {!mealData && !isReadOnly && (
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <LoadingButton

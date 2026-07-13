@@ -19,7 +19,6 @@ import { GetGuestMealWithUser } from "@/types/prisma.type"
 import { GuestMealStatusType } from "@/lib/generated/prisma"
 import kyInstance from "@/lib/ky"
 import { cn } from "@/lib/utils"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -61,17 +60,24 @@ export function GuestMealsLogList() {
     refetchOnWindowFocus: false,
   })
 
-  const totalMeals = (meals ?? []).reduce((s, m) => s + m.numberOfMeals, 0)
-  const totalCharge = (meals ?? []).reduce((s, m) => s + m.mealCharge, 0)
+  // Only APPROVED/SERVED guest meals are actually billed to the user; PENDING,
+  // REJECTED and CANCELLED requests must never count toward the charge totals.
+  const billedMeals = (meals ?? []).filter(
+    (m) => m.status === "APPROVED" || m.status === "SERVED"
+  )
+  const totalMeals = billedMeals.reduce((s, m) => s + m.numberOfMeals, 0)
+  const totalCharge = billedMeals.reduce((s, m) => s + m.mealCharge, 0)
 
   return (
     <Card className="w-full">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <UtensilsCrossed className="h-5 w-5" />
-          Guest Meals
+          Guest Meal Logs
         </CardTitle>
-        <CardDescription>All guest meal requests for the month.</CardDescription>
+        <CardDescription>
+          All guest meal requests and their billing status for the month.
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Month navigator */}
@@ -120,11 +126,11 @@ export function GuestMealsLogList() {
                 <span className="font-semibold">{meals?.length ?? 0}</span>
               </span>
               <span>
-                <span className="text-muted-foreground">Total meals: </span>
+                <span className="text-muted-foreground">Billed meals: </span>
                 <span className="font-semibold">{totalMeals}</span>
               </span>
               <span>
-                <span className="text-muted-foreground">Total charges: </span>
+                <span className="text-muted-foreground">Billed charges: </span>
                 <span className="font-semibold">₹{totalCharge.toFixed(2)}</span>
               </span>
             </div>

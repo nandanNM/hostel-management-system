@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { usePathname, useRouter } from "next/navigation"
 import { ColumnDef } from "@tanstack/react-table"
 import {
   CheckCircle,
@@ -155,6 +156,9 @@ export function getColumns(): ColumnDef<GetMealWithUser>[] {
         const [showCreateFineSheet, setShowCreateFineSheet] =
           React.useState(false)
 
+        const router = useRouter()
+        const pathname = usePathname()
+
         const meal = row.original
         const handleAction = async (action: string) => {
           switch (action) {
@@ -198,7 +202,13 @@ export function getColumns(): ColumnDef<GetMealWithUser>[] {
                 }
               )
               break
-            case "view":
+            case "view": {
+              const base = pathname.startsWith("/mess-prefect")
+                ? "/mess-prefect"
+                : "/manager"
+              router.push(`${base}/users/${meal.userId}`)
+              break
+            }
             default:
             //console.log(`${action} meal for meal:`, meal.id)
           }

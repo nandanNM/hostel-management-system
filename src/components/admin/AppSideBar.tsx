@@ -1,15 +1,24 @@
+"use client"
+
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import {
+  ArrowLeft,
   Calendar,
   ChevronUp,
   ClipboardList,
   FileCheck,
+  Gavel,
   Home,
   LogOut,
   Plus,
   Projector,
+  Receipt,
   Settings2,
+  UserCheck,
+  UserCog,
   Users,
+  UtensilsCrossed,
 } from "lucide-react"
 import { User } from "next-auth"
 
@@ -37,34 +46,49 @@ import {
 import { Separator } from "../ui/separator"
 import UserAvatar from "../UserAvatar"
 
-const items = [
-  {
-    title: "Home",
-    url: "/",
-    icon: Home,
-  },
-  {
-    title: "Users",
-    url: "users",
-    icon: Users,
-  },
-  {
-    title: "Calendar",
-    url: "calander",
-    icon: Calendar,
-  },
-  {
-    title: "Settings",
-    url: "settings",
-    icon: Settings2,
-  },
-]
 interface AppSideBarProps {
-  state: "ADMIN" | "MANAGER"
+  state: "ADMIN" | "MANAGER" | "MESS_PREFECT"
   user: User
 }
 
+const BASE_PATH: Record<AppSideBarProps["state"], string> = {
+  ADMIN: "/admin",
+  MANAGER: "/manager",
+  MESS_PREFECT: "/mess-prefect",
+}
+
 export default function AppSideBar({ state, user }: AppSideBarProps) {
+  const basePath = BASE_PATH[state]
+  const isMessPrefect = state === "MESS_PREFECT"
+  const showReports = state === "MANAGER" || isMessPrefect
+
+  // When viewing a single user (…/users/{id}[/section]) the sidebar swaps to
+  // that user's sections so all navigation stays in the sidebar (no tabs).
+  const pathname = usePathname()
+  const segments = pathname.split("/").filter(Boolean)
+  const onUserDetail = segments[1] === "users" && Boolean(segments[2])
+  const detailUserId = onUserDetail ? segments[2] : null
+  const userBase = `${basePath}/users/${detailUserId}`
+  const userNav = [
+    { title: "Overview", href: userBase, icon: ClipboardList },
+    { title: "Payments", href: `${userBase}/payments`, icon: Receipt },
+    { title: "Meals", href: `${userBase}/meals`, icon: UtensilsCrossed },
+    { title: "Guest Meals", href: `${userBase}/guest-meals`, icon: Users },
+    { title: "Fines", href: `${userBase}/fines`, icon: Gavel },
+  ]
+
+  // Home is a Manager/Admin entry only. MessPrefect gets an Approvals entry
+  // right after Users instead.
+  const appItems = [
+    ...(isMessPrefect ? [] : [{ title: "Home", url: "/", icon: Home }]),
+    { title: "Users", url: "users", icon: Users },
+    ...(isMessPrefect
+      ? [{ title: "Approvals", url: "approvals", icon: UserCheck }]
+      : []),
+    { title: "Calendar", url: "calander", icon: Calendar },
+    { title: "Settings", url: "settings", icon: Settings2 },
+  ]
+
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="py-4">
@@ -86,18 +110,52 @@ export default function AppSideBar({ state, user }: AppSideBarProps) {
       </SidebarHeader>
       <Separator />
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Application</SidebarGroupLabel>
+        {onUserDetail && (
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <Link href={`${basePath}/users`}>
+                      <ArrowLeft />
+                      <span>Back to users</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+            <SidebarGroupLabel>User</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {userNav.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={pathname === item.href}
+                    >
+                      <Link href={item.href}>
+                        <item.icon />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+        {!onUserDetail && (
+          <>
+            <SidebarGroup>
+              <SidebarGroupLabel>Application</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item) => (
+              {appItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <Link
                       href={
-                        item.url === "/"
-                          ? `/${state.toLowerCase()}`
-                          : `/${state.toLowerCase()}/${item.url}`
+                        item.url === "/" ? basePath : `${basePath}/${item.url}`
                       }
                     >
                       <item.icon />
@@ -109,16 +167,49 @@ export default function AppSideBar({ state, user }: AppSideBarProps) {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-        {state === "MANAGER" && (
+        {showReports && (
           <SidebarGroup>
             <SidebarGroupLabel>Reports</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
-                    <Link href="/manager/logs">
+                    <Link href={`${basePath}/logs`}>
                       <ClipboardList />
-                      <span>Logs</span>
+                      <span>Activity Logs</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <Link href={`${basePath}/guest-meal-logs`}>
+                      <UtensilsCrossed />
+                      <span>Guest Meal Logs</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+        {state === "MESS_PREFECT" && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Administration</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <Link href="/mess-prefect/managers">
+                      <UserCog />
+                      <span>Managers</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <Link href="/mess-prefect/billing">
+                      <Receipt />
+                      <span>Billing</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -194,6 +285,8 @@ export default function AppSideBar({ state, user }: AppSideBarProps) {
             </SidebarGroup>
           </>
         )}
+          </>
+        )}
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
@@ -213,7 +306,7 @@ export default function AppSideBar({ state, user }: AppSideBarProps) {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem asChild>
-                  <Link href="/manager/settings" className="flex w-full items-center">
+                  <Link href={`${basePath}/settings`} className="flex w-full items-center">
                     <Settings2 className="mr-2 h-[1.2rem] w-[1.2rem]" />
                     Settings
                   </Link>

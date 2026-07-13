@@ -10,6 +10,8 @@ import {
   Utensils,
 } from "lucide-react"
 
+import { useSession } from "next-auth/react"
+
 import { MealType } from "@/lib/generated/prisma"
 import { GetGuestMealWithUser } from "@/types/prisma.type"
 import kyInstance from "@/lib/ky"
@@ -40,6 +42,8 @@ import { P } from "@/components/custom/p"
 import { useUpdateGuestMealStatus } from "../_lib/mutations"
 
 export function GuestRequestsList() {
+  const { data: session } = useSession()
+  const isReadOnly = session?.user?.role === "MESS_PREFECT"
   const updateMutation = useUpdateGuestMealStatus()
   const {
     data: pendingRequests,
@@ -169,6 +173,14 @@ export function GuestRequestsList() {
                       {request.mealTime}
                     </p>
                   </div>
+                  {isReadOnly && (
+                    <div className="ml-auto flex items-center">
+                      <Badge variant="secondary" className="capitalize">
+                        {request.status.toLowerCase()}
+                      </Badge>
+                    </div>
+                  )}
+                  {!isReadOnly && (
                   <AlertDialog>
                     <div className="ml-auto flex flex-col gap-3 sm:flex-row sm:items-center">
                       <div className="mt-3 flex gap-2 sm:mt-0">
@@ -248,6 +260,7 @@ export function GuestRequestsList() {
                       </AlertDialogFooter>
                     </AlertDialogContent>
                   </AlertDialog>
+                  )}
                 </div>
                 {index < currentRequests.length - 1 && (
                   <Separator className="mt-4" />

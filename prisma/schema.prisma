@@ -413,6 +413,7 @@ enum UserRoleType {
   AUDITOR
   ADMIN
   SUPER_ADMIN
+  MESS_PREFECT
 }
 
 enum UserStatusType {
