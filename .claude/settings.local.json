@@ -8,5 +8,9 @@
       "Bash(git push *)",
       "Bash(gh pr create --base dev --title 'feat: notify manager panel when user toggles meal on/off' --body ' *)"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "shadcn"
+  ],
+  "enableAllProjectMcpServers": true
 }
