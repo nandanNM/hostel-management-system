@@ -3,13 +3,11 @@
 import { useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { format } from "date-fns"
-import { Activity, ChevronDown, ChevronUp, Loader2 } from "lucide-react"
+import { Activity, ArrowRight, Loader2 } from "lucide-react"
 
 import { GetActivityLogWithUser } from "@/types/prisma.type"
 import kyInstance from "@/lib/ky"
 import { cn } from "@/lib/utils"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -53,37 +51,32 @@ const DAY_OPTIONS = [
   { label: "Last 90 days", value: "90" },
 ]
 
+function summarizeChange(data: unknown): string | null {
+  if (data === null || data === undefined) return null
+  if (typeof data === "object") {
+    const entries = Object.entries(data as Record<string, unknown>)
+    if (entries.length === 0) return null
+    return entries.map(([k, v]) => `${k}: ${String(v)}`).join(", ")
+  }
+  return String(data)
+}
+
 function DataDiff({ oldData, newData }: { oldData: unknown; newData: unknown }) {
-  const [open, setOpen] = useState(false)
-  if (!oldData && !newData) return null
+  const before = summarizeChange(oldData)
+  const after = summarizeChange(newData)
+  if (!before && !after) return null
   return (
-    <div className="mt-2">
-      <button
-        className="text-muted-foreground flex items-center gap-1 text-xs hover:underline"
-        onClick={() => setOpen((v) => !v)}
-      >
-        {open ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-        {open ? "Hide" : "Show"} data diff
-      </button>
-      {open && (
-        <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
-          {oldData !== undefined && (
-            <div>
-              <p className="mb-1 text-xs font-semibold text-red-500">Before</p>
-              <pre className="bg-muted rounded p-2 text-[10px] overflow-auto max-h-24">
-                {JSON.stringify(oldData, null, 2)}
-              </pre>
-            </div>
-          )}
-          {newData !== undefined && (
-            <div>
-              <p className="mb-1 text-xs font-semibold text-green-600">After</p>
-              <pre className="bg-muted rounded p-2 text-[10px] overflow-auto max-h-24">
-                {JSON.stringify(newData, null, 2)}
-              </pre>
-            </div>
-          )}
-        </div>
+    <div className="text-muted-foreground mt-2 flex flex-wrap items-center gap-2 text-xs">
+      {before && (
+        <span className="bg-muted rounded px-2 py-1 line-through opacity-70">
+          {before}
+        </span>
+      )}
+      <ArrowRight className="h-3.5 w-3.5 shrink-0" />
+      {after && (
+        <span className="bg-muted text-foreground rounded px-2 py-1 font-medium">
+          {after}
+        </span>
       )}
     </div>
   )

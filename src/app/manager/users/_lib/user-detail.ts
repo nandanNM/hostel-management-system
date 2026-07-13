@@ -1,6 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { notFound } from "next/navigation"
 import { z } from "zod"
 
 import requireManager from "@/data/manager/require-manager"
@@ -17,8 +18,16 @@ export async function getUserBillingDetail(userId: string) {
   const session = await requireManager()
   if (!session) throw new Error("Unauthorized")
 
-  const [user, latestBill, bills, mealHistory, paidAgg, chargedAgg] =
-    await Promise.all([
+  const [
+    user,
+    latestBill,
+    bills,
+    mealHistory,
+    guestMeals,
+    fines,
+    paidAgg,
+    chargedAgg,
+  ] = await Promise.all([
       prisma.user.findUnique({
         where: { id: userId },
         select: {
@@ -61,6 +70,36 @@ export async function getUserBillingDetail(userId: string) {
         take: 50,
         select: { id: true, details: true, newData: true, timestamp: true },
       }),
+      prisma.guestMeal.findMany({
+        where: { userId },
+        orderBy: { date: "desc" },
+        take: 50,
+        select: {
+          id: true,
+          name: true,
+          date: true,
+          mealTime: true,
+          type: true,
+          nonVegType: true,
+          numberOfMeals: true,
+          mealCharge: true,
+          status: true,
+        },
+      }),
+      prisma.userFine.findMany({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+        take: 50,
+        select: {
+          id: true,
+          amount: true,
+          reason: true,
+          status: true,
+          dueDate: true,
+          paidDate: true,
+          createdAt: true,
+        },
+      }),
       // PAYMENT ledger amounts are stored negative; negate the sum for total paid.
       prisma.userBill.aggregate({
         where: { userId, type: BillEntryType.PAYMENT },
@@ -83,7 +122,7 @@ export async function getUserBillingDetail(userId: string) {
       }),
     ])
 
-  if (!user) throw new Error("User not found")
+  if (!user) notFound()
 
   return {
     user,
@@ -95,6 +134,8 @@ export async function getUserBillingDetail(userId: string) {
     bills,
     payments: bills.filter((b) => b.type === BillEntryType.PAYMENT),
     mealHistory,
+    guestMeals,
+    fines,
   }
 }
 

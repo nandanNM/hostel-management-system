@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { usePathname, useRouter } from "next/navigation"
 import { ColumnDef } from "@tanstack/react-table"
 import {
   CheckCircle,
@@ -36,7 +37,6 @@ import { updateUserMealStatus } from "../_lib/actions"
 import { getMealStatusIcon, getNonVegTypeIcon } from "../_lib/utils"
 import { CreateFineSheet } from "./issue-fine-user-sheet"
 import { UpdateMealSheet } from "./update-users-meal-sheet"
-import { UserDetailSheet } from "./user-detail-sheet"
 
 export function getColumns(): ColumnDef<GetMealWithUser>[] {
   return [
@@ -156,7 +156,8 @@ export function getColumns(): ColumnDef<GetMealWithUser>[] {
         const [showCreateFineSheet, setShowCreateFineSheet] =
           React.useState(false)
 
-        const [showDetailSheet, setShowDetailSheet] = React.useState(false)
+        const router = useRouter()
+        const pathname = usePathname()
 
         const meal = row.original
         const handleAction = async (action: string) => {
@@ -201,9 +202,13 @@ export function getColumns(): ColumnDef<GetMealWithUser>[] {
                 }
               )
               break
-            case "view":
-              setShowDetailSheet(true)
+            case "view": {
+              const base = pathname.startsWith("/mess-prefect")
+                ? "/mess-prefect"
+                : "/manager"
+              router.push(`${base}/users/${meal.userId}`)
               break
+            }
             default:
             //console.log(`${action} meal for meal:`, meal.id)
           }
@@ -219,11 +224,6 @@ export function getColumns(): ColumnDef<GetMealWithUser>[] {
               open={showCreateFineSheet}
               onOpenChange={setShowCreateFineSheet}
               targetUserId={meal.userId}
-            />
-            <UserDetailSheet
-              open={showDetailSheet}
-              onOpenChange={setShowDetailSheet}
-              userId={meal.userId}
             />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
