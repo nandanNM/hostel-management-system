@@ -137,8 +137,7 @@ export function ManagersTable({
             <TableBody>
               {users.map((user) => {
                 const isSelf = user.id === currentUserId
-                const isPrefect = user.role === UserRoleType.MESS_PREFECT
-                const locked = isSelf || isPrefect
+                const locked = isSelf
                 const rowPending = isPending && pendingRoleUserId === user.id
                 return (
                   <TableRow key={user.id}>

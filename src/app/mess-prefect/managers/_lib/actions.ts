@@ -10,7 +10,7 @@ import { ApiResponse } from "@/types"
 
 const assignRoleSchema = z.object({
   userId: z.string().min(1),
-  role: z.enum(["STUDENT", "STAFF", "MANAGER"]),
+  role: z.enum(["STAFF", "MANAGER", "MESS_PREFECT"]),
 })
 
 const updateDetailsSchema = z.object({
@@ -42,12 +42,6 @@ export async function assignRole(input: AssignRoleInput): Promise<ApiResponse> {
     if (!target) return { status: "error", message: "User not found" }
     if (target.id === actorId) {
       return { status: "error", message: "You cannot change your own role." }
-    }
-    if (target.role === UserRoleType.MESS_PREFECT) {
-      return {
-        status: "error",
-        message: "You cannot change another Mess Prefect's role.",
-      }
     }
     if (target.role === role) {
       return { status: "success", message: "Role is already set." }

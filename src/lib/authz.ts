@@ -13,3 +13,12 @@ export const MANAGER_ROLES: UserRoleType[] = [
 export function canManage(role: UserRoleType | null | undefined): boolean {
   return role != null && MANAGER_ROLES.includes(role)
 }
+
+/**
+ * True only for a plain Manager. Operational write actions — generating the
+ * daily meal count and approving/rejecting guest meals — are Manager-only;
+ * MessPrefect has read/oversight access to these but cannot perform them.
+ */
+export function isManager(role: UserRoleType | null | undefined): boolean {
+  return role === UserRoleType.MANAGER
+}

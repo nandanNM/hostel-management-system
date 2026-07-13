@@ -1,12 +1,11 @@
 import { UserRoleType } from "@/lib/generated/prisma"
 
-// Roles the Mess Prefect may assign from the Managers screen. MESS_PREFECT is
-// intentionally excluded so the role can only be granted out-of-band (no
-// in-app privilege escalation to prefect).
+// Roles the Mess Prefect may assign from the Managers screen (all roles except
+// the default Student). Includes MESS_PREFECT so a prefect can appoint another.
 export const ASSIGNABLE_ROLES = [
-  UserRoleType.STUDENT,
   UserRoleType.STAFF,
   UserRoleType.MANAGER,
+  UserRoleType.MESS_PREFECT,
 ] as const
 
 export type AssignableRole = (typeof ASSIGNABLE_ROLES)[number]

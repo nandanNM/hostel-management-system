@@ -3,6 +3,8 @@
 import requireManager from "@/data/manager/require-manager"
 import { ApiResponse } from "@/types"
 
+import { isManager } from "@/lib/authz"
+
 import {
   BillEntryType,
   GuestMealStatusType,
@@ -27,6 +29,15 @@ export async function updateGuestMealStatus({
     return {
       status: "error",
       message: "Unauthorized",
+    }
+  }
+
+  // Approving/rejecting guest meals is an operational action reserved for the
+  // Manager. MessPrefect has read/oversight access but cannot act on requests.
+  if (!isManager(session.user.role)) {
+    return {
+      status: "error",
+      message: "Only a manager can approve or reject guest meals.",
     }
   }
 

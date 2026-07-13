@@ -36,6 +36,7 @@ import { updateUserMealStatus } from "../_lib/actions"
 import { getMealStatusIcon, getNonVegTypeIcon } from "../_lib/utils"
 import { CreateFineSheet } from "./issue-fine-user-sheet"
 import { UpdateMealSheet } from "./update-users-meal-sheet"
+import { UserDetailSheet } from "./user-detail-sheet"
 
 export function getColumns(): ColumnDef<GetMealWithUser>[] {
   return [
@@ -155,6 +156,8 @@ export function getColumns(): ColumnDef<GetMealWithUser>[] {
         const [showCreateFineSheet, setShowCreateFineSheet] =
           React.useState(false)
 
+        const [showDetailSheet, setShowDetailSheet] = React.useState(false)
+
         const meal = row.original
         const handleAction = async (action: string) => {
           switch (action) {
@@ -199,6 +202,8 @@ export function getColumns(): ColumnDef<GetMealWithUser>[] {
               )
               break
             case "view":
+              setShowDetailSheet(true)
+              break
             default:
             //console.log(`${action} meal for meal:`, meal.id)
           }
@@ -214,6 +219,11 @@ export function getColumns(): ColumnDef<GetMealWithUser>[] {
               open={showCreateFineSheet}
               onOpenChange={setShowCreateFineSheet}
               targetUserId={meal.userId}
+            />
+            <UserDetailSheet
+              open={showDetailSheet}
+              onOpenChange={setShowDetailSheet}
+              userId={meal.userId}
             />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
