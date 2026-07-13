@@ -43,23 +43,72 @@ export async function updateGuestMealStatus({
     })
 
     if (status === "APPROVED") {
-      const lastBill = await prisma.userBill.findFirst({
-        where: {
-          userId: requestedUserId,
-        },
-        orderBy: { createdAt: "desc" },
-      })
-
+      // Charge the user for the approved guest meal, but never double-charge the
+      // same request if it had already been approved before.
       await prisma.$transaction(async (tx) => {
+        const existingCharge = await tx.userBill.findFirst({
+          where: {
+            guestMealId: requestId,
+            type: BillEntryType.GUEST_MEAL_CHARGE,
+          },
+        })
+        if (existingCharge) return
+
+        const lastBill = await tx.userBill.findFirst({
+          where: { userId: requestedUserId },
+          orderBy: { createdAt: "desc" },
+        })
         const currentDue = lastBill?.balanceRemaining ?? 0
-        const newBalance = currentDue + amount
 
         await tx.userBill.create({
           data: {
             type: BillEntryType.GUEST_MEAL_CHARGE,
             amount,
             description: `Guest Meal: Your meal request was approved by ${session.user.name}.`,
-            balanceRemaining: newBalance,
+            balanceRemaining: currentDue + amount,
+            issueDate: new Date(),
+            guestMeal: { connect: { id: requestId } },
+            user: { connect: { id: requestedUserId } },
+          },
+        })
+      })
+    } else if (status === "REJECTED" || status === "CANCELLED") {
+      // If this request was previously approved (and therefore billed), reverse
+      // the charge with an adjustment credit so it stops counting toward the
+      // user's dues. Idempotent: skip if there is no charge or it was already
+      // reversed.
+      await prisma.$transaction(async (tx) => {
+        const existingCharge = await tx.userBill.findFirst({
+          where: {
+            guestMealId: requestId,
+            type: BillEntryType.GUEST_MEAL_CHARGE,
+          },
+        })
+        if (!existingCharge) return
+
+        const alreadyReversed = await tx.userBill.findFirst({
+          where: {
+            guestMealId: requestId,
+            type: BillEntryType.ADJUSTMENT_CREDIT,
+          },
+        })
+        if (alreadyReversed) return
+
+        const lastBill = await tx.userBill.findFirst({
+          where: { userId: requestedUserId },
+          orderBy: { createdAt: "desc" },
+        })
+        const currentDue = lastBill?.balanceRemaining ?? 0
+        const chargeAmount = existingCharge.amount
+
+        await tx.userBill.create({
+          data: {
+            type: BillEntryType.ADJUSTMENT_CREDIT,
+            amount: -chargeAmount,
+            description: `Guest Meal reversal: request ${status.toLowerCase()} by ${session.user.name}; charge of ₹${chargeAmount.toFixed(
+              2
+            )} refunded.`,
+            balanceRemaining: currentDue - chargeAmount,
             issueDate: new Date(),
             guestMeal: { connect: { id: requestId } },
             user: { connect: { id: requestedUserId } },

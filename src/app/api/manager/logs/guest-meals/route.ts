@@ -1,7 +1,7 @@
 import { endOfMonth, startOfMonth } from "date-fns"
 import { toZonedTime } from "date-fns-tz"
 
-import { UserRoleType } from "@/lib/generated/prisma"
+import { canManage } from "@/lib/authz"
 import getSession from "@/lib/get-session"
 import prisma from "@/lib/prisma"
 
@@ -10,7 +10,7 @@ export async function GET(request: Request) {
     const session = await getSession()
     if (!session?.user.id)
       return Response.json({ error: "Unauthorized" }, { status: 401 })
-    if (session.user.role !== UserRoleType.MANAGER)
+    if (!canManage(session.user.role))
       return Response.json({ error: "Forbidden" }, { status: 403 })
 
     const { searchParams } = new URL(request.url)

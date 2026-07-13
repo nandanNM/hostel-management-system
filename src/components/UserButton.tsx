@@ -1,7 +1,7 @@
 import Image from "next/image"
 import Link from "next/link"
 import avatarPlaceholder from "@/assets/avatar-placeholder.png"
-import { ChefHatIcon, Lock, LogOut, Settings2 } from "lucide-react"
+import { ChefHatIcon, Lock, LogOut, Settings2, ShieldCheck } from "lucide-react"
 import { signOut, useSession } from "next-auth/react"
 
 import { Button } from "./ui/button"
@@ -57,6 +57,14 @@ export default function UserButton() {
               <Link href="/manager">
                 <ChefHatIcon className="mr-2 h-4 w-4" />
                 Manager Panel
+              </Link>
+            </DropdownMenuItem>
+          )}
+          {user?.role === "MESS_PREFECT" && (
+            <DropdownMenuItem asChild>
+              <Link href="/mess-prefect">
+                <ShieldCheck className="mr-2 h-4 w-4" />
+                Mess Prefect Panel
               </Link>
             </DropdownMenuItem>
           )}

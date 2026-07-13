@@ -7,9 +7,9 @@ import {
   MealStatusType,
   MealType,
   NonVegType,
-  UserRoleType,
   UserStatusType,
 } from "@/lib/generated/prisma"
+import { canManage } from "@/lib/authz"
 import getSession from "@/lib/get-session"
 import prisma from "@/lib/prisma"
 import { getCurrentMealSlot } from "@/lib/utils"
@@ -25,7 +25,7 @@ export async function GET() {
     if (!user?.id)
       return Response.json({ error: "Unauthorized" }, { status: 401 })
 
-    if (user.role !== UserRoleType.MANAGER)
+    if (!canManage(user.role))
       return Response.json(
         { error: "Unauthorized - Manager access only" },
         { status: 401 }
@@ -59,7 +59,7 @@ export async function POST() {
       return Response.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    if (session.user.role !== UserRoleType.MANAGER) {
+    if (!canManage(session.user.role)) {
       return Response.json(
         { error: "Unauthorized - You are not a manager" },
         { status: 401 }

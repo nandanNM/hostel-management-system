@@ -13,6 +13,7 @@ import {
   NotificationType,
   Prisma,
 } from "@/lib/generated/prisma"
+import { sendFineIssuedEmail, sendMealStatusEmail } from "@/lib/email"
 import prisma from "@/lib/prisma"
 import { parseEnumList } from "@/lib/utils"
 import { mealSchema } from "@/lib/validations"
@@ -155,18 +156,30 @@ export async function updateUserMealStatus(
       message: "Unauthorized",
     }
   try {
-    await prisma.meal.update({
+    const meal = await prisma.meal.update({
       where: {
         id: mealId,
       },
       data: {
         status,
       },
+      include: {
+        user: { select: { email: true, name: true } },
+      },
     })
     revalidatePath("/manager/users")
+
+    if (meal.user?.email) {
+      await sendMealStatusEmail({
+        to: meal.user.email,
+        name: meal.user.name,
+        status,
+      })
+    }
+
     return {
       status: "success",
-      message: "Guest meal request approved successfully",
+      message: "Meal status updated successfully",
     }
   } catch (error) {
     return {
@@ -207,7 +220,7 @@ export async function issueFineToUser({
 
     const targetUser = await prisma.user.findFirst({
       where: { id: targetUserId },
-      select: { id: true },
+      select: { id: true, email: true, name: true },
     })
     // console.log("[issueFineToUser] Target user:", targetUser)
 
@@ -281,6 +294,17 @@ export async function issueFineToUser({
       },
     })
     // console.log("[issueFineToUser] Notification created successfully")
+
+    if (targetUser.email) {
+      await sendFineIssuedEmail({
+        to: targetUser.email,
+        name: targetUser.name,
+        amount: fineAmountNumber,
+        reason: fineReason,
+        dueDate: fineDueDate,
+        fineId: result.newFine.id,
+      })
+    }
 
     return { status: "success", message: "Fine issued successfully" }
   } catch (error) {
