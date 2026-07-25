@@ -395,6 +395,20 @@ model UserMealEvent {
   @@map("user_meal_events")
 }
 
+model Alumni {
+  id           String   @id @default(cuid())
+  name         String
+  department   String
+  mobileNumber String   @map("mobile_number")
+  email        String
+  year         String
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@index([name])
+  @@map("alumni")
+}
+
 enum EntryType {
   AUDIT
   DAILY

@@ -1,3 +1,4 @@
+import { UserStatusType } from "@/lib/generated/prisma"
 import { canManage } from "@/lib/authz"
 import getSession from "@/lib/get-session"
 import prisma from "@/lib/prisma"
@@ -15,6 +16,10 @@ export async function GET() {
       )
     const data = await prisma.meal.findMany({
       where: {
+        user: {
+          deletedAt: null,
+          status: { notIn: [UserStatusType.INACTIVE, UserStatusType.FORMA] },
+        },
       },
       include: {
         user: {

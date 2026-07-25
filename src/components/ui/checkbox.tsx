@@ -3,6 +3,7 @@
 import * as React from "react"
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox"
 import { CheckIcon } from "lucide-react"
+import { motion } from "motion/react"
 
 import { cn } from "@/lib/utils"
 
@@ -23,7 +24,14 @@ function Checkbox({
         data-slot="checkbox-indicator"
         className="flex items-center justify-center text-current transition-none"
       >
-        <CheckIcon className="size-3.5" />
+        <motion.span
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 500, damping: 30 }}
+          className="flex items-center justify-center"
+        >
+          <CheckIcon className="size-3.5" />
+        </motion.span>
       </CheckboxPrimitive.Indicator>
     </CheckboxPrimitive.Root>
   )

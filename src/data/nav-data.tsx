@@ -1,6 +1,6 @@
 import { usePathname } from "next/navigation"
 import { RiDashboardLine, RiToolsFill } from "@remixicon/react"
-import { Bell, Home, Utensils } from "lucide-react"
+import { BarChart3, Bell, GraduationCap, Home, Utensils } from "lucide-react"
 
 export const NavItems = () => {
   const pathname = usePathname()
@@ -28,6 +28,20 @@ export const NavItems = () => {
       href: "/guest-meal",
       icon: <Utensils size={20} />,
       active: isNavItemActive(pathname, "/guest-meal"),
+      position: "top",
+    },
+    {
+      name: "Meal Count",
+      href: "/meal-count",
+      icon: <BarChart3 size={20} />,
+      active: isNavItemActive(pathname, "/meal-count"),
+      position: "top",
+    },
+    {
+      name: "Alumni",
+      href: "/alumni",
+      icon: <GraduationCap size={20} />,
+      active: isNavItemActive(pathname, "/alumni"),
       position: "top",
     },
     {

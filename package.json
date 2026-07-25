@@ -6,7 +6,7 @@
   "homepage": "https://mess.pghall1.in",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma migrate deploy && next build",
     "start": "next start",
     "lint": "eslint .",
     "postinstall": "prisma generate",
@@ -62,6 +62,7 @@
     "jotai": "^2.12.5",
     "ky": "^1.8.1",
     "lucide-react": "^0.525.0",
+    "motion": "^12.42.2",
     "next": "16.2.1",
     "next-auth": "^5.0.0-beta.25",
     "next-themes": "^0.4.6",

@@ -10,7 +10,7 @@ import { ApiResponse } from "@/types"
 
 const assignRoleSchema = z.object({
   userId: z.string().min(1),
-  role: z.enum(["STAFF", "MANAGER", "MESS_PREFECT"]),
+  role: z.enum(["STUDENT", "STAFF", "MANAGER", "MESS_PREFECT"]),
 })
 
 const updateDetailsSchema = z.object({
