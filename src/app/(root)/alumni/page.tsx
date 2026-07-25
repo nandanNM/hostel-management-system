@@ -1,7 +1,7 @@
 import { unstable_noStore as noStore } from "next/cache"
 import { GraduationCap } from "lucide-react"
 
-import { canManage } from "@/lib/authz"
+import { UserRoleType } from "@/lib/generated/prisma"
 import prisma from "@/lib/prisma"
 import { requireUser } from "@/lib/require-user"
 
@@ -10,7 +10,8 @@ import { AlumniTable } from "./_components/alumni-table"
 export default async function AlumniPage() {
   noStore()
   const session = await requireUser()
-  const isManager = canManage(session.user.role)
+  // Only the mess prefect manages alumni; everyone else sees a read-only view.
+  const isMessPrefect = session.user.role === UserRoleType.MESS_PREFECT
 
   const alumni = await prisma.alumni.findMany({
     orderBy: [{ year: "desc" }, { name: "asc" }],
@@ -36,7 +37,7 @@ export default async function AlumniPage() {
         </div>
       </div>
 
-      <AlumniTable alumni={alumni} canManage={isManager} />
+      <AlumniTable alumni={alumni} canManage={isMessPrefect} />
     </div>
   )
 }

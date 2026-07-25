@@ -1,17 +1,39 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-
-import requireManager from "@/data/manager/require-manager"
-import prisma from "@/lib/prisma"
 import { ApiResponse } from "@/types"
+
+import { UserRoleType } from "@/lib/generated/prisma"
+import getSession from "@/lib/get-session"
+import prisma from "@/lib/prisma"
 
 import { AlumniInput, alumniSchema } from "./validations"
 
+/**
+ * Alumni are managed exclusively by the mess prefect. Plain managers can view
+ * the directory but cannot add, edit, remove, or transfer alumni. Returns the
+ * actor id when authorized, otherwise an error response to surface to the UI.
+ */
+async function requireMessPrefectActor(): Promise<
+  { actorId: string } | { error: ApiResponse }
+> {
+  const session = await getSession()
+  const actorId = session?.user?.id
+  if (!actorId || session.user.role !== UserRoleType.MESS_PREFECT) {
+    return {
+      error: {
+        status: "error",
+        message: "Only the mess prefect can manage alumni.",
+      },
+    }
+  }
+  return { actorId }
+}
+
 export async function createAlumni(input: AlumniInput): Promise<ApiResponse> {
-  const session = await requireManager()
-  const actorId = session?.user.id
-  if (!actorId) return { status: "error", message: "Unauthorized" }
+  const auth = await requireMessPrefectActor()
+  if ("error" in auth) return auth.error
+  const { actorId } = auth
 
   const parsed = alumniSchema.safeParse(input)
   if (!parsed.success) {
@@ -51,9 +73,9 @@ export async function createAlumni(input: AlumniInput): Promise<ApiResponse> {
 export async function updateAlumni(
   input: AlumniInput & { id: string }
 ): Promise<ApiResponse> {
-  const session = await requireManager()
-  const actorId = session?.user.id
-  if (!actorId) return { status: "error", message: "Unauthorized" }
+  const auth = await requireMessPrefectActor()
+  if ("error" in auth) return auth.error
+  const { actorId } = auth
 
   const parsed = alumniSchema.safeParse(input)
   if (!parsed.success) {
@@ -101,9 +123,9 @@ export async function updateAlumni(
 }
 
 export async function deleteAlumni(id: string): Promise<ApiResponse> {
-  const session = await requireManager()
-  const actorId = session?.user.id
-  if (!actorId) return { status: "error", message: "Unauthorized" }
+  const auth = await requireMessPrefectActor()
+  if ("error" in auth) return auth.error
+  const { actorId } = auth
 
   try {
     const existing = await prisma.alumni.findUnique({ where: { id } })
