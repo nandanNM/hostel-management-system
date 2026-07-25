@@ -123,6 +123,116 @@ export async function sendMealStatusEmail({
   })
 }
 
+export async function sendPaymentReceivedEmail({
+  to,
+  name,
+  amount,
+  newBalance,
+  method,
+  billId,
+}: {
+  to: string
+  name: string | null
+  amount: number
+  newBalance: number
+  method?: string | null
+  billId?: string
+}): Promise<boolean> {
+  const body = `
+    <p style="font-size: 14px; line-height: 1.6;">Hi ${name ?? "there"},</p>
+    <p style="font-size: 14px; line-height: 1.6;">
+      The mess prefect has recorded a payment received against your account.
+    </p>
+    <table style="width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px;">
+      <tr>
+        <td style="padding: 8px 0; color: #6b7280;">Amount received</td>
+        <td style="padding: 8px 0; text-align: right; font-weight: bold; color: #16a34a;">₹${amount.toFixed(
+          2
+        )}</td>
+      </tr>
+      ${
+        method
+          ? `<tr>
+        <td style="padding: 8px 0; color: #6b7280;">Method</td>
+        <td style="padding: 8px 0; text-align: right;">${method}</td>
+      </tr>`
+          : ""
+      }
+      <tr>
+        <td style="padding: 8px 0; color: #6b7280;">Outstanding due</td>
+        <td style="padding: 8px 0; text-align: right; font-weight: bold;">₹${newBalance.toFixed(
+          2
+        )}</td>
+      </tr>
+    </table>
+    <p style="font-size: 14px; line-height: 1.6;">
+      You can review this in your dashboard under recent transactions. If this
+      doesn't look right, please contact the mess prefect.
+    </p>`
+
+  return sendEmail({
+    to,
+    subject: `Payment of ₹${amount.toFixed(2)} received`,
+    html: layout("Payment received", body),
+    idempotencyKey: billId ? `payment-received/${billId}` : undefined,
+  })
+}
+
+export async function sendDueAddedEmail({
+  to,
+  name,
+  amount,
+  newBalance,
+  description,
+  billId,
+}: {
+  to: string
+  name: string | null
+  amount: number
+  newBalance: number
+  description?: string | null
+  billId?: string
+}): Promise<boolean> {
+  const body = `
+    <p style="font-size: 14px; line-height: 1.6;">Hi ${name ?? "there"},</p>
+    <p style="font-size: 14px; line-height: 1.6;">
+      The mess prefect has added a new due to your account.
+    </p>
+    <table style="width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px;">
+      <tr>
+        <td style="padding: 8px 0; color: #6b7280;">Amount</td>
+        <td style="padding: 8px 0; text-align: right; font-weight: bold; color: #dc2626;">₹${amount.toFixed(
+          2
+        )}</td>
+      </tr>
+      ${
+        description
+          ? `<tr>
+        <td style="padding: 8px 0; color: #6b7280;">Details</td>
+        <td style="padding: 8px 0; text-align: right;">${description}</td>
+      </tr>`
+          : ""
+      }
+      <tr>
+        <td style="padding: 8px 0; color: #6b7280;">Outstanding due</td>
+        <td style="padding: 8px 0; text-align: right; font-weight: bold;">₹${newBalance.toFixed(
+          2
+        )}</td>
+      </tr>
+    </table>
+    <p style="font-size: 14px; line-height: 1.6;">
+      This amount has been added to your outstanding dues. Please clear it at the
+      earliest.
+    </p>`
+
+  return sendEmail({
+    to,
+    subject: `A due of ₹${amount.toFixed(2)} was added to your account`,
+    html: layout("Due added", body),
+    idempotencyKey: billId ? `due-added/${billId}` : undefined,
+  })
+}
+
 export async function sendFineIssuedEmail({
   to,
   name,

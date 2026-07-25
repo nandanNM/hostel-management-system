@@ -13,5 +13,9 @@ export async function requireUser(): Promise<Session> {
     redirect("/not-user/suspended")
   if (session.user.status === UserStatusType.INACTIVE)
     redirect("/not-user/inactive")
+  // Former boarders transferred to the alumni directory are archived and may no
+  // longer access the app; their financial records are preserved server-side.
+  if (session.user.status === UserStatusType.FORMA)
+    redirect("/not-user/inactive")
   return session
 }

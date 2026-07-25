@@ -19,6 +19,7 @@ import {
   UserCog,
   Users,
   UtensilsCrossed,
+  Wallet,
 } from "lucide-react"
 import { User } from "next-auth"
 
@@ -148,143 +149,153 @@ export default function AppSideBar({ state, user }: AppSideBarProps) {
           <>
             <SidebarGroup>
               <SidebarGroupLabel>Application</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {appItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <Link
-                      href={
-                        item.url === "/" ? basePath : `${basePath}/${item.url}`
-                      }
-                    >
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-        {showReports && (
-          <SidebarGroup>
-            <SidebarGroupLabel>Reports</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <Link href={`${basePath}/logs`}>
-                      <ClipboardList />
-                      <span>Activity Logs</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <Link href={`${basePath}/guest-meal-logs`}>
-                      <UtensilsCrossed />
-                      <span>Guest Meal Logs</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
-        {state === "MESS_PREFECT" && (
-          <SidebarGroup>
-            <SidebarGroupLabel>Administration</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <Link href="/mess-prefect/managers">
-                      <UserCog />
-                      <span>Managers</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <Link href="/mess-prefect/billing">
-                      <Receipt />
-                      <span>Billing</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
-        {state === "ADMIN" && (
-          <>
-            {/* users */}
-            <SidebarGroup>
-              <SidebarGroupLabel>Users</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
-                      <Link href={`/${state.toLocaleLowerCase()}/users`}>
-                        <Users />
-                        See All Users
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
+                  {appItems.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton asChild>
+                        <Link
+                          href={
+                            item.url === "/"
+                              ? basePath
+                              : `${basePath}/${item.url}`
+                          }
+                        >
+                          <item.icon />
+                          <span>{item.title}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
-            {/* payments */}
-            <SidebarGroup>
-              <SidebarGroupLabel>Payments</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
-                      <Link href={`/${state.toLocaleLowerCase()}/payments`}>
-                        <Projector />
-                        See All Payments
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
-                      <Link href="/#">
-                        <Plus />
-                        Add Payment
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-            {/* audits */}
-            <SidebarGroup>
-              <SidebarGroupLabel>Audits</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
-                      <Link href={`/${state.toLocaleLowerCase()}/audits`}>
-                        <FileCheck />
-                        See All Audits
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
-                      <Link href={`${state.toLocaleLowerCase()}/audit`}>
-                        <Plus />
-                        Add Audit
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          </>
-        )}
+            {showReports && (
+              <SidebarGroup>
+                <SidebarGroupLabel>Reports</SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild>
+                        <Link href={`${basePath}/logs`}>
+                          <ClipboardList />
+                          <span>Activity Logs</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild>
+                        <Link href={`${basePath}/guest-meal-logs`}>
+                          <UtensilsCrossed />
+                          <span>Guest Meal Logs</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            )}
+            {state === "MESS_PREFECT" && (
+              <SidebarGroup>
+                <SidebarGroupLabel>Administration</SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild>
+                        <Link href="/mess-prefect/managers">
+                          <UserCog />
+                          <span>Managers</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild>
+                        <Link href="/mess-prefect/billing">
+                          <Receipt />
+                          <span>Billing</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild>
+                        <Link href="/mess-prefect/users">
+                          <Wallet />
+                          <span>Transactions</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            )}
+            {state === "ADMIN" && (
+              <>
+                {/* users */}
+                <SidebarGroup>
+                  <SidebarGroupLabel>Users</SidebarGroupLabel>
+                  <SidebarGroupContent>
+                    <SidebarMenu>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton asChild>
+                          <Link href={`/${state.toLocaleLowerCase()}/users`}>
+                            <Users />
+                            See All Users
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </SidebarGroup>
+                {/* payments */}
+                <SidebarGroup>
+                  <SidebarGroupLabel>Payments</SidebarGroupLabel>
+                  <SidebarGroupContent>
+                    <SidebarMenu>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton asChild>
+                          <Link href={`/${state.toLocaleLowerCase()}/payments`}>
+                            <Projector />
+                            See All Payments
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton asChild>
+                          <Link href="/#">
+                            <Plus />
+                            Add Payment
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </SidebarGroup>
+                {/* audits */}
+                <SidebarGroup>
+                  <SidebarGroupLabel>Audits</SidebarGroupLabel>
+                  <SidebarGroupContent>
+                    <SidebarMenu>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton asChild>
+                          <Link href={`/${state.toLocaleLowerCase()}/audits`}>
+                            <FileCheck />
+                            See All Audits
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton asChild>
+                          <Link href={`${state.toLocaleLowerCase()}/audit`}>
+                            <Plus />
+                            Add Audit
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </SidebarGroup>
+              </>
+            )}
           </>
         )}
       </SidebarContent>
@@ -306,7 +317,10 @@ export default function AppSideBar({ state, user }: AppSideBarProps) {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem asChild>
-                  <Link href={`${basePath}/settings`} className="flex w-full items-center">
+                  <Link
+                    href={`${basePath}/settings`}
+                    className="flex w-full items-center"
+                  >
                     <Settings2 className="mr-2 h-[1.2rem] w-[1.2rem]" />
                     Settings
                   </Link>
