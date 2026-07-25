@@ -6,7 +6,7 @@
   "homepage": "https://mess.pghall1.in",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma migrate deploy && next build",
     "start": "next start",
     "lint": "eslint .",
     "postinstall": "prisma generate",
