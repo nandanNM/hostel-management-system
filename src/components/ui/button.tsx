@@ -3,6 +3,7 @@ import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
+import { MotionButton } from "@/components/ui/motion-button"
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
@@ -52,18 +53,18 @@ function Button({
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean
   }) {
-  const Comp = asChild ? Slot : "button"
-
-  return (
-    <Comp
-      data-slot="button"
-      className={cn(
-        buttonVariants({ variant, size, className }),
-        "cursor-pointer"
-      )}
-      {...props}
-    />
+  const classes = cn(
+    buttonVariants({ variant, size, className }),
+    "cursor-pointer"
   )
+
+  if (asChild) {
+    return (
+      <Slot data-slot="button" className={classes} {...props} />
+    )
+  }
+
+  return <MotionButton data-slot="button" className={classes} {...props} />
 }
 
 export { Button, buttonVariants }
