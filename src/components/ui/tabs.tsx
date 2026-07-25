@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
+import { motion } from "motion/react"
 import { Tabs as TabsPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
@@ -77,14 +78,20 @@ function TabsTrigger({
 
 function TabsContent({
   className,
+  children,
   ...props
 }: React.ComponentProps<typeof TabsPrimitive.Content>) {
   return (
-    <TabsPrimitive.Content
-      data-slot="tabs-content"
-      className={cn("flex-1 outline-none", className)}
-      {...props}
-    />
+    <TabsPrimitive.Content data-slot="tabs-content" asChild {...props}>
+      <motion.div
+        initial={{ opacity: 0, y: 4 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2, ease: "easeOut" }}
+        className={cn("flex-1 outline-none", className)}
+      >
+        {children}
+      </motion.div>
+    </TabsPrimitive.Content>
   )
 }
 
