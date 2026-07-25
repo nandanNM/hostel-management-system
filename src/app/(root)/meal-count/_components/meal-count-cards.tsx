@@ -1,0 +1,124 @@
+import { format } from "date-fns"
+import { Drumstick, Leaf, Users, Utensils } from "lucide-react"
+
+import { cn } from "@/lib/utils"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+
+import { DailyMealCounts } from "../_lib/action"
+
+function prettifySlot(value: string) {
+  return value.charAt(0) + value.slice(1).toLowerCase()
+}
+
+export function MealCountCards({ data }: { data: DailyMealCounts }) {
+  const { totals, slots, date } = data
+
+  const stats = [
+    {
+      label: "Total Meals",
+      value: totals.totalMeal,
+      icon: Utensils,
+      className: "text-primary",
+    },
+    {
+      label: "Guest Meals",
+      value: totals.totalGuestMeal,
+      icon: Users,
+      className: "text-blue-600",
+    },
+    {
+      label: "Vegetarian",
+      value: totals.totalVeg,
+      icon: Leaf,
+      className: "text-green-600",
+    },
+    {
+      label: "Non-Veg",
+      value: totals.totalNonVeg,
+      icon: Drumstick,
+      className: "text-amber-600",
+    },
+  ]
+
+  return (
+    <div className="space-y-6">
+      <p className="text-muted-foreground text-sm">
+        {format(date, "EEEE, dd MMM yyyy")}
+      </p>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {stats.map((stat) => (
+          <Card key={stat.label}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-muted-foreground text-sm font-medium">
+                {stat.label}
+              </CardTitle>
+              <stat.icon className={cn("h-4 w-4", stat.className)} />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold tabular-nums">
+                {stat.value}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Breakdown by meal</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {slots.length === 0 ? (
+            <p className="text-muted-foreground text-sm">
+              Meal count has not been generated yet for today.
+            </p>
+          ) : (
+            <div className="overflow-x-auto rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Meal</TableHead>
+                    <TableHead className="text-right">Total</TableHead>
+                    <TableHead className="text-right">Guest</TableHead>
+                    <TableHead className="text-right">Veg</TableHead>
+                    <TableHead className="text-right">Non-Veg</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {slots.map((slot) => (
+                    <TableRow key={slot.mealTime}>
+                      <TableCell className="font-medium">
+                        {prettifySlot(slot.mealTime)}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {slot.totalMeal}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {slot.totalGuestMeal}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {slot.totalVeg}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {slot.totalNonVeg}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  )
+}

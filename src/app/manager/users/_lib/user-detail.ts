@@ -5,7 +5,7 @@ import { notFound } from "next/navigation"
 import { z } from "zod"
 
 import requireManager from "@/data/manager/require-manager"
-import { BillEntryType } from "@/lib/generated/prisma"
+import { BillEntryType, NotificationType } from "@/lib/generated/prisma"
 import prisma from "@/lib/prisma"
 import { ApiResponse } from "@/types"
 
@@ -221,8 +221,19 @@ export async function recordPayment(
       return { newBalance }
     })
 
+    await prisma.notification.create({
+      data: {
+        title: "Payment Recorded",
+        message: `A payment of ₹${amount.toFixed(2)} was recorded to your account. Your outstanding due is now ₹${result.newBalance.toFixed(2)}.`,
+        type: NotificationType.PAYMENT,
+        user: { connect: { id: userId } },
+        issuer: { connect: { id: actorId } },
+      },
+    })
+
     revalidatePath("/manager/users")
     revalidatePath("/mess-prefect/users")
+    revalidatePath("/dashboard")
     return {
       status: "success",
       message: `Payment of ₹${amount.toFixed(2)} recorded. New balance: ₹${result.newBalance.toFixed(2)}.`,

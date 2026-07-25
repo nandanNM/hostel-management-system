@@ -3,7 +3,7 @@
 import { ApiResponse } from "@/types"
 import { endOfMonth, startOfMonth } from "date-fns"
 
-import { MealStatusType } from "@/lib/generated/prisma"
+import { BillEntryType, MealStatusType } from "@/lib/generated/prisma"
 import prisma from "@/lib/prisma"
 import { requireUser } from "@/lib/require-user"
 
@@ -80,12 +80,13 @@ export async function getUserDeshboardStats() {
         orderBy: { createdAt: "desc" },
         select: { balanceRemaining: true },
       }),
-      prisma.userPayment.aggregate({
+      prisma.userBill.aggregate({
         _sum: {
-          paidAmount: true,
+          amount: true,
         },
         where: {
           userId: session.user.id,
+          type: BillEntryType.PAYMENT,
         },
       }),
       prisma.mealAttendance.count({
@@ -104,7 +105,7 @@ export async function getUserDeshboardStats() {
   //   totalMealAttendanceCount
   // )
   const totalBalanceRemaining = balanceRemainingDue?.balanceRemaining ?? 0
-  const totalPayments = totalPaymentsResult?._sum?.paidAmount ?? 0
+  const totalPayments = Math.abs(totalPaymentsResult?._sum?.amount ?? 0)
   const totalAttendance = totalMealAttendanceCount ?? 0
 
   return {

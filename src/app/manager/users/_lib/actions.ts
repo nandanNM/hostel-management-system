@@ -12,6 +12,7 @@ import {
   NonVegType,
   NotificationType,
   Prisma,
+  UserStatusType,
 } from "@/lib/generated/prisma"
 import { sendFineIssuedEmail, sendMealStatusEmail } from "@/lib/email"
 import prisma from "@/lib/prisma"
@@ -67,12 +68,19 @@ export async function getMealsForManager(
     })
   }
 
-  const whereClause =
+  const userScope: Prisma.MealWhereInput = {
+    user: {
+      deletedAt: null,
+      status: { notIn: [UserStatusType.INACTIVE, UserStatusType.FORMA] },
+    },
+  }
+
+  const whereClause: Prisma.MealWhereInput =
     filters.length > 0
       ? operator === "or"
-        ? { OR: filters }
-        : { AND: filters }
-      : {}
+        ? { AND: [userScope, { OR: filters }] }
+        : { AND: [userScope, ...filters] }
+      : userScope
 
   try {
     const [data, totalRows] = await Promise.all([

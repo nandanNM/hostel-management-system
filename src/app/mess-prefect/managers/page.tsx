@@ -2,7 +2,7 @@ import { unstable_noStore as noStore } from "next/cache"
 import { UserCog } from "lucide-react"
 
 import requireMessPrefect from "@/data/mess-prefect/require-mess-prefect"
-import { UserRoleType } from "@/lib/generated/prisma"
+import { UserRoleType, UserStatusType } from "@/lib/generated/prisma"
 import prisma from "@/lib/prisma"
 
 import { ManagersTable } from "./_components/managers-table"
@@ -12,7 +12,10 @@ export default async function ManagersPage() {
   const session = await requireMessPrefect()
 
   const users = await prisma.user.findMany({
-    where: { deletedAt: null },
+    where: {
+      deletedAt: null,
+      NOT: { status: { in: [UserStatusType.INACTIVE, UserStatusType.FORMA] } },
+    },
     select: {
       id: true,
       name: true,
