@@ -1,5 +1,9 @@
 import { Loader } from "@/components/ui/loader"
 
 export default function Loading() {
-  return <Loader variant="comet" size={24} className="mx-auto my-6" />
+  return (
+    <div className="fixed inset-0 flex items-center justify-center pb-12">
+      <Loader variant="comet" size={28} />
+    </div>
+  )
 }

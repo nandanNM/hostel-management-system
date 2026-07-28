@@ -29,7 +29,7 @@ export default function NavBar() {
           <Link href="/" className="font-bold">
             HMS-PG1
             <Badge className="ml-2 rounded-full" variant="destructive">
-              Beta
+              V1
             </Badge>
           </Link>
         </div>

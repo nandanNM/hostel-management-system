@@ -1,12 +1,14 @@
 import { Metadata } from "next"
 import { Info as InfoIcon } from "@phosphor-icons/react/ssr"
 
+import { BirthdayAnnouncements } from "./_components/birthday-announcements"
+
 export const metadata: Metadata = {
   title: "Home",
 }
 export default async function Home() {
   return (
-    <div className="">
+    <div className="space-y-4">
       <div className="rounded-md border px-4 py-3">
         <p className="text-sm">
           <InfoIcon
@@ -19,6 +21,8 @@ export default async function Home() {
           <span className="font-bold">+91 8509736585</span>.
         </p>
       </div>
+
+      <BirthdayAnnouncements />
 
       <div className="mt-8 flex flex-col items-center justify-center gap-2 text-center">
         <p className="text-muted-foreground text-sm font-medium">

@@ -48,14 +48,18 @@ export default function MealToggleButton() {
   } = useQuery({
     queryKey: ["meal", "status"],
     queryFn: () =>
-      kyInstance
-        .get("/api/user/meal/status")
-        .json<{ status: MealStatusType }>(),
+      kyInstance.get("/api/user/meal/status").json<{
+        status: MealStatusType | null
+        locked: boolean
+        unlockAt: string | null
+      }>(),
     refetchOnWindowFocus: false,
   })
 
   const currentStatus = result?.status
-  const isDisabled = isPending || isMutating || currentStatus === "SUSPENDED"
+  const locked = result?.locked ?? false
+  const isDisabled =
+    isPending || isMutating || currentStatus === "SUSPENDED" || locked
 
   if (isError && error) {
     toast.error(error.message)
@@ -68,64 +72,72 @@ export default function MealToggleButton() {
   }
 
   return (
-    <div className="flex items-center gap-2">
-      <AlertDialog>
-        <AlertDialogTrigger asChild>
-          <div className="inline-flex items-center gap-2 [--primary:var(--color-indigo-500)] [--ring:var(--color-indigo-300)] in-[.dark]:[--primary:var(--color-indigo-500)] in-[.dark]:[--ring:var(--color-indigo-900)]">
-            <Switch
-              id={id}
-              {...register("status")}
-              checked={currentStatus === "ACTIVE"}
-              onCheckedChange={() => {}} // Controlled by AlertDialog trigger
-              disabled={isDisabled}
-              className="cursor-pointer"
-            />
-            <Label htmlFor={id} className="sr-only">
-              Meal status toggle
-            </Label>
-          </div>
-        </AlertDialogTrigger>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirm Meal Status Change</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to turn your meal status{" "}
-              <span className="text-foreground font-semibold">
-                {currentStatus === "ACTIVE" ? "OFF" : "ON"}
-              </span>
-              ? This will update your mess requirements for the next meal.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirm}>
-              Continue
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+    <div className="flex flex-col gap-1">
+      <div className="flex items-center gap-2">
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <div className="inline-flex items-center gap-2 [--primary:var(--color-indigo-500)] [--ring:var(--color-indigo-300)] in-[.dark]:[--primary:var(--color-indigo-500)] in-[.dark]:[--ring:var(--color-indigo-900)]">
+              <Switch
+                id={id}
+                {...register("status")}
+                checked={currentStatus === "ACTIVE"}
+                onCheckedChange={() => {}} // Controlled by AlertDialog trigger
+                disabled={isDisabled}
+                className="cursor-pointer"
+              />
+              <Label htmlFor={id} className="sr-only">
+                Meal status toggle
+              </Label>
+            </div>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirm Meal Status Change</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to turn your meal status{" "}
+                <span className="text-foreground font-semibold">
+                  {currentStatus === "ACTIVE" ? "OFF" : "ON"}
+                </span>
+                ? This will update your mess requirements for the next meal.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleConfirm}>
+                Continue
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
-      <Badge
-        variant={
-          isPending
-            ? "outline"
-            : currentStatus === "ACTIVE"
-              ? "default"
-              : currentStatus === "INACTIVE"
-                ? "destructive"
-                : "secondary"
-        }
-        size="sm"
-        className="ml-2"
-      >
-        {isPending ? (
-          <Loader variant="comet" size={16} className="mr-2" />
-        ) : currentStatus === "SUSPENDED" ? (
-          "Meal status: Suspended"
-        ) : (
-          `Meal status: ${currentStatus === "ACTIVE" ? "ON" : "OFF"}`
-        )}
-      </Badge>
+        <Badge
+          variant={
+            isPending
+              ? "outline"
+              : currentStatus === "ACTIVE"
+                ? "default"
+                : currentStatus === "INACTIVE"
+                  ? "destructive"
+                  : "secondary"
+          }
+          size="sm"
+          className="ml-2"
+        >
+          {isPending ? (
+            <Loader variant="comet" size={16} className="mr-2" />
+          ) : currentStatus === "SUSPENDED" ? (
+            "Meal status: Suspended"
+          ) : (
+            `Meal status: ${currentStatus === "ACTIVE" ? "ON" : "OFF"}`
+          )}
+        </Badge>
+      </div>
+      {locked && (
+        <p className="text-muted-foreground text-xs">
+          A meal was generated recently. You can update your meal preference
+          after 2 hours.
+        </p>
+      )}
     </div>
   )
 }
