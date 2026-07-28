@@ -8,7 +8,7 @@ import { PageContainer } from "@/components/page-container"
 import SettingsForm from "./_components/settings-form"
 
 export const metadata: Metadata = {
-  title: "User Settings | HMS",
+  title: "User Settings | D.L Bhawan (PG1)",
   description: "Update your personal account information.",
 }
 

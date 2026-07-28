@@ -27,10 +27,10 @@ export default function NavBar() {
             setIsOpen={setIsOpen}
             navItems={navItems}
           />
-          <Link href="/" className="font-bold">
-            HMS-PG1
+          <Link href="/" className="font-bold whitespace-nowrap">
+            D.L Bhawan
             <Badge className="ml-2 rounded-full" variant="destructive">
-              V1
+              PG1
             </Badge>
           </Link>
         </div>

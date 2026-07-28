@@ -9,7 +9,7 @@ import { happyBirthdayEmail } from "./emails/happy-birthday"
 import { terminationEmail } from "./emails/termination"
 import { EMAIL_FROM, resend } from "./resend-client"
 
-const APP_NAME = "Hostel Mess Management"
+const APP_NAME = "D.L Bhawan (PG1)"
 
 type SendEmailArgs = {
   to: string

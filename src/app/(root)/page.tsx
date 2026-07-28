@@ -17,9 +17,21 @@ export default async function Home() {
             size={16}
             aria-hidden="true"
           />
-          This is a testing environment for the Hostel Management System. For
-          any issues or feedback, please contact support at:{" "}
+          This is a testing environment for D.L Bhawan (PG1). For any issues or
+          feedback, please contact support at:{" "}
           <span className="font-bold">+91 8509736585</span>.
+        </p>
+      </div>
+
+      <div className="from-primary/10 rounded-xl border bg-linear-to-br to-transparent p-6 text-center">
+        <p className="text-primary text-3xl font-extrabold tracking-tight">
+          PG1 No.1 🔥
+        </p>
+        <p className="text-foreground mt-1 text-sm font-medium">
+          D.L Bhawan ka apna mess — sabse alag, sabse best.
+        </p>
+        <p className="text-muted-foreground mt-0.5 text-sm">
+          Roz fresh khana, roz full attendance. PG1 zindabad! 🍽️
         </p>
       </div>
 

@@ -129,9 +129,7 @@ export default function HostelManagementPage() {
   return (
     <div className="container mx-auto max-w-7xl p-3 md:p-6">
       <div className="mb-4 md:mb-6">
-        <h1 className="text-2xl font-bold md:text-3xl">
-          Hostel Management System
-        </h1>
+        <h1 className="text-2xl font-bold md:text-3xl">D.L Bhawan (PG1)</h1>
         <p className="text-muted-foreground text-sm md:text-base">
           Track daily meals and resident attendance
         </p>

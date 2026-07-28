@@ -1,4 +1,4 @@
-export const APP_NAME = "Hostel Mess Management"
+export const APP_NAME = "D.L Bhawan (PG1)"
 
 export type EmailTemplate = { subject: string; html: string }
 
