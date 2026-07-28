@@ -10,7 +10,7 @@ import {
   type MouseEventHandler,
   type ReactNode,
 } from "react"
-import { XIcon } from "lucide-react"
+import { X as XIcon } from "@phosphor-icons/react"
 
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"

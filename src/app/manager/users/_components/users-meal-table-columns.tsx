@@ -2,23 +2,23 @@
 
 import * as React from "react"
 import { usePathname, useRouter } from "next/navigation"
-import { ColumnDef } from "@tanstack/react-table"
 import {
   CheckCircle,
   Clock,
   Copy,
-  Edit2,
+  PencilSimple as Edit2,
   Eye,
   Gavel,
-  MoreHorizontal,
-  RefreshCcw,
+  DotsThree as MoreHorizontal,
+  ArrowsClockwise as RefreshCcw,
   XCircle,
-} from "lucide-react"
-import { toast } from "sonner"
+} from "@phosphor-icons/react"
+import { ColumnDef } from "@tanstack/react-table"
 
 import { GetMealWithUser } from "@/types/prisma.type"
 import { MealStatusType, NonVegType } from "@/lib/generated/prisma"
 import { getErrorMessage } from "@/lib/handle-error"
+import { toast } from "@/lib/toast"
 import { formatDate } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"

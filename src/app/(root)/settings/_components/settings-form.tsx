@@ -2,15 +2,26 @@
 
 import { useTransition } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
+import {
+  Calendar as CalendarIcon,
+  CircleNotch as Loader2,
+  FloppyDisk as Save,
+} from "@phosphor-icons/react"
 import { format } from "date-fns"
-import { CalendarIcon, Loader2, Save } from "lucide-react"
 import { useForm } from "react-hook-form"
-import { toast } from "sonner"
 
+import { toast } from "@/lib/toast"
 import { cn } from "@/lib/utils"
 import { settingsSchema, type Settings } from "@/lib/validations"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import {
   Form,
   FormControl,
@@ -26,7 +37,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 import { updateUserSettings } from "../_lib/action"
 
@@ -62,7 +72,7 @@ export default function SettingsForm({ user }: SettingsFormProps) {
   }
 
   return (
-    <Card className="w-full max-w-2xl border-none shadow-none bg-transparent">
+    <Card className="w-full max-w-2xl border-none bg-transparent shadow-none">
       <CardHeader className="px-0 pt-0">
         <CardTitle className="text-2xl font-bold">Account Settings</CardTitle>
         <CardDescription>
@@ -103,7 +113,7 @@ export default function SettingsForm({ user }: SettingsFormProps) {
                           <Button
                             variant={"outline"}
                             className={cn(
-                              "w-full pl-3 text-left font-normal h-10",
+                              "h-10 w-full pl-3 text-left font-normal",
                               !field.value && "text-muted-foreground"
                             )}
                           >
@@ -154,7 +164,11 @@ export default function SettingsForm({ user }: SettingsFormProps) {
             />
 
             <div className="flex justify-end pt-4">
-              <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
+              <Button
+                type="submit"
+                disabled={isPending}
+                className="w-full sm:w-auto"
+              >
                 {isPending ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

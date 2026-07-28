@@ -1,14 +1,14 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { format } from "date-fns"
 import {
-  CheckCircle2,
-  ClipboardCheck,
-  Loader2,
+  CheckCircle as CheckCircle2,
+  ClipboardText as ClipboardCheck,
+  CircleNotch as Loader2,
   Receipt,
   SlidersHorizontal,
-} from "lucide-react"
+} from "@phosphor-icons/react"
+import { format } from "date-fns"
 
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"

@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { CheckIcon, XIcon } from "lucide-react"
+import { Check as CheckIcon, X as XIcon } from "@phosphor-icons/react"
 
 import type { GetUsersWithMeal } from "@/types/prisma.type" // Assuming this type has 'id', 'name', and 'email'
 

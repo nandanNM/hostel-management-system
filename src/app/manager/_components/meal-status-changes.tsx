@@ -1,8 +1,8 @@
 "use client"
 
+import { CircleNotch as Loader2, ToggleLeft } from "@phosphor-icons/react"
 import { useQuery } from "@tanstack/react-query"
 import { format } from "date-fns"
-import { Loader2, ToggleLeft } from "lucide-react"
 
 import { GetMealStatusChangeLog } from "@/types/prisma.type"
 import kyInstance from "@/lib/ky"
@@ -87,9 +87,7 @@ export function MealStatusChangesList() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ScrollArea
-          className={currentLogs.length > 0 ? "h-[300px]" : "h-auto"}
-        >
+        <ScrollArea className={currentLogs.length > 0 ? "h-[300px]" : "h-auto"}>
           <div className="space-y-4 pr-4">
             {currentLogs.length > 0 ? (
               currentLogs.map((log, index) => {
@@ -139,8 +137,7 @@ export function MealStatusChangesList() {
                             {formatRelativeDate(new Date(log.timestamp))}
                           </span>
                           <span className="text-muted-foreground text-xs">
-                            &bull;{" "}
-                            {format(new Date(log.timestamp), "hh:mm a")}
+                            &bull; {format(new Date(log.timestamp), "hh:mm a")}
                           </span>
                         </div>
                         <p className="text-muted-foreground text-xs">

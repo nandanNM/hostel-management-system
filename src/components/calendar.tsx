@@ -10,14 +10,14 @@ import {
   useState,
   type ReactNode,
 } from "react"
-import { getDay, getDaysInMonth, isSameDay } from "date-fns"
-import { atom, useAtom } from "jotai"
 import {
   Check,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  ChevronsUpDown,
-} from "lucide-react"
+  CaretLeft as ChevronLeftIcon,
+  CaretRight as ChevronRightIcon,
+  CaretUpDown as ChevronsUpDown,
+} from "@phosphor-icons/react"
+import { getDay, getDaysInMonth, isSameDay } from "date-fns"
+import { atom, useAtom } from "jotai"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"

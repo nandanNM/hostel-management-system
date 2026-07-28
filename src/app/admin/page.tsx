@@ -1,5 +1,5 @@
 import { Metadata } from "next"
-import { InfoIcon } from "lucide-react"
+import { Info as InfoIcon } from "@phosphor-icons/react/ssr"
 
 export const metadata: Metadata = {
   title: "Admin Dashboard",
@@ -14,7 +14,8 @@ export default async function Page() {
       <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
       <p className="text-muted-foreground mt-4 max-w-sm text-lg leading-relaxed">
         The full administrator implementation is currently under maintenance. We
-        are working on bringing you advanced analytics and user management tools.
+        are working on bringing you advanced analytics and user management
+        tools.
       </p>
       <div className="mt-8 rounded-lg border border-blue-500/20 bg-blue-50/50 p-4 dark:bg-blue-900/10">
         <p className="text-sm font-medium text-blue-600 dark:text-blue-400">

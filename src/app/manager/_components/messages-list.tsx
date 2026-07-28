@@ -1,7 +1,10 @@
 "use client"
 
+import {
+  CircleNotch as Loader2,
+  ChatText as MessageSquare,
+} from "@phosphor-icons/react"
 import { useQuery } from "@tanstack/react-query"
-import { Loader2, MessageSquare } from "lucide-react"
 
 import { GetUserMealEventWithUser } from "@/types/prisma.type"
 import kyInstance from "@/lib/ky"
@@ -74,7 +77,7 @@ export function MessagesList() {
   const currentMessages = messages || []
 
   return (
-      <Card className="w-full">
+    <Card className="w-full">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <MessageSquare className="h-5 w-5" /> Meal Messages

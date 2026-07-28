@@ -1,5 +1,5 @@
 import { unstable_noStore as noStore } from "next/cache"
-import { GraduationCap } from "lucide-react"
+import { GraduationCap } from "@phosphor-icons/react/ssr"
 
 import { UserRoleType } from "@/lib/generated/prisma"
 import prisma from "@/lib/prisma"

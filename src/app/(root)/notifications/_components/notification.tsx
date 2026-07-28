@@ -1,13 +1,13 @@
 import type { JSX } from "react" // Import JSX to fix the lint error
 import Link from "next/link"
 import {
-  AlertTriangle,
+  Warning as AlertTriangle,
   Clock,
   CreditCard,
   Megaphone,
-  Settings2,
-  UtensilsCrossed,
-} from "lucide-react"
+  GearSix as Settings2,
+  ForkKnife as UtensilsCrossed,
+} from "@phosphor-icons/react/ssr"
 
 import { GetNotificationWithIssuer } from "@/types/prisma.type"
 import { NotificationType } from "@/lib/generated/prisma"

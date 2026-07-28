@@ -2,14 +2,14 @@
 
 import { useState } from "react"
 import { usePathname } from "next/navigation"
-import { format } from "date-fns"
 import {
   GraduationCap,
-  Loader2,
+  CircleNotch as Loader2,
   MinusCircle,
   PiggyBank,
   Plus,
-} from "lucide-react"
+} from "@phosphor-icons/react"
+import { format } from "date-fns"
 
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"

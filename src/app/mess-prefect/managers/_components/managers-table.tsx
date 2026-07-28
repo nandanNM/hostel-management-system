@@ -2,10 +2,13 @@
 
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
-import { Loader2, Pencil } from "lucide-react"
-import { toast } from "sonner"
+import {
+  CircleNotch as Loader2,
+  PencilSimple as Pencil,
+} from "@phosphor-icons/react"
 
 import { UserRoleType, UserStatusType } from "@/lib/generated/prisma"
+import { toast } from "@/lib/toast"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -91,7 +94,9 @@ export function ManagersTable({
 }) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
-  const [pendingRoleUserId, setPendingRoleUserId] = useState<string | null>(null)
+  const [pendingRoleUserId, setPendingRoleUserId] = useState<string | null>(
+    null
+  )
   const [editing, setEditing] = useState<ManagerUser | null>(null)
 
   function handleRoleChange(user: ManagerUser, role: string) {
@@ -201,7 +206,9 @@ export function ManagersTable({
                         >
                           <SelectTrigger className="ml-auto w-35">
                             <SelectValue
-                              placeholder={locked ? prettify(user.role) : "Select"}
+                              placeholder={
+                                locked ? prettify(user.role) : "Select"
+                              }
                             />
                           </SelectTrigger>
                           <SelectContent>
@@ -290,7 +297,12 @@ function EditDetailsDialog({
           >
             <div className="space-y-2">
               <Label htmlFor="name">Name</Label>
-              <Input id="name" name="name" defaultValue={user.name ?? ""} required />
+              <Input
+                id="name"
+                name="name"
+                defaultValue={user.name ?? ""}
+                required
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="selfPhNo">Phone number</Label>

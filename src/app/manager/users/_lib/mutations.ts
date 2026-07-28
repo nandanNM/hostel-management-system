@@ -1,6 +1,7 @@
 import { useRouter } from "next/navigation"
 import { useMutation } from "@tanstack/react-query"
-import { toast } from "sonner"
+
+import { toast } from "@/lib/toast"
 
 import {
   addUserAdvance,

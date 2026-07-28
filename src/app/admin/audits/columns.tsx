@@ -1,13 +1,13 @@
 "use client"
 
-import type { ColumnDef } from "@tanstack/react-table"
 import {
-  ArrowUpDown,
+  ArrowsDownUp as ArrowUpDown,
   Calendar,
-  Edit,
-  MoreHorizontal,
-  Trash2,
-} from "lucide-react"
+  PencilSimple as Edit,
+  DotsThree as MoreHorizontal,
+  Trash as Trash2,
+} from "@phosphor-icons/react"
+import type { ColumnDef } from "@tanstack/react-table"
 
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"

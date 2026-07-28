@@ -1,7 +1,11 @@
 import { Suspense } from "react"
 import { Metadata } from "next"
 import { notFound } from "next/navigation"
-import { InfoIcon, Loader2, TriangleAlert } from "lucide-react"
+import {
+  Info as InfoIcon,
+  CircleNotch as Loader2,
+  Warning as TriangleAlert,
+} from "@phosphor-icons/react/ssr"
 
 import { requireUser } from "@/lib/require-user"
 import { Separator } from "@/components/ui/separator"

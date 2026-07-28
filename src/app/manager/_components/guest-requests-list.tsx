@@ -1,19 +1,18 @@
 "use client"
 
-import { useQuery } from "@tanstack/react-query"
 import {
-  CircleAlert,
+  WarningCircle as CircleAlert,
   Clock,
   Leaf,
-  Loader2,
+  CircleNotch as Loader2,
   Users,
-  Utensils,
-} from "lucide-react"
-
+  ForkKnife as Utensils,
+} from "@phosphor-icons/react"
+import { useQuery } from "@tanstack/react-query"
 import { useSession } from "next-auth/react"
 
-import { MealType } from "@/lib/generated/prisma"
 import { GetGuestMealWithUser } from "@/types/prisma.type"
+import { MealType } from "@/lib/generated/prisma"
 import kyInstance from "@/lib/ky"
 import { formatRelativeDate } from "@/lib/utils"
 import {
@@ -138,7 +137,7 @@ export function GuestRequestsList() {
                   <div className="flex flex-col gap-1">
                     <p className="text-muted-foreground text-xs">
                       Requested by:{" "}
-                      <span className="font-medium text-foreground">
+                      <span className="text-foreground font-medium">
                         {request.user?.name ?? "Unknown"}
                       </span>{" "}
                       &bull; {request.user?.email}
@@ -181,85 +180,85 @@ export function GuestRequestsList() {
                     </div>
                   )}
                   {!isReadOnly && (
-                  <AlertDialog>
-                    <div className="ml-auto flex flex-col gap-3 sm:flex-row sm:items-center">
-                      <div className="mt-3 flex gap-2 sm:mt-0">
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            disabled={isAnyMutationPending}
-                          >
-                            Approve
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            disabled={isAnyMutationPending}
-                          >
-                            Decline
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="text-red-500 hover:bg-red-50 hover:text-red-600"
-                            disabled={isAnyMutationPending}
-                          >
-                            <span className="sr-only">Delete</span>
-                          </Button>
-                        </AlertDialogTrigger>
+                    <AlertDialog>
+                      <div className="ml-auto flex flex-col gap-3 sm:flex-row sm:items-center">
+                        <div className="mt-3 flex gap-2 sm:mt-0">
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={isAnyMutationPending}
+                            >
+                              Approve
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              disabled={isAnyMutationPending}
+                            >
+                              Decline
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="text-red-500 hover:bg-red-50 hover:text-red-600"
+                              disabled={isAnyMutationPending}
+                            >
+                              <span className="sr-only">Delete</span>
+                            </Button>
+                          </AlertDialogTrigger>
+                        </div>
                       </div>
-                    </div>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Confirm Action</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Are you sure you want to perform this action? This
-                          action cannot be undone.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() =>
-                            updateMutation.mutate({
-                              id: request.id,
-                              status: "APPROVED",
-                              requestedUserId: request.userId,
-                              amount: request.mealCharge,
-                            })
-                          }
-                          disabled={updateMutation.isPending}
-                        >
-                          {updateMutation.isPending ? (
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          ) : null}
-                          Approve
-                        </AlertDialogAction>
-                        <AlertDialogAction
-                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                          onClick={() =>
-                            updateMutation.mutate({
-                              id: request.id,
-                              status: "REJECTED",
-                              requestedUserId: request.userId,
-                              amount: request.mealCharge,
-                            })
-                          }
-                          disabled={updateMutation.isPending}
-                        >
-                          {updateMutation.isPending ? (
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          ) : null}
-                          Decline
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Confirm Action</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to perform this action? This
+                            action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() =>
+                              updateMutation.mutate({
+                                id: request.id,
+                                status: "APPROVED",
+                                requestedUserId: request.userId,
+                                amount: request.mealCharge,
+                              })
+                            }
+                            disabled={updateMutation.isPending}
+                          >
+                            {updateMutation.isPending ? (
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            ) : null}
+                            Approve
+                          </AlertDialogAction>
+                          <AlertDialogAction
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            onClick={() =>
+                              updateMutation.mutate({
+                                id: request.id,
+                                status: "REJECTED",
+                                requestedUserId: request.userId,
+                                amount: request.mealCharge,
+                              })
+                            }
+                            disabled={updateMutation.isPending}
+                          >
+                            {updateMutation.isPending ? (
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            ) : null}
+                            Decline
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   )}
                 </div>
                 {index < currentRequests.length - 1 && (

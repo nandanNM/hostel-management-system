@@ -2,10 +2,15 @@
 
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
+import {
+  Check,
+  CircleNotch as Loader2,
+  UserCheck,
+  X,
+} from "@phosphor-icons/react"
 import { format } from "date-fns"
-import { Check, Loader2, UserCheck, X } from "lucide-react"
-import { toast } from "sonner"
 
+import { toast } from "@/lib/toast"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -70,8 +75,8 @@ export function ApprovalsTable({ users }: { users: PendingUser[] }) {
           Pending Approvals
         </CardTitle>
         <CardDescription>
-          New boarders awaiting activation. Approve to grant access, or reject to
-          suspend the account.
+          New boarders awaiting activation. Approve to grant access, or reject
+          to suspend the account.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -126,7 +131,9 @@ export function ApprovalsTable({ users }: { users: PendingUser[] }) {
                               : "bg-yellow-100 text-yellow-700"
                           )}
                         >
-                          {user.onboardingCompleted ? "Completed" : "Incomplete"}
+                          {user.onboardingCompleted
+                            ? "Completed"
+                            : "Incomplete"}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-muted-foreground text-sm">

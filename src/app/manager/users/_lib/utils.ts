@@ -1,10 +1,16 @@
 import {
+  Cow as Beef,
+  Circle as CircleIcon,
+  Egg,
+  Fish,
+  X,
+} from "@phosphor-icons/react/ssr"
+import {
   CheckCircledIcon,
   CrossCircledIcon,
   QuestionMarkCircledIcon,
   StopwatchIcon,
 } from "@radix-ui/react-icons"
-import { Beef, CircleIcon, Egg, Fish, X } from "lucide-react"
 
 import { MealStatusType, NonVegType } from "@/lib/generated/prisma"
 

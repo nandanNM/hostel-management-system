@@ -1,7 +1,13 @@
 import Image from "next/image"
 import Link from "next/link"
 import avatarPlaceholder from "@/assets/avatar-placeholder.png"
-import { ChefHatIcon, Lock, LogOut, Settings2, ShieldCheck } from "lucide-react"
+import {
+  CookingPot as ChefHatIcon,
+  Lock,
+  SignOut as LogOut,
+  GearSix as Settings2,
+  ShieldCheck,
+} from "@phosphor-icons/react/ssr"
 import { signOut, useSession } from "next-auth/react"
 
 import { Button } from "./ui/button"

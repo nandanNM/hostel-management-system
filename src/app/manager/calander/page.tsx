@@ -3,10 +3,10 @@
 import { useMemo, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { format, isSameDay } from "date-fns"
-import { toast } from "sonner"
 
 import type { GetUsersWithMeal } from "@/types/prisma.type"
 import kyInstance from "@/lib/ky"
+import { toast } from "@/lib/toast"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {

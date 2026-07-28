@@ -1,7 +1,7 @@
 import { unstable_noStore as noStore } from "next/cache"
-import { UserCheck } from "lucide-react"
-
 import requireMessPrefect from "@/data/mess-prefect/require-mess-prefect"
+import { UserCheck } from "@phosphor-icons/react/ssr"
+
 import { UserStatusType } from "@/lib/generated/prisma"
 import prisma from "@/lib/prisma"
 

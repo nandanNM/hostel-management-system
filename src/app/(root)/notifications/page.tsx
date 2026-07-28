@@ -1,12 +1,12 @@
 "use client"
 
 import { useEffect } from "react"
+import { Bell, CircleNotch as Loader2 } from "@phosphor-icons/react"
 import { useQuery } from "@tanstack/react-query"
-import { Bell, Loader2 } from "lucide-react"
-import { toast } from "sonner"
 
 import { GetNotificationWithIssuer } from "@/types/prisma.type"
 import kyInstance from "@/lib/ky"
+import { toast } from "@/lib/toast"
 import { PageContainer } from "@/components/page-container"
 
 import Notification from "./_components/notification"

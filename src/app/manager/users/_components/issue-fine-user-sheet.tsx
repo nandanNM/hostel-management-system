@@ -5,8 +5,8 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { CalendarIcon, ReloadIcon } from "@radix-ui/react-icons"
 import { addDays, format, isAfter, isBefore, startOfDay } from "date-fns"
 import { useForm } from "react-hook-form"
-import { toast } from "sonner"
 
+import { toast } from "@/lib/toast"
 import { cn } from "@/lib/utils"
 import { tryCatch } from "@/hooks/try-catch"
 import { Button } from "@/components/ui/button"
@@ -39,8 +39,9 @@ import { Textarea } from "@/components/ui/textarea"
 import { issueFineToUser } from "../_lib/actions"
 import { createUserFineSchema, CreateUserFineSchema } from "../_lib/validations"
 
-interface CreateFineSheetProps
-  extends React.ComponentPropsWithRef<typeof Sheet> {
+interface CreateFineSheetProps extends React.ComponentPropsWithRef<
+  typeof Sheet
+> {
   targetUserId: string
 }
 

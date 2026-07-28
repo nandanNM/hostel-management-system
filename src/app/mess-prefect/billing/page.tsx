@@ -1,7 +1,11 @@
 import Link from "next/link"
+import {
+  CaretLeft as ChevronLeft,
+  CaretRight as ChevronRight,
+  Receipt,
+} from "@phosphor-icons/react/ssr"
 import { addMonths, startOfMonth, subMonths } from "date-fns"
 import { toZonedTime } from "date-fns-tz"
-import { ChevronLeft, ChevronRight, Receipt } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"

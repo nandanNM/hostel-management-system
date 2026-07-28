@@ -2,20 +2,14 @@
 
 import { useId } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { CircleNotch as Loader2 } from "@phosphor-icons/react"
 import { useQuery } from "@tanstack/react-query"
-import { Loader2 } from "lucide-react"
 import { useForm } from "react-hook-form"
-import { toast } from "sonner"
 import z from "zod"
 
 import { MealStatusType } from "@/lib/generated/prisma"
 import kyInstance from "@/lib/ky"
-import { Badge } from "@/components/ui/crazxy-ui/badge"
-import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
-
-import { useToggleMealStatus } from "../_lib/mutations"
-
+import { toast } from "@/lib/toast"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,6 +21,11 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { Badge } from "@/components/ui/crazxy-ui/badge"
+import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
+
+import { useToggleMealStatus } from "../_lib/mutations"
 
 const toggleMealStatusSchema = z.object({
   status: z.nativeEnum(MealStatusType),
@@ -57,7 +56,7 @@ export default function MealToggleButton() {
 
   const currentStatus = result?.status
   const isDisabled = isPending || isMutating || currentStatus === "SUSPENDED"
-  
+
   if (isError && error) {
     toast.error(error.message)
   }
@@ -91,7 +90,7 @@ export default function MealToggleButton() {
             <AlertDialogTitle>Confirm Meal Status Change</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to turn your meal status{" "}
-              <span className="font-semibold text-foreground">
+              <span className="text-foreground font-semibold">
                 {currentStatus === "ACTIVE" ? "OFF" : "ON"}
               </span>
               ? This will update your mess requirements for the next meal.

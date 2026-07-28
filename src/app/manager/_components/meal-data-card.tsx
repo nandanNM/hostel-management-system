@@ -1,27 +1,20 @@
 "use client"
 
-import { useQuery } from "@tanstack/react-query"
 import {
-  ChefHat,
+  CookingPot as ChefHat,
   Egg,
   Fish,
   Leaf,
-  TrendingUp,
-  Utensils,
-} from "lucide-react"
+  TrendUp as TrendingUp,
+  ForkKnife as Utensils,
+} from "@phosphor-icons/react"
+import { useQuery } from "@tanstack/react-query"
 import { useSession } from "next-auth/react"
-import { toast } from "sonner"
 
 import type { DailyMealActivity } from "@/lib/generated/prisma"
 import kyInstance from "@/lib/ky"
+import { toast } from "@/lib/toast"
 import { cn, formatRelativeDate } from "@/lib/utils"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,6 +27,13 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import LoadingButton from "@/components/LoadingButton"
 
 import { useGenerateMealData } from "../_lib/mutations"

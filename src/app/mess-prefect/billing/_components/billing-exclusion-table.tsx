@@ -2,13 +2,17 @@
 
 import { useMemo, useState } from "react"
 import {
+  MagnifyingGlass as Search,
+  UserMinus,
+  UserPlus,
+} from "@phosphor-icons/react"
+import {
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
   useReactTable,
   type ColumnDef,
 } from "@tanstack/react-table"
-import { Search, UserMinus, UserPlus } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"

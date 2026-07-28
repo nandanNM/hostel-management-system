@@ -3,13 +3,13 @@
 import { useState } from "react"
 import Link from "next/link"
 import { NavItems } from "@/data/nav-data"
-import { Menu } from "lucide-react"
+import { List as Menu } from "@phosphor-icons/react"
 
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 
 import { ThemeSwitcher } from "./ThemeSwitcher"
-import UserButton from "./UserButton"
 import { Badge } from "./ui/badge"
+import UserButton from "./UserButton"
 
 export default function NavBar() {
   const navItems = NavItems()
@@ -27,8 +27,10 @@ export default function NavBar() {
             navItems={navItems}
           />
           <Link href="/" className="font-bold">
-            HMS-PG1 
-            <Badge className="ml-2 rounded-full" variant="destructive">Beta</Badge>
+            HMS-PG1
+            <Badge className="ml-2 rounded-full" variant="destructive">
+              Beta
+            </Badge>
           </Link>
         </div>
         <div className="flex items-center justify-center gap-2">

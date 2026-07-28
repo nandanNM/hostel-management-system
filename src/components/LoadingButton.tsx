@@ -1,5 +1,5 @@
 import React from "react"
-import { Loader2 as Loader2Icon } from "lucide-react"
+import { CircleNotch as Loader2Icon } from "@phosphor-icons/react/ssr"
 
 import { cn } from "@/lib/utils"
 import { Button, type ButtonProps } from "@/components/ui/button"

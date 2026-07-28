@@ -1,17 +1,17 @@
 import React, { cache, Suspense } from "react"
 import { notFound } from "next/navigation"
 import { MealPreference } from "@/types"
-import { formatDate } from "date-fns"
+import type { Icon } from "@phosphor-icons/react"
 import {
   Gavel,
-  Loader2,
-  LucideIcon,
+  CircleNotch as Loader2,
   MapPin,
-  TrendingUp,
+  TrendUp as TrendingUp,
   User as UserIcon,
-  Utensils,
+  ForkKnife as Utensils,
   Wallet,
-} from "lucide-react"
+} from "@phosphor-icons/react/ssr"
+import { formatDate } from "date-fns"
 
 import { User } from "@/lib/generated/prisma"
 import prisma from "@/lib/prisma"
@@ -90,7 +90,7 @@ async function OverviewCards() {
 
 interface StatsCardProps {
   title: string
-  icon: LucideIcon
+  icon: Icon
   value: number | string
   color: string
   subtitle?: string

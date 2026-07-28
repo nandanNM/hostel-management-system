@@ -2,9 +2,14 @@
 
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
-import { Loader2, Pencil, Plus, Trash2 } from "lucide-react"
-import { toast } from "sonner"
+import {
+  CircleNotch as Loader2,
+  PencilSimple as Pencil,
+  Plus,
+  Trash as Trash2,
+} from "@phosphor-icons/react"
 
+import { toast } from "@/lib/toast"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -127,7 +132,9 @@ export function AlumniTable({
                     <TableCell className="font-medium">{row.name}</TableCell>
                     <TableCell>{row.department}</TableCell>
                     <TableCell>{row.year}</TableCell>
-                    <TableCell className="text-sm">{row.mobileNumber}</TableCell>
+                    <TableCell className="text-sm">
+                      {row.mobileNumber}
+                    </TableCell>
                     <TableCell className="text-muted-foreground text-sm">
                       {row.email}
                     </TableCell>

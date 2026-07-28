@@ -8,8 +8,8 @@ import ReactQueryProvider from "@/context/ReactQueryProvider"
 import { ThemeProvider } from "@/context/theme-provider"
 
 import { siteConfig } from "@/config/site"
+import { Toaster } from "@/lib/toast"
 import { cn } from "@/lib/utils"
-import { Toaster } from "@/components/ui/sonner"
 
 const fontSans = Geist_Mono({
   subsets: ["latin"],

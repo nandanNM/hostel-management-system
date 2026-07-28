@@ -1,5 +1,5 @@
 import { Metadata } from "next"
-import { InfoIcon } from "lucide-react"
+import { Info as InfoIcon } from "@phosphor-icons/react/ssr"
 
 export const metadata: Metadata = {
   title: "Home",
@@ -34,9 +34,7 @@ export default async function Home() {
         </p>
         <p className="text-muted-foreground text-xs">
           🛠️ Maintained by{" "}
-          <span className="text-foreground font-semibold">
-            Suvadip Mahato
-          </span>
+          <span className="text-foreground font-semibold">Suvadip Mahato</span>
         </p>
       </div>
     </div>

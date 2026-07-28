@@ -1,7 +1,7 @@
 import { unstable_noStore as noStore } from "next/cache"
-import { UserCog } from "lucide-react"
-
 import requireMessPrefect from "@/data/mess-prefect/require-mess-prefect"
+import { UserGear as UserCog } from "@phosphor-icons/react/ssr"
+
 import { UserRoleType, UserStatusType } from "@/lib/generated/prisma"
 import prisma from "@/lib/prisma"
 

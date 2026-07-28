@@ -1,19 +1,19 @@
 "use client"
 
 import { useState } from "react"
+import {
+  Info as InfoIcon,
+  CircleNotch as Loader2,
+  Plus,
+  Trash as Trash2Icon,
+  ForkKnife as UtensilsCrossedIcon,
+} from "@phosphor-icons/react"
 import { useQuery } from "@tanstack/react-query"
 import { format } from "date-fns"
-import {
-  InfoIcon,
-  Loader2,
-  Plus,
-  Trash2Icon,
-  UtensilsCrossedIcon,
-} from "lucide-react"
-import { toast } from "sonner"
 
 import { GuestMeal } from "@/lib/generated/prisma"
 import kyInstance from "@/lib/ky"
+import { toast } from "@/lib/toast"
 import {
   AlertDialog,
   AlertDialogAction,

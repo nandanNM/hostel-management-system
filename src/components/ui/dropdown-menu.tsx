@@ -1,8 +1,12 @@
 "use client"
 
 import * as React from "react"
+import {
+  Check as CheckIcon,
+  CaretRight as ChevronRightIcon,
+  Circle as CircleIcon,
+} from "@phosphor-icons/react"
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu"
-import { CheckIcon, ChevronRightIcon, CircleIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 

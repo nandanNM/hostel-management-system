@@ -1,7 +1,10 @@
 import Link from "next/link"
-import { MessageCircle, ShieldX } from "lucide-react"
-
 import { ADMIN_WHATSAPP_NUMBER } from "@/constants"
+import {
+  ChatCircle as MessageCircle,
+  ShieldWarning as ShieldX,
+} from "@phosphor-icons/react/ssr"
+
 import { buttonVariants } from "@/components/ui/button"
 import {
   Card,
@@ -44,10 +47,11 @@ export default async function StatusPage({
           "Your access to the hostel management system has been restricted. Please contact support if you believe this is a mistake.",
       },
     }
-    
+
   const message = routeMessages[route] ?? {
     title: "Access Restricted",
-    description: "We couldn't determine your current access level. Please contact the hostel administrator for verification.",
+    description:
+      "We couldn't determine your current access level. Please contact the hostel administrator for verification.",
   }
 
   const whatsappUrl = `https://wa.me/${ADMIN_WHATSAPP_NUMBER}?text=${encodeURIComponent(
@@ -61,7 +65,9 @@ export default async function StatusPage({
           <div className="bg-destructive/10 mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full">
             <ShieldX className="text-destructive h-10 w-10" />
           </div>
-          <CardTitle className="text-2xl font-bold tracking-tight">{message.title}</CardTitle>
+          <CardTitle className="text-2xl font-bold tracking-tight">
+            {message.title}
+          </CardTitle>
           <CardDescription className="mx-auto mt-2 max-w-xs text-base">
             {message.description}
           </CardDescription>
@@ -79,7 +85,7 @@ export default async function StatusPage({
             <MessageCircle className="h-5 w-5" />
             Message the Admin
           </a>
-          
+
           <Link
             href="/"
             className={buttonVariants({

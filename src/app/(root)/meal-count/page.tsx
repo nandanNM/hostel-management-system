@@ -1,4 +1,4 @@
-import { BarChart3 } from "lucide-react"
+import { ChartBar as BarChart3 } from "@phosphor-icons/react/ssr"
 
 import { PageContainer, PageHeader } from "@/components/page-container"
 

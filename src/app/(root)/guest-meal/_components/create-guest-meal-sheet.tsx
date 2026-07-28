@@ -7,8 +7,8 @@ import {
   NON_VEG_OPTIONS,
 } from "@/constants/form.constants"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { Calendar as CalendarIcon } from "@phosphor-icons/react"
 import { addDays, format, isAfter, isBefore, startOfDay } from "date-fns"
-import { CalendarIcon } from "lucide-react"
 import { useForm } from "react-hook-form"
 
 import { cn } from "@/lib/utils"

@@ -7,13 +7,13 @@ import {
   NON_VEG_OPTIONS,
 } from "@/constants/form.constants"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { Check as CheckIcon } from "@phosphor-icons/react"
 import { ReloadIcon } from "@radix-ui/react-icons"
-import { CheckIcon } from "lucide-react"
 import { Controller, useForm } from "react-hook-form"
-import { toast } from "sonner"
 import z from "zod"
 
 import { GetMealWithUser } from "@/types/prisma.type"
+import { toast } from "@/lib/toast"
 import { cn } from "@/lib/utils"
 import { mealSchema } from "@/lib/validations"
 import { tryCatch } from "@/hooks/try-catch"
@@ -55,8 +55,9 @@ import {
 
 import { updateMeal } from "../_lib/actions"
 
-interface UpdateMealSheetProps
-  extends React.ComponentPropsWithRef<typeof Sheet> {
+interface UpdateMealSheetProps extends React.ComponentPropsWithRef<
+  typeof Sheet
+> {
   meal: GetMealWithUser
 }
 type UpdateMealSchema = z.infer<typeof mealSchema>

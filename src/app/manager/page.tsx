@@ -1,5 +1,5 @@
+import { Calendar, Info as InfoIcon } from "@phosphor-icons/react/ssr"
 import { format } from "date-fns"
-import { Calendar, InfoIcon } from "lucide-react"
 
 import { GuestRequestsList } from "./_components/guest-requests-list"
 import { MealDataCard } from "./_components/meal-data-card"

@@ -1,8 +1,8 @@
-import { ArrowRightIcon } from "lucide-react";
-import Link from "next/link";
+import Link from "next/link"
+import { ArrowRight as ArrowRightIcon } from "@phosphor-icons/react/ssr"
 
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 
 export function NotFound({ className }: { className?: string }) {
   return (
@@ -13,7 +13,7 @@ export function NotFound({ className }: { className?: string }) {
       )}
     >
       <svg
-        className="h-28 w-full text-border"
+        className="text-border h-28 w-full"
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 514 258"
         fill="none"
@@ -35,5 +35,5 @@ export function NotFound({ className }: { className?: string }) {
         </Link>
       </Button>
     </div>
-  );
+  )
 }
