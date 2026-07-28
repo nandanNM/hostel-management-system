@@ -7,6 +7,7 @@ import { List as Menu } from "@phosphor-icons/react"
 
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 
+import NavNotifications from "./NavNotifications"
 import { ThemeSwitcher } from "./ThemeSwitcher"
 import { Badge } from "./ui/badge"
 import UserButton from "./UserButton"
@@ -33,9 +34,9 @@ export default function NavBar() {
             </Badge>
           </Link>
         </div>
-        <div className="flex items-center justify-center gap-2">
+        <div className="mr-4 flex items-center justify-center gap-2">
+          <NavNotifications />
           <ThemeSwitcher />
-
           <UserButton />
         </div>
       </nav>

@@ -3,7 +3,6 @@ import { Info as InfoIcon } from "@phosphor-icons/react/ssr"
 
 import { BirthdayAnnouncements } from "./_components/birthday-announcements"
 import { HomeWidgets } from "./_components/home-widgets"
-import { NotificationStackWidget } from "./_components/notification-stack-widget"
 
 export const metadata: Metadata = {
   title: "Home",
@@ -25,8 +24,6 @@ export default async function Home() {
       </div>
 
       <BirthdayAnnouncements />
-
-      <NotificationStackWidget />
 
       <HomeWidgets />
 
