@@ -12,4 +12,4 @@ export const resend = process.env.RESEND_API_KEY
   : null
 
 export const EMAIL_FROM =
-  process.env.RESEND_FROM_EMAIL || "Hostel Mess <onboarding@resend.dev>"
+  process.env.RESEND_FROM_EMAIL || "D.L Bhawan (PG1) <onboarding@resend.dev>"

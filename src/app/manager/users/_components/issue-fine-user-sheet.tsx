@@ -2,11 +2,11 @@
 
 import React from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { CalendarIcon, ReloadIcon } from "@radix-ui/react-icons"
+import { CalendarIcon } from "@radix-ui/react-icons"
 import { addDays, format, isAfter, isBefore, startOfDay } from "date-fns"
 import { useForm } from "react-hook-form"
-import { toast } from "sonner"
 
+import { toast } from "@/lib/toast"
 import { cn } from "@/lib/utils"
 import { tryCatch } from "@/hooks/try-catch"
 import { Button } from "@/components/ui/button"
@@ -20,6 +20,7 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import { Loader } from "@/components/ui/loader"
 import {
   Popover,
   PopoverContent,
@@ -39,8 +40,9 @@ import { Textarea } from "@/components/ui/textarea"
 import { issueFineToUser } from "../_lib/actions"
 import { createUserFineSchema, CreateUserFineSchema } from "../_lib/validations"
 
-interface CreateFineSheetProps
-  extends React.ComponentPropsWithRef<typeof Sheet> {
+interface CreateFineSheetProps extends React.ComponentPropsWithRef<
+  typeof Sheet
+> {
   targetUserId: string
 }
 
@@ -189,7 +191,7 @@ export function CreateFineSheet({
               </SheetClose>
               <Button disabled={isPending}>
                 {isPending && (
-                  <ReloadIcon className="mr-2 size-4 animate-spin" />
+                  <Loader variant="comet" size={16} className="mr-2" />
                 )}
                 Issue Fine
               </Button>

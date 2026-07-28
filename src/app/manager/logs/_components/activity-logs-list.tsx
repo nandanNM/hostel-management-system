@@ -1,9 +1,9 @@
 "use client"
 
 import { useState } from "react"
+import { Pulse as Activity, ArrowRight } from "@phosphor-icons/react"
 import { useQuery } from "@tanstack/react-query"
 import { format } from "date-fns"
-import { Activity, ArrowRight, Loader2 } from "lucide-react"
 
 import { GetActivityLogWithUser } from "@/types/prisma.type"
 import kyInstance from "@/lib/ky"
@@ -15,6 +15,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { Loader } from "@/components/ui/loader"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   Select,
@@ -61,7 +62,13 @@ function summarizeChange(data: unknown): string | null {
   return String(data)
 }
 
-function DataDiff({ oldData, newData }: { oldData: unknown; newData: unknown }) {
+function DataDiff({
+  oldData,
+  newData,
+}: {
+  oldData: unknown
+  newData: unknown
+}) {
   const before = summarizeChange(oldData)
   const after = summarizeChange(newData)
   if (!before && !after) return null
@@ -86,7 +93,12 @@ export function ActivityLogsList() {
   const [days, setDays] = useState("7")
   const [actionTypeFilter, setActionTypeFilter] = useState("ALL")
 
-  const { data: logs, isLoading, isError, error } = useQuery({
+  const {
+    data: logs,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
     queryKey: ["manager", "activity-logs", days],
     queryFn: () =>
       kyInstance
@@ -148,7 +160,7 @@ export function ActivityLogsList() {
 
         {isLoading && (
           <div className="flex justify-center py-8">
-            <Loader2 className="size-6 animate-spin" />
+            <Loader variant="comet" size={24} />
           </div>
         )}
 
@@ -161,7 +173,9 @@ export function ActivityLogsList() {
             <p className="text-muted-foreground text-xs">
               {filtered.length} record{filtered.length !== 1 ? "s" : ""} found
             </p>
-            <ScrollArea className={filtered.length > 0 ? "h-[520px]" : "h-auto"}>
+            <ScrollArea
+              className={filtered.length > 0 ? "h-[520px]" : "h-auto"}
+            >
               <div className="space-y-3 pr-3">
                 {filtered.length > 0 ? (
                   filtered.map((log, i) => (
@@ -175,7 +189,8 @@ export function ActivityLogsList() {
                                 "bg-gray-100 text-gray-600"
                             )}
                           >
-                            {ACTION_TYPE_LABELS[log.actionType] ?? log.actionType}
+                            {ACTION_TYPE_LABELS[log.actionType] ??
+                              log.actionType}
                           </span>
                           <p className="text-foreground text-sm font-medium">
                             {log.user.name ?? "Unknown"}
@@ -184,7 +199,10 @@ export function ActivityLogsList() {
                             {log.user.email}
                           </p>
                           <span className="text-muted-foreground ml-auto text-xs">
-                            {format(new Date(log.timestamp), "dd MMM yyyy, hh:mm a")}
+                            {format(
+                              new Date(log.timestamp),
+                              "dd MMM yyyy, hh:mm a"
+                            )}
                           </span>
                         </div>
                         {log.entityType && (
@@ -196,10 +214,7 @@ export function ActivityLogsList() {
                         {log.details && (
                           <p className="mt-1 text-sm">{log.details}</p>
                         )}
-                        <DataDiff
-                          oldData={log.oldData}
-                          newData={log.newData}
-                        />
+                        <DataDiff oldData={log.oldData} newData={log.newData} />
                       </div>
                       {i < filtered.length - 1 && (
                         <Separator className="mt-3" />

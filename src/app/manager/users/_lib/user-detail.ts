@@ -11,6 +11,7 @@ import {
   BillEntryType,
   MealStatusType,
   NotificationType,
+  Prisma,
   UserRoleType,
   UserStatusType,
 } from "@/lib/generated/prisma"
@@ -267,10 +268,6 @@ export async function recordPayment(
   }
 }
 
-/**
- * Adding a due and transferring a user to alumni are mess-prefect-only. Returns
- * the actor id when authorized, otherwise an error response for the UI.
- */
 async function requireMessPrefectActor(): Promise<
   { actorId: string } | { error: ApiResponse }
 > {
@@ -295,10 +292,6 @@ const addDueSchema = z.object({
 
 export type AddDueInput = z.input<typeof addDueSchema>
 
-/**
- * Adds a manual due (an ADJUSTMENT_DEBIT ledger entry) to a user's account,
- * increasing their outstanding balance. Notifies the user in-app and by email.
- */
 export async function addUserDue(input: AddDueInput): Promise<ApiResponse> {
   const auth = await requireMessPrefectActor()
   if ("error" in auth) return auth.error
@@ -395,6 +388,120 @@ export async function addUserDue(input: AddDueInput): Promise<ApiResponse> {
   }
 }
 
+const addAdvanceSchema = z.object({
+  userId: z.string().min(1),
+  amount: z.coerce.number().positive("Amount must be greater than 0"),
+  paymentMethod: z.string().trim().max(40).optional().default(""),
+  note: z.string().trim().max(200).optional().default(""),
+})
+
+export type AddAdvanceInput = z.input<typeof addAdvanceSchema>
+
+export async function addUserAdvance(
+  input: AddAdvanceInput
+): Promise<ApiResponse> {
+  const auth = await requireMessPrefectActor()
+  if ("error" in auth) return auth.error
+  const { actorId } = auth
+
+  const parsed = addAdvanceSchema.safeParse(input)
+  if (!parsed.success) {
+    return {
+      status: "error",
+      message: parsed.error.issues[0]?.message ?? "Invalid advance details.",
+    }
+  }
+  const { userId, amount, paymentMethod, note } = parsed.data
+
+  try {
+    const target = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, name: true, email: true },
+    })
+    if (!target) return { status: "error", message: "User not found" }
+
+    const result = await prisma.$transaction(async (tx) => {
+      const lastBill = await tx.userBill.findFirst({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+        select: { balanceRemaining: true },
+      })
+      const currentDue = lastBill?.balanceRemaining ?? 0
+      const newBalance = currentDue - amount
+
+      const descriptionParts = ["Advance payment"]
+      if (paymentMethod) descriptionParts.push(`via ${paymentMethod}`)
+      if (note) descriptionParts.push(`— ${note}`)
+
+      const bill = await tx.userBill.create({
+        data: {
+          userId,
+          type: BillEntryType.ADJUSTMENT_CREDIT,
+          amount: -amount,
+          description: descriptionParts.join(" "),
+          balanceRemaining: newBalance,
+          issueDate: new Date(),
+          isPaid: true,
+        },
+        select: { id: true },
+      })
+
+      await tx.activityLog.create({
+        data: {
+          userId: actorId,
+          actionType: "ADVANCE_RECORDED",
+          entityType: "USER",
+          entityId: userId,
+          newData: { amount, paymentMethod, note },
+          details: `Recorded an advance of ₹${amount.toFixed(2)} for ${
+            target.name ?? userId
+          }.`,
+        },
+      })
+
+      return { newBalance, billId: bill.id }
+    })
+
+    await prisma.notification.create({
+      data: {
+        title: "Advance Recorded",
+        message: `An advance of ₹${amount.toFixed(2)} was recorded to your account. Your outstanding due is now ₹${result.newBalance.toFixed(2)}.`,
+        type: NotificationType.PAYMENT,
+        user: { connect: { id: userId } },
+        issuer: { connect: { id: actorId } },
+      },
+    })
+
+    if (target.email) {
+      await sendPaymentReceivedEmail({
+        to: target.email,
+        name: target.name,
+        amount,
+        newBalance: result.newBalance,
+        method: paymentMethod || null,
+        billId: result.billId,
+        kind: "advance",
+      })
+    }
+
+    revalidatePath("/manager/users")
+    revalidatePath("/mess-prefect/users")
+    revalidatePath("/dashboard")
+    return {
+      status: "success",
+      message: `Advance of ₹${amount.toFixed(2)} recorded. New balance: ₹${result.newBalance.toFixed(2)}.`,
+    }
+  } catch (error) {
+    return {
+      status: "error",
+      message:
+        error instanceof Error
+          ? error.message
+          : "Failed to record the advance.",
+    }
+  }
+}
+
 const transferToAlumniSchema = z.object({
   userId: z.string().min(1),
   department: z.string().trim().min(1, "Department is required").max(100),
@@ -404,20 +511,12 @@ const transferToAlumniSchema = z.object({
 
 export type TransferToAlumniInput = z.input<typeof transferToAlumniSchema>
 
-// Roles that must not be archived into the alumni directory by a transfer.
 const NON_TRANSFERABLE_ROLES: UserRoleType[] = [
   UserRoleType.ADMIN,
   UserRoleType.SUPER_ADMIN,
   UserRoleType.MESS_PREFECT,
 ]
 
-/**
- * Transfers a boarder into the alumni directory. The user is archived
- * (soft-deleted: `deletedAt` + `FORMA` status) rather than hard-deleted so that
- * every financial record — bills, payments, fines — stays intact and linked.
- * The user disappears from all active/meal/billing lists and can no longer log
- * in, but their ledger history is fully preserved.
- */
 export async function transferUserToAlumni(
   input: TransferToAlumniInput
 ): Promise<ApiResponse> {
@@ -441,9 +540,22 @@ export async function transferUserToAlumni(
         id: true,
         name: true,
         email: true,
+        image: true,
+        roomNo: true,
+        gender: true,
+        religion: true,
+        dob: true,
+        education: true,
         selfPhNo: true,
+        guardianPhNo: true,
+        address: true,
+        bio: true,
         role: true,
         status: true,
+        mealPreference: true,
+        onboardingCompleted: true,
+        joinDate: true,
+        createdAt: true,
         deletedAt: true,
       },
     })
@@ -465,6 +577,27 @@ export async function transferUserToAlumni(
     const alumniEmail = user.email
     const alumniMobile = mobileNumber || user.selfPhNo || "—"
 
+    const snapshot = {
+      userId: user.id,
+      name: user.name,
+      email: user.email,
+      image: user.image,
+      roomNo: user.roomNo,
+      gender: user.gender,
+      religion: user.religion,
+      dob: user.dob ? user.dob.toISOString() : null,
+      education: user.education ?? null,
+      selfPhNo: user.selfPhNo,
+      guardianPhNo: user.guardianPhNo,
+      address: user.address,
+      bio: user.bio,
+      role: user.role,
+      mealPreference: user.mealPreference ?? null,
+      onboardingCompleted: user.onboardingCompleted,
+      joinDate: user.joinDate ? user.joinDate.toISOString() : null,
+      createdAt: user.createdAt.toISOString(),
+    }
+
     await prisma.$transaction(async (tx) => {
       const alumni = await tx.alumni.create({
         data: {
@@ -473,18 +606,19 @@ export async function transferUserToAlumni(
           mobileNumber: alumniMobile,
           email: alumniEmail,
           year,
+          address: user.address,
+          roomNo: user.roomNo,
+          image: user.image,
+          snapshot: snapshot as Prisma.InputJsonValue,
         },
         select: { id: true },
       })
 
-      // Archive the user: hide them everywhere active without touching any
-      // financial rows (bills/payments/fines keep their userId link).
       await tx.user.update({
         where: { id: userId },
         data: { status: UserStatusType.FORMA, deletedAt: new Date() },
       })
 
-      // Stop counting them for meals going forward.
       await tx.meal.updateMany({
         where: { userId },
         data: { status: MealStatusType.INACTIVE },
@@ -496,12 +630,7 @@ export async function transferUserToAlumni(
           actionType: "USER_TRANSFERRED_TO_ALUMNI",
           entityType: "ALUMNI",
           entityId: alumni.id,
-          oldData: {
-            userId,
-            name: alumniName,
-            email: alumniEmail,
-            role: user.role,
-          },
+          oldData: snapshot as Prisma.InputJsonValue,
           newData: { department, year, mobileNumber: alumniMobile },
           details: `Transferred ${alumniName} to alumni. Financial records preserved.`,
         },

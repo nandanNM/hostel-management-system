@@ -2,18 +2,29 @@ import type { Metadata, Viewport } from "next"
 
 import "./globals.css"
 
-import { Outfit } from "next/font/google"
+import { Geist_Mono } from "next/font/google"
 import AuthProvider from "@/context/AuthProvider"
 import ReactQueryProvider from "@/context/ReactQueryProvider"
 import { ThemeProvider } from "@/context/theme-provider"
+import { NuqsAdapter } from "nuqs/adapters/next/app"
 
 import { siteConfig } from "@/config/site"
+import { Toaster } from "@/lib/toast"
 import { cn } from "@/lib/utils"
-import { Toaster } from "@/components/ui/sonner"
 
-const outfit = Outfit({
-  variable: "--font-outfit-sans",
+const fontSans = Geist_Mono({
   subsets: ["latin"],
+  variable: "--font-sans",
+})
+
+const fontSerif = Geist_Mono({
+  subsets: ["latin"],
+  variable: "--font-serif",
+})
+
+const fontMono = Geist_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
 })
 
 export const metadata: Metadata = {
@@ -54,18 +65,27 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <AuthProvider>
-        <body className={cn(outfit.variable, "antialiased")}>
-          <ReactQueryProvider>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="system"
-              enableSystem
-              disableTransitionOnChange
-            >
-              {children}
-            </ThemeProvider>
-            <Toaster />
-          </ReactQueryProvider>
+        <body
+          className={cn(
+            fontSans.variable,
+            fontSerif.variable,
+            fontMono.variable,
+            "antialiased"
+          )}
+        >
+          <NuqsAdapter>
+            <ReactQueryProvider>
+              <ThemeProvider
+                attribute="class"
+                defaultTheme="system"
+                enableSystem
+                disableTransitionOnChange
+              >
+                {children}
+              </ThemeProvider>
+              <Toaster />
+            </ReactQueryProvider>
+          </NuqsAdapter>
         </body>
       </AuthProvider>
     </html>

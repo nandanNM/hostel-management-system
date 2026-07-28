@@ -7,12 +7,15 @@ import {
   MEAL_TIME_OPTIONS,
 } from "@/constants/form.constants"
 import { zodResolver } from "@hookform/resolvers/zod"
+import {
+  Calendar as CalendarIcon,
+  PaperPlaneTilt as SendIcon,
+} from "@phosphor-icons/react"
 import { useMutation } from "@tanstack/react-query"
 import { addDays, format, isAfter, isBefore, startOfDay } from "date-fns"
-import { CalendarIcon, SendIcon } from "lucide-react"
 import { useForm } from "react-hook-form"
-import { toast } from "sonner"
 
+import { toast } from "@/lib/toast"
 import { cn, getCurrentMealSlot } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
@@ -82,7 +85,9 @@ export function MealMessageDialog() {
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button variant="outline">
-          <SendIcon className="mr-2 h-4 w-4" /> Send Meal Message
+          <SendIcon className="mr-2 h-4 w-4" />
+          <span className="sm:hidden">Message</span>
+          <span className="hidden sm:inline">Send Meal Message</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">

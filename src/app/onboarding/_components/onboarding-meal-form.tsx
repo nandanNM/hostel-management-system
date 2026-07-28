@@ -8,11 +8,11 @@ import {
   NON_VEG_OPTIONS,
 } from "@/constants/form.constants"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { ArrowLeft, CheckIcon } from "lucide-react"
+import { ArrowLeft, Check as CheckIcon } from "@phosphor-icons/react"
 import { Controller, useForm } from "react-hook-form"
-import { toast } from "sonner"
 import z from "zod"
 
+import { toast } from "@/lib/toast"
 import { cn } from "@/lib/utils"
 import { mealSchema } from "@/lib/validations"
 import { tryCatch } from "@/hooks/try-catch"
@@ -167,7 +167,9 @@ export default function OnboardingMealForm() {
             control={form.control}
             name="nonVegType"
             render={({ field }) => (
-              <FormItem className={cn(isVeg && "opacity-50 transition-opacity")}>
+              <FormItem
+                className={cn(isVeg && "opacity-50 transition-opacity")}
+              >
                 <FormLabel>Non-Veg Type</FormLabel>
                 <Select
                   onValueChange={field.onChange}

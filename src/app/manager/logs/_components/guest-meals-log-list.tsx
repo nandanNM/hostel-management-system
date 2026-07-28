@@ -1,19 +1,14 @@
 "use client"
 
 import { useState } from "react"
-import { useQuery } from "@tanstack/react-query"
 import {
-  addMonths,
-  format,
-  subMonths,
-} from "date-fns"
-import {
-  ChevronLeft,
-  ChevronRight,
+  CaretLeft as ChevronLeft,
+  CaretRight as ChevronRight,
   Leaf,
-  Loader2,
-  UtensilsCrossed,
-} from "lucide-react"
+  ForkKnife as UtensilsCrossed,
+} from "@phosphor-icons/react"
+import { useQuery } from "@tanstack/react-query"
+import { addMonths, format, subMonths } from "date-fns"
 
 import { GetGuestMealWithUser } from "@/types/prisma.type"
 import { GuestMealStatusType } from "@/lib/generated/prisma"
@@ -27,6 +22,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { Loader } from "@/components/ui/loader"
 import {
   Table,
   TableBody,
@@ -51,7 +47,12 @@ export function GuestMealsLogList() {
   const year = refDate.getFullYear()
   const month = refDate.getMonth() + 1
 
-  const { data: meals, isLoading, isError, error } = useQuery({
+  const {
+    data: meals,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
     queryKey: ["manager", "guest-meals-log", year, month],
     queryFn: () =>
       kyInstance
@@ -109,12 +110,14 @@ export function GuestMealsLogList() {
 
         {isLoading && (
           <div className="flex justify-center py-8">
-            <Loader2 className="size-6 animate-spin" />
+            <Loader variant="comet" size={24} />
           </div>
         )}
 
         {isError && (
-          <P variant="error">{error?.message ?? "Failed to load guest meals."}</P>
+          <P variant="error">
+            {error?.message ?? "Failed to load guest meals."}
+          </P>
         )}
 
         {!isLoading && !isError && (
@@ -185,7 +188,9 @@ export function GuestMealsLogList() {
                             </span>
                           </div>
                         </TableCell>
-                        <TableCell className="text-center">{m.numberOfMeals}</TableCell>
+                        <TableCell className="text-center">
+                          {m.numberOfMeals}
+                        </TableCell>
                         <TableCell className="text-right">
                           ₹{m.mealCharge.toFixed(2)}
                         </TableCell>
@@ -196,7 +201,8 @@ export function GuestMealsLogList() {
                               STATUS_STYLES[m.status]
                             )}
                           >
-                            {m.status.charAt(0) + m.status.slice(1).toLowerCase()}
+                            {m.status.charAt(0) +
+                              m.status.slice(1).toLowerCase()}
                           </span>
                         </TableCell>
                       </TableRow>

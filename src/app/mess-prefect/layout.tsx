@@ -23,9 +23,7 @@ export default async function Layout({
       <AppSideBar state="MESS_PREFECT" user={user} />
       <main className="w-full">
         <Navbar />
-        <div className="p-3">
-          <div>{children}</div>
-        </div>
+        {children}
       </main>
     </SidebarProvider>
   )

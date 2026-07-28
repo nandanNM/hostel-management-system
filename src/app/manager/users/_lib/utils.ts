@@ -1,17 +1,24 @@
 import {
+  Cow as Beef,
+  Bird,
+  Circle as CircleIcon,
+  Egg,
+  Fish,
+  X,
+} from "@phosphor-icons/react/ssr"
+import {
   CheckCircledIcon,
   CrossCircledIcon,
   QuestionMarkCircledIcon,
   StopwatchIcon,
 } from "@radix-ui/react-icons"
-import { Beef, CircleIcon, Egg, Fish, X } from "lucide-react"
 
 import { MealStatusType, NonVegType } from "@/lib/generated/prisma"
 
 export function getNonVegTypeIcon(type: NonVegType) {
   const iconMap = {
     [NonVegType.NONE]: X,
-    [NonVegType.CHICKEN]: Beef,
+    [NonVegType.CHICKEN]: Bird,
     [NonVegType.MUTTON]: Beef,
     [NonVegType.FISH]: Fish,
     [NonVegType.EGG]: Egg,

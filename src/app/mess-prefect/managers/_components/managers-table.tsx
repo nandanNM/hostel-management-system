@@ -2,10 +2,10 @@
 
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
-import { Loader2, Pencil } from "lucide-react"
-import { toast } from "sonner"
+import { PencilSimple as Pencil } from "@phosphor-icons/react"
 
 import { UserRoleType, UserStatusType } from "@/lib/generated/prisma"
+import { toast } from "@/lib/toast"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Loader } from "@/components/ui/loader"
 import {
   Select,
   SelectContent,
@@ -91,7 +92,9 @@ export function ManagersTable({
 }) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
-  const [pendingRoleUserId, setPendingRoleUserId] = useState<string | null>(null)
+  const [pendingRoleUserId, setPendingRoleUserId] = useState<string | null>(
+    null
+  )
   const [editing, setEditing] = useState<ManagerUser | null>(null)
 
   function handleRoleChange(user: ManagerUser, role: string) {
@@ -186,7 +189,11 @@ export function ManagersTable({
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
                         {rowPending && (
-                          <Loader2 className="text-muted-foreground size-4 animate-spin" />
+                          <Loader
+                            variant="comet"
+                            size={16}
+                            className="text-muted-foreground"
+                          />
                         )}
                         <Select
                           value={
@@ -201,7 +208,9 @@ export function ManagersTable({
                         >
                           <SelectTrigger className="ml-auto w-35">
                             <SelectValue
-                              placeholder={locked ? prettify(user.role) : "Select"}
+                              placeholder={
+                                locked ? prettify(user.role) : "Select"
+                              }
                             />
                           </SelectTrigger>
                           <SelectContent>
@@ -290,7 +299,12 @@ function EditDetailsDialog({
           >
             <div className="space-y-2">
               <Label htmlFor="name">Name</Label>
-              <Input id="name" name="name" defaultValue={user.name ?? ""} required />
+              <Input
+                id="name"
+                name="name"
+                defaultValue={user.name ?? ""}
+                required
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="selfPhNo">Phone number</Label>
@@ -312,7 +326,9 @@ function EditDetailsDialog({
             </div>
             <DialogFooter>
               <Button type="submit" disabled={isPending}>
-                {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
+                {isPending && (
+                  <Loader variant="comet" size={16} className="mr-2" />
+                )}
                 Save changes
               </Button>
             </DialogFooter>

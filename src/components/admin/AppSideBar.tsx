@@ -5,22 +5,22 @@ import { usePathname } from "next/navigation"
 import {
   ArrowLeft,
   Calendar,
-  ChevronUp,
-  ClipboardList,
-  FileCheck,
+  CaretUp as ChevronUp,
+  ClipboardText as ClipboardList,
+  FileText as FileCheck,
   Gavel,
-  Home,
-  LogOut,
+  House as Home,
+  SignOut as LogOut,
   Plus,
-  Projector,
+  ProjectorScreen as Projector,
   Receipt,
-  Settings2,
+  GearSix as Settings2,
   UserCheck,
-  UserCog,
+  UserGear as UserCog,
   Users,
-  UtensilsCrossed,
+  ForkKnife as UtensilsCrossed,
   Wallet,
-} from "lucide-react"
+} from "@phosphor-icons/react"
 import { User } from "next-auth"
 
 import {

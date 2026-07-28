@@ -1,10 +1,23 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useMemo, useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
-import { Loader2, Pencil, Plus, Trash2 } from "lucide-react"
-import { toast } from "sonner"
+import {
+  GraduationCap,
+  MagnifyingGlass,
+  PencilSimple as Pencil,
+  Plus,
+  Trash as Trash2,
+} from "@phosphor-icons/react"
+import {
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  useReactTable,
+  type ColumnDef,
+} from "@tanstack/react-table"
 
+import { toast } from "@/lib/toast"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,14 +46,8 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+import { Loader } from "@/components/ui/loader"
+import { DataTable } from "@/components/data-table/data-table"
 
 import { createAlumni, deleteAlumni, updateAlumni } from "../_lib/actions"
 
@@ -64,6 +71,7 @@ export function AlumniTable({
   const [adding, setAdding] = useState(false)
   const [editing, setEditing] = useState<AlumniRow | null>(null)
   const [deleting, setDeleting] = useState<AlumniRow | null>(null)
+  const [globalFilter, setGlobalFilter] = useState("")
   const [isPending, startTransition] = useTransition()
 
   function handleDelete(row: AlumniRow) {
@@ -79,11 +87,104 @@ export function AlumniTable({
     })
   }
 
+  const columns = useMemo<ColumnDef<AlumniRow>[]>(() => {
+    const cols: ColumnDef<AlumniRow>[] = [
+      {
+        id: "name",
+        header: "Name",
+        cell: ({ row }) => (
+          <div className="flex items-center gap-3">
+            <span className="bg-primary/10 text-primary grid size-8 shrink-0 place-items-center rounded-full">
+              <GraduationCap className="size-4" weight="fill" />
+            </span>
+            <span className="font-medium">{row.original.name}</span>
+          </div>
+        ),
+      },
+      {
+        id: "department",
+        header: "Department",
+        cell: ({ row }) => row.original.department,
+      },
+      {
+        id: "year",
+        header: "Year",
+        cell: ({ row }) => row.original.year,
+      },
+      {
+        id: "mobileNumber",
+        header: "Mobile",
+        cell: ({ row }) => (
+          <span className="text-sm">{row.original.mobileNumber}</span>
+        ),
+      },
+      {
+        id: "email",
+        header: "Email",
+        cell: ({ row }) => (
+          <span className="text-muted-foreground text-sm">
+            {row.original.email}
+          </span>
+        ),
+      },
+    ]
+    if (canManage) {
+      cols.push({
+        id: "actions",
+        header: () => <div className="text-right">Actions</div>,
+        cell: ({ row }) => (
+          <div className="flex items-center justify-end gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setEditing(row.original)}
+            >
+              <Pencil className="h-4 w-4" />
+              <span className="sr-only">Edit alumni</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-red-600"
+              onClick={() => setDeleting(row.original)}
+            >
+              <Trash2 className="h-4 w-4" />
+              <span className="sr-only">Remove alumni</span>
+            </Button>
+          </div>
+        ),
+      })
+    }
+    return cols
+  }, [canManage])
+
+  const table = useReactTable({
+    data: alumni,
+    columns,
+    state: { globalFilter },
+    onGlobalFilterChange: setGlobalFilter,
+    globalFilterFn: (row, _columnId, value) => {
+      const q = String(value).toLowerCase()
+      const a = row.original as AlumniRow
+      return [a.name, a.department, a.year, a.mobileNumber, a.email].some((v) =>
+        v.toLowerCase().includes(q)
+      )
+    },
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    initialState: { pagination: { pageSize: 10 } },
+  })
+
   return (
     <Card className="w-full">
       <CardHeader className="flex flex-row items-start justify-between gap-4">
         <div>
-          <CardTitle>Alumni Directory</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <GraduationCap className="text-primary size-5" weight="fill" />
+            Alumni Directory
+          </CardTitle>
           <CardDescription>
             Name, department, contact details and passing year of former
             boarders.
@@ -97,70 +198,19 @@ export function AlumniTable({
         )}
       </CardHeader>
       <CardContent>
-        <div className="overflow-x-auto rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Department</TableHead>
-                <TableHead>Year</TableHead>
-                <TableHead>Mobile</TableHead>
-                <TableHead>Email</TableHead>
-                {canManage && (
-                  <TableHead className="w-20 text-right">Actions</TableHead>
-                )}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {alumni.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={canManage ? 6 : 5}
-                    className="text-muted-foreground py-8 text-center"
-                  >
-                    No alumni on record yet.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                alumni.map((row) => (
-                  <TableRow key={row.id}>
-                    <TableCell className="font-medium">{row.name}</TableCell>
-                    <TableCell>{row.department}</TableCell>
-                    <TableCell>{row.year}</TableCell>
-                    <TableCell className="text-sm">{row.mobileNumber}</TableCell>
-                    <TableCell className="text-muted-foreground text-sm">
-                      {row.email}
-                    </TableCell>
-                    {canManage && (
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() => setEditing(row)}
-                          >
-                            <Pencil className="h-4 w-4" />
-                            <span className="sr-only">Edit alumni</span>
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-red-600"
-                            onClick={() => setDeleting(row)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                            <span className="sr-only">Remove alumni</span>
-                          </Button>
-                        </div>
-                      </TableCell>
-                    )}
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
+        <DataTable table={table} totalRows={alumni.length}>
+          <div className="relative w-full max-w-sm">
+            <MagnifyingGlass className="text-muted-foreground absolute top-1/2 left-2 size-4 -translate-y-1/2" />
+            <Input
+              type="search"
+              autoComplete="off"
+              value={globalFilter}
+              onChange={(e) => setGlobalFilter(e.target.value)}
+              placeholder="Search alumni by name, department, email…"
+              className="pl-8"
+            />
+          </div>
+        </DataTable>
       </CardContent>
 
       {canManage && adding && (
@@ -208,7 +258,9 @@ export function AlumniTable({
                 if (deleting) handleDelete(deleting)
               }}
             >
-              {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
+              {isPending && (
+                <Loader variant="comet" size={16} className="mr-2" />
+              )}
               Remove
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -322,7 +374,9 @@ function AlumniFormDialog({
           </div>
           <DialogFooter>
             <Button type="submit" disabled={isPending}>
-              {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
+              {isPending && (
+                <Loader variant="comet" size={16} className="mr-2" />
+              )}
               {isEdit ? "Save changes" : "Add alumni"}
             </Button>
           </DialogFooter>

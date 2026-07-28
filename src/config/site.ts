@@ -1,8 +1,8 @@
 export type SiteConfig = typeof siteConfig
 
 export const siteConfig = {
-  name: "PG1",
-  description: "The hostal managment systam for PG1",
+  name: "D.L Bhawan (PG1)",
+  description: "Mess management for D.L Bhawan (PG1).",
   url:
     process.env.NODE_ENV === "development"
       ? "http://localhost:3000"

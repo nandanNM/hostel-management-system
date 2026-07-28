@@ -1,19 +1,18 @@
 "use client"
 
 import { useState } from "react"
+import {
+  Info as InfoIcon,
+  Plus,
+  Trash as Trash2Icon,
+  ForkKnife as UtensilsCrossedIcon,
+} from "@phosphor-icons/react"
 import { useQuery } from "@tanstack/react-query"
 import { format } from "date-fns"
-import {
-  InfoIcon,
-  Loader2,
-  Plus,
-  Trash2Icon,
-  UtensilsCrossedIcon,
-} from "lucide-react"
-import { toast } from "sonner"
 
 import { GuestMeal } from "@/lib/generated/prisma"
 import kyInstance from "@/lib/ky"
+import { toast } from "@/lib/toast"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,6 +33,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { Loader } from "@/components/ui/loader"
 import {
   Table,
   TableBody,
@@ -42,6 +42,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { PageContainer } from "@/components/page-container"
 
 import { CreateGuestMealSheet } from "./_components/create-guest-meal-sheet"
 import { useDeleteGuestMealRequest } from "./_lib/mutations"
@@ -63,11 +64,11 @@ export default function GuestMealsPage() {
   }
 
   if (isPending) {
-    return <Loader2 className="mx-auto my-6 size-6 animate-spin" />
+    return <Loader variant="comet" size={24} className="mx-auto my-6" />
   }
   return (
-    <main className="flex flex-col items-center justify-center">
-      <div className="mb-3 rounded-md border px-4 py-3">
+    <PageContainer>
+      <div className="rounded-md border px-4 py-3">
         <p className="text-sm">
           <InfoIcon
             className="me-3 -mt-0.5 inline-flex text-blue-500"
@@ -78,7 +79,7 @@ export default function GuestMealsPage() {
           been added to your bill.
         </p>
       </div>
-      <Card className="w-full max-w-4xl shadow-sm">
+      <Card className="w-full shadow-sm">
         <CardHeader className="flex flex-col gap-3 border-b md:flex-row md:items-center md:justify-between">
           <div>
             <CardTitle className="text-foreground flex items-center gap-3 text-2xl font-bold">
@@ -115,7 +116,7 @@ export default function GuestMealsPage() {
           )}
         </CardContent>
       </Card>
-    </main>
+    </PageContainer>
   )
 }
 
@@ -160,7 +161,7 @@ function GuestMealsTable({ meals }: GuestMealsTableProps) {
                       disabled={isPendingDelete}
                     >
                       {isPendingDelete ? (
-                        <Loader2 className="size-4 animate-spin" />
+                        <Loader variant="comet" size={16} />
                       ) : (
                         <Trash2Icon className="h-4 w-4" />
                       )}

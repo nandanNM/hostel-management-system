@@ -1,5 +1,10 @@
+import {
+  ForkKnife as Drumstick,
+  Leaf,
+  Users,
+  ForkKnife as Utensils,
+} from "@phosphor-icons/react/ssr"
 import { format } from "date-fns"
-import { Drumstick, Leaf, Users, Utensils } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"

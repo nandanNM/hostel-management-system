@@ -1,4 +1,8 @@
-import { ChefHat, Leaf, Utensils } from "lucide-react"
+import {
+  CookingPot as ChefHat,
+  Leaf,
+  ForkKnife as Utensils,
+} from "@phosphor-icons/react/ssr"
 
 import { Badge } from "@/components/ui/badge"
 import {

@@ -1,7 +1,7 @@
+import Image from "next/image"
 import { redirect } from "next/navigation"
 import { auth } from "@/auth"
-import { GalleryVerticalEnd } from "lucide-react"
-import Image from "next/image"
+import { Stack as GalleryVerticalEnd } from "@phosphor-icons/react/ssr"
 
 export default async function Layout({
   children,
@@ -33,10 +33,10 @@ export default async function Layout({
               href="https://codernandan.in"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-muted-foreground hover:text-foreground hover:underline transition-colors"
+              className="text-muted-foreground hover:text-foreground transition-colors hover:underline"
             >
               Built by{" "}
-              <span className="text-foreground border-b border-muted-foreground/30 font-bold">
+              <span className="text-foreground border-muted-foreground/30 border-b font-bold">
                 codernandan
               </span>{" "}
               💖

@@ -7,13 +7,12 @@ import {
   NON_VEG_OPTIONS,
 } from "@/constants/form.constants"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { ReloadIcon } from "@radix-ui/react-icons"
-import { CheckIcon } from "lucide-react"
+import { Check as CheckIcon } from "@phosphor-icons/react"
 import { Controller, useForm } from "react-hook-form"
-import { toast } from "sonner"
 import z from "zod"
 
 import { GetMealWithUser } from "@/types/prisma.type"
+import { toast } from "@/lib/toast"
 import { cn } from "@/lib/utils"
 import { mealSchema } from "@/lib/validations"
 import { tryCatch } from "@/hooks/try-catch"
@@ -26,6 +25,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
+import { Loader } from "@/components/ui/loader"
 import {
   Select,
   SelectContent,
@@ -55,8 +55,9 @@ import {
 
 import { updateMeal } from "../_lib/actions"
 
-interface UpdateMealSheetProps
-  extends React.ComponentPropsWithRef<typeof Sheet> {
+interface UpdateMealSheetProps extends React.ComponentPropsWithRef<
+  typeof Sheet
+> {
   meal: GetMealWithUser
 }
 type UpdateMealSchema = z.infer<typeof mealSchema>
@@ -257,10 +258,7 @@ export function UpdateMealSheet({ meal, ...props }: UpdateMealSheetProps) {
               </SheetClose>
               <Button disabled={isUpdatePending}>
                 {isUpdatePending && (
-                  <ReloadIcon
-                    className="mr-2 size-4 animate-spin"
-                    aria-hidden="true"
-                  />
+                  <Loader variant="comet" size={16} className="mr-2" />
                 )}
                 Save
               </Button>

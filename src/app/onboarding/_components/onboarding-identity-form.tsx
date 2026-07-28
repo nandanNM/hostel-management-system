@@ -3,8 +3,8 @@
 import { useRouter } from "next/navigation"
 import { GENDER_OPTIONS, RELIGION_OPTIONS } from "@/constants/form.constants"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { ArrowRight, Calendar as CalendarIcon } from "@phosphor-icons/react"
 import { format } from "date-fns"
-import { ArrowRight, Calendar as CalendarIcon } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 

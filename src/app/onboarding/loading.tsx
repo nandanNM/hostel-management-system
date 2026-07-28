@@ -1,5 +1,9 @@
-import { Loader2 } from "lucide-react"
+import { Loader } from "@/components/ui/loader"
 
 export default function Loading() {
-  return <Loader2 className="mx-auto my-6 size-6 animate-spin" />
+  return (
+    <div className="fixed inset-0 flex items-center justify-center pb-12">
+      <Loader variant="comet" size={28} />
+    </div>
+  )
 }

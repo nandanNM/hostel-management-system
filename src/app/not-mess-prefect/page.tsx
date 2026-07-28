@@ -1,6 +1,6 @@
 import React from "react"
 import Link from "next/link"
-import { ArrowLeft, ShieldX } from "lucide-react"
+import { ArrowLeft, ShieldWarning as ShieldX } from "@phosphor-icons/react/ssr"
 
 import { buttonVariants } from "@/components/ui/button"
 import {

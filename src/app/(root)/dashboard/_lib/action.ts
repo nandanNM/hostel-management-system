@@ -4,6 +4,10 @@ import { ApiResponse } from "@/types"
 import { endOfMonth, startOfMonth } from "date-fns"
 
 import { BillEntryType, MealStatusType } from "@/lib/generated/prisma"
+import {
+  getMealPreferenceLock,
+  MEAL_PREFERENCE_LOCK_MESSAGE,
+} from "@/lib/meal-lock"
 import prisma from "@/lib/prisma"
 import { requireUser } from "@/lib/require-user"
 
@@ -25,6 +29,12 @@ export async function toggleMealStatus(
       message: "Unauthorized - You are not a boarder member",
     }
   }
+
+  const { locked } = await getMealPreferenceLock()
+  if (locked) {
+    return { status: "error", message: MEAL_PREFERENCE_LOCK_MESSAGE }
+  }
+
   try {
     await prisma.$transaction([
       prisma.meal.update({

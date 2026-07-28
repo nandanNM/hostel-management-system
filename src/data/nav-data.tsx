@@ -1,6 +1,12 @@
 import { usePathname } from "next/navigation"
+import {
+  ChartBar as BarChart3,
+  Bell,
+  GraduationCap,
+  House as Home,
+  ForkKnife as Utensils,
+} from "@phosphor-icons/react/ssr"
 import { RiDashboardLine, RiToolsFill } from "@remixicon/react"
-import { BarChart3, Bell, GraduationCap, Home, Utensils } from "lucide-react"
 
 export const NavItems = () => {
   const pathname = usePathname()

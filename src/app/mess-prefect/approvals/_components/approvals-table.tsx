@@ -2,10 +2,10 @@
 
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
+import { Check, UserCheck, X } from "@phosphor-icons/react"
 import { format } from "date-fns"
-import { Check, Loader2, UserCheck, X } from "lucide-react"
-import { toast } from "sonner"
 
+import { toast } from "@/lib/toast"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -16,6 +16,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { Loader } from "@/components/ui/loader"
 import {
   Table,
   TableBody,
@@ -70,8 +71,8 @@ export function ApprovalsTable({ users }: { users: PendingUser[] }) {
           Pending Approvals
         </CardTitle>
         <CardDescription>
-          New boarders awaiting activation. Approve to grant access, or reject to
-          suspend the account.
+          New boarders awaiting activation. Approve to grant access, or reject
+          to suspend the account.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -126,7 +127,9 @@ export function ApprovalsTable({ users }: { users: PendingUser[] }) {
                               : "bg-yellow-100 text-yellow-700"
                           )}
                         >
-                          {user.onboardingCompleted ? "Completed" : "Incomplete"}
+                          {user.onboardingCompleted
+                            ? "Completed"
+                            : "Incomplete"}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-muted-foreground text-sm">
@@ -135,7 +138,11 @@ export function ApprovalsTable({ users }: { users: PendingUser[] }) {
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
                           {rowBusy && (
-                            <Loader2 className="text-muted-foreground size-4 animate-spin" />
+                            <Loader
+                              variant="comet"
+                              size={16}
+                              className="text-muted-foreground"
+                            />
                           )}
                           <Button
                             size="sm"

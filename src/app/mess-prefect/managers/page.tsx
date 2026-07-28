@@ -1,7 +1,7 @@
 import { unstable_noStore as noStore } from "next/cache"
-import { UserCog } from "lucide-react"
-
 import requireMessPrefect from "@/data/mess-prefect/require-mess-prefect"
+import { UserGear as UserCog } from "@phosphor-icons/react/ssr"
+
 import { UserRoleType, UserStatusType } from "@/lib/generated/prisma"
 import prisma from "@/lib/prisma"
 
@@ -35,7 +35,7 @@ export default async function ManagersPage() {
   ).length
 
   return (
-    <div className="flex-1 space-y-6 p-6">
+    <div className="flex-1 space-y-6 p-4 sm:p-6">
       <div className="flex items-center gap-3">
         <UserCog className="h-6 w-6" />
         <div>

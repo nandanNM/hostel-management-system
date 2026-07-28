@@ -1,7 +1,7 @@
 "use client"
 
-import { Bell } from "lucide-react"
 import Link from "next/link"
+import { Bell } from "@phosphor-icons/react"
 
 import { ThemeSwitcher } from "../ThemeSwitcher"
 import { SidebarTrigger } from "../ui/sidebar"
@@ -12,7 +12,10 @@ const Navbar = () => {
       {/* LEFT */}
       <SidebarTrigger />
       <div className="flex items-center gap-4">
-        <Link href="/manager/notifications" className="text-muted-foreground hover:text-foreground transition-colors mr-2">
+        <Link
+          href="/manager/notifications"
+          className="text-muted-foreground hover:text-foreground mr-2 transition-colors"
+        >
           <Bell size={20} />
         </Link>
         <ThemeSwitcher />

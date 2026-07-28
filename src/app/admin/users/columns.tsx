@@ -1,17 +1,17 @@
 "use client"
 
-import type { ColumnDef } from "@tanstack/react-table"
 import {
-  ArrowUpDown,
-  Ban,
+  ArrowsDownUp as ArrowUpDown,
+  Prohibit as Ban,
   Copy,
   Crown,
   Eye,
-  MoreHorizontal,
+  DotsThree as MoreHorizontal,
   Shield,
   UserCheck,
-  UserX,
-} from "lucide-react"
+  UserMinus as UserX,
+} from "@phosphor-icons/react"
+import type { ColumnDef } from "@tanstack/react-table"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"

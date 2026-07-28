@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { CaretDown as ChevronDown } from "@phosphor-icons/react"
 import {
   flexRender,
   getCoreRowModel,
@@ -13,7 +14,6 @@ import {
   type SortingState,
   type VisibilityState,
 } from "@tanstack/react-table"
-import { ChevronDown } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {

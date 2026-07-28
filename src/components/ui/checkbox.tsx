@@ -1,8 +1,8 @@
 "use client"
 
 import * as React from "react"
+import { Check as CheckIcon } from "@phosphor-icons/react"
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox"
-import { CheckIcon } from "lucide-react"
 import { motion } from "motion/react"
 
 import { cn } from "@/lib/utils"

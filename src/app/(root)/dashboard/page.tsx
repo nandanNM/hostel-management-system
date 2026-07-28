@@ -1,10 +1,15 @@
 import { Suspense } from "react"
 import { Metadata } from "next"
 import { notFound } from "next/navigation"
-import { InfoIcon, Loader2, TriangleAlert } from "lucide-react"
+import {
+  Info as InfoIcon,
+  Warning as TriangleAlert,
+} from "@phosphor-icons/react/ssr"
 
 import { requireUser } from "@/lib/require-user"
+import { Loader } from "@/components/ui/loader"
 import { Separator } from "@/components/ui/separator"
+import { PageContainer } from "@/components/page-container"
 
 import { MealMessageDialog } from "./_components/meal-message-dialog"
 import MealTogleButton from "./_components/meal-togle-button"
@@ -20,7 +25,7 @@ export default async function Page() {
   if (!user?.id) return notFound()
 
   return (
-    <div className="w-full md:mx-8 lg:mx-auto">
+    <PageContainer className="space-y-0">
       <h2 className="text-foreground mb-4 font-bold">User Dashboard</h2>
       {user.role === "ADMIN" && (
         <div className="mb-4 rounded-md border border-blue-500/50 bg-blue-50 px-4 py-3 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400">
@@ -42,7 +47,7 @@ export default async function Page() {
           Continued misuse may result in temporary suspension.
         </p>
       </div>
-      <div className="flex w-full items-center gap-6 py-4 md:gap-12">
+      <div className="flex w-full flex-wrap items-center gap-4 py-4 md:gap-12">
         <MealTogleButton />
         <MealMessageDialog />
       </div>
@@ -60,11 +65,13 @@ export default async function Page() {
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <UserDetails userId={user.id} />
-          <Suspense fallback={<Loader2 className="mx-auto animate-spin" />}>
+          <Suspense
+            fallback={<Loader variant="comet" size={20} className="mx-auto" />}
+          >
             <UserActivity userId={user.id} />
           </Suspense>
         </div>
       </div>
-    </div>
+    </PageContainer>
   )
 }

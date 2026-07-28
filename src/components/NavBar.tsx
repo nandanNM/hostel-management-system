@@ -3,13 +3,14 @@
 import { useState } from "react"
 import Link from "next/link"
 import { NavItems } from "@/data/nav-data"
-import { Menu } from "lucide-react"
+import { List as Menu } from "@phosphor-icons/react"
 
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 
+import NavNotifications from "./NavNotifications"
 import { ThemeSwitcher } from "./ThemeSwitcher"
-import UserButton from "./UserButton"
 import { Badge } from "./ui/badge"
+import UserButton from "./UserButton"
 
 export default function NavBar() {
   const navItems = NavItems()
@@ -26,14 +27,16 @@ export default function NavBar() {
             setIsOpen={setIsOpen}
             navItems={navItems}
           />
-          <Link href="/" className="font-bold">
-            HMS-PG1 
-            <Badge className="ml-2 rounded-full" variant="destructive">Beta</Badge>
+          <Link href="/" className="font-bold whitespace-nowrap">
+            D.L Bhawan
+            <Badge className="ml-2 rounded-full" variant="destructive">
+              PG1
+            </Badge>
           </Link>
         </div>
-        <div className="flex items-center justify-center gap-2">
+        <div className="mr-4 flex items-center justify-center gap-2">
+          <NavNotifications />
           <ThemeSwitcher />
-
           <UserButton />
         </div>
       </nav>

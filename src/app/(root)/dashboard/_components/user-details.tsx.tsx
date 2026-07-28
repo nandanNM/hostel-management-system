@@ -1,17 +1,16 @@
 import React, { cache, Suspense } from "react"
 import { notFound } from "next/navigation"
 import { MealPreference } from "@/types"
-import { formatDate } from "date-fns"
+import type { Icon } from "@phosphor-icons/react"
 import {
   Gavel,
-  Loader2,
-  LucideIcon,
   MapPin,
-  TrendingUp,
+  TrendUp as TrendingUp,
   User as UserIcon,
-  Utensils,
+  ForkKnife as Utensils,
   Wallet,
-} from "lucide-react"
+} from "@phosphor-icons/react/ssr"
+import { formatDate } from "date-fns"
 
 import { User } from "@/lib/generated/prisma"
 import prisma from "@/lib/prisma"
@@ -26,6 +25,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { Loader } from "@/components/ui/loader"
 
 import { getUserDeshboardStats } from "../_lib/action"
 import RecentTransactions from "./recent-transactions"
@@ -42,7 +42,9 @@ export default async function UserDetails({ userId }: UserDetailsProps) {
   const user = await getUserById(userId)
   return (
     <div className="space-y-8 lg:col-span-2">
-      <Suspense fallback={<Loader2 className="mx-auto animate-spin" />}>
+      <Suspense
+        fallback={<Loader variant="comet" size={20} className="mx-auto" />}
+      >
         <OverviewCards />
         <RecentTransactions userId={userId} />
         <UserDataCard user={user} />
@@ -90,7 +92,7 @@ async function OverviewCards() {
 
 interface StatsCardProps {
   title: string
-  icon: LucideIcon
+  icon: Icon
   value: number | string
   color: string
   subtitle?: string

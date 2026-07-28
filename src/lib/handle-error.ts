@@ -1,6 +1,7 @@
 import { isRedirectError } from "next/dist/client/components/redirect-error"
-import { toast } from "sonner"
 import { z } from "zod"
+
+import { toast } from "@/lib/toast"
 
 export function getErrorMessage(err: unknown) {
   const unknownError = "Something went wrong, please try again later."

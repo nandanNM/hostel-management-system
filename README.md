@@ -12,26 +12,31 @@ A modern, production-ready **Hostel Management System** designed for efficiency,
 ## 🚀 Key Features
 
 ### 🥗 Meal & Guest Management
+
 - **Personalized Preferences**: Choose between Veg/Non-Veg with detailed exclusions and disliked items.
 - **Attendance Tracking**: Real-time logging of meal attendances for better mess planning.
 - **Guest Meals**: Easily manage and bill guest meal requests.
 - **Meal Reminders**: Integrated notification system for upcoming meals.
 
 ### 💰 Financial & Billing
+
 - **Dynamic Dashboard**: View outstanding dues, total paid amounts, and transaction history at a glance.
 - **Automated Billing**: System-generated bills based on meal consumption and room stay.
 - **Payment History**: Clear audit trail of all payments and pending balances.
 
 ### 👥 User & Administrative Control
+
 - **Role-Based Access**: Specialized interfaces for **Students**, **Managers**, and **Admins**.
 - **Onboarding Flow**: Smooth, multi-step onboarding process to capture student identity and preferences.
 - **Profile Management**: Update personal info, address, and contact details securely.
 
 ### 📱 Modern User Experience
+
 - **Responsive Design**: Full mobile support with a sleek, interactive sidebar and navigation.
 - **Theme Support**: Seamless switching between Light and Dark modes.
 - **Real-time Updates**: Data stays fresh with TanStack Query integration.
 - **Custom Loading & Error States**: Polished feedback during data fetching and navigation.
+- **Dashboard Widgets**: Live weather data and inspirational quotes (Hindi + English) on the home screen.
 
 ---
 
@@ -51,32 +56,41 @@ A modern, production-ready **Hostel Management System** designed for efficiency,
 ## 🏁 Quick Start
 
 1. **Clone the repository:**
+
    ```bash
    git clone https://github.com/nandanNM/hostel-management-system.git
    cd hostel-management-system
    ```
 
 2. **Install dependencies:**
+
    ```bash
    pnpm install
    ```
 
 3. **Set up Environment Variables:**
    Create a `.env` file based on `.env.example`:
+
    ```bash
    cp .env.example .env
    ```
-   *Fill in your DATABASE_URL and AUTH_SECRET.*
+
+   _Fill in your DATABASE_URL and AUTH_SECRET._
 
 4. **Initialize Database:**
+
    ```bash
    npx prisma generate
    ```
 
 5. **Run Development Server:**
+
    ```bash
    pnpm run dev
    ```
+
+6. **View API Documentation:**
+   See [docs/API.md](docs/API.md) for complete API reference and widget documentation.
 
 ---
 

@@ -4,9 +4,11 @@ import { format } from "date-fns"
 
 import { MealStatusType } from "@/lib/generated/prisma"
 
+import { dueAddedEmail } from "./emails/due-added"
+import { happyBirthdayEmail } from "./emails/happy-birthday"
+import { emailLayout } from "./emails/layout"
+import { terminationEmail } from "./emails/termination"
 import { EMAIL_FROM, resend } from "./resend-client"
-
-const APP_NAME = "Hostel Mess Management"
 
 type SendEmailArgs = {
   to: string
@@ -50,22 +52,6 @@ export async function sendEmail({
     console.error(`[email] Unexpected error sending to ${to}:`, err)
     return false
   }
-}
-
-function layout(heading: string, bodyHtml: string): string {
-  return `
-  <div style="font-family: Arial, Helvetica, sans-serif; max-width: 560px; margin: 0 auto; color: #1f2937;">
-    <div style="padding: 24px 0; border-bottom: 2px solid #e5e7eb;">
-      <h1 style="font-size: 18px; margin: 0; color: #111827;">${APP_NAME}</h1>
-    </div>
-    <div style="padding: 24px 0;">
-      <h2 style="font-size: 20px; margin: 0 0 16px;">${heading}</h2>
-      ${bodyHtml}
-    </div>
-    <div style="padding: 16px 0; border-top: 1px solid #e5e7eb; font-size: 12px; color: #9ca3af;">
-      This is an automated message from ${APP_NAME}. Please do not reply to this email.
-    </div>
-  </div>`
 }
 
 const MEAL_STATUS_COPY: Record<
@@ -119,7 +105,7 @@ export async function sendMealStatusEmail({
   return sendEmail({
     to,
     subject: `Your meals were ${label}`,
-    html: layout("Meal status updated", body),
+    html: emailLayout("Meal status updated", body),
   })
 }
 
@@ -130,6 +116,7 @@ export async function sendPaymentReceivedEmail({
   newBalance,
   method,
   billId,
+  kind = "payment",
 }: {
   to: string
   name: string | null
@@ -137,11 +124,18 @@ export async function sendPaymentReceivedEmail({
   newBalance: number
   method?: string | null
   billId?: string
+  kind?: "payment" | "advance"
 }): Promise<boolean> {
+  const isAdvance = kind === "advance"
+  const noun = isAdvance ? "advance" : "payment"
+  const heading = isAdvance ? "Advance received" : "Payment received"
+
   const body = `
     <p style="font-size: 14px; line-height: 1.6;">Hi ${name ?? "there"},</p>
     <p style="font-size: 14px; line-height: 1.6;">
-      The mess prefect has recorded a payment received against your account.
+      The mess prefect has recorded ${
+        isAdvance ? "an advance" : "a payment"
+      } received against your account.
     </p>
     <table style="width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px;">
       <tr>
@@ -172,9 +166,11 @@ export async function sendPaymentReceivedEmail({
 
   return sendEmail({
     to,
-    subject: `Payment of ₹${amount.toFixed(2)} received`,
-    html: layout("Payment received", body),
-    idempotencyKey: billId ? `payment-received/${billId}` : undefined,
+    subject: `${
+      isAdvance ? "Advance" : "Payment"
+    } of ₹${amount.toFixed(2)} received`,
+    html: emailLayout(heading, body),
+    idempotencyKey: billId ? `${noun}-received/${billId}` : undefined,
   })
 }
 
@@ -193,44 +189,44 @@ export async function sendDueAddedEmail({
   description?: string | null
   billId?: string
 }): Promise<boolean> {
-  const body = `
-    <p style="font-size: 14px; line-height: 1.6;">Hi ${name ?? "there"},</p>
-    <p style="font-size: 14px; line-height: 1.6;">
-      The mess prefect has added a new due to your account.
-    </p>
-    <table style="width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px;">
-      <tr>
-        <td style="padding: 8px 0; color: #6b7280;">Amount</td>
-        <td style="padding: 8px 0; text-align: right; font-weight: bold; color: #dc2626;">₹${amount.toFixed(
-          2
-        )}</td>
-      </tr>
-      ${
-        description
-          ? `<tr>
-        <td style="padding: 8px 0; color: #6b7280;">Details</td>
-        <td style="padding: 8px 0; text-align: right;">${description}</td>
-      </tr>`
-          : ""
-      }
-      <tr>
-        <td style="padding: 8px 0; color: #6b7280;">Outstanding due</td>
-        <td style="padding: 8px 0; text-align: right; font-weight: bold;">₹${newBalance.toFixed(
-          2
-        )}</td>
-      </tr>
-    </table>
-    <p style="font-size: 14px; line-height: 1.6;">
-      This amount has been added to your outstanding dues. Please clear it at the
-      earliest.
-    </p>`
-
+  const { subject, html } = dueAddedEmail({
+    name,
+    amount,
+    newBalance,
+    description,
+  })
   return sendEmail({
     to,
-    subject: `A due of ₹${amount.toFixed(2)} was added to your account`,
-    html: layout("Due added", body),
+    subject,
+    html,
     idempotencyKey: billId ? `due-added/${billId}` : undefined,
   })
+}
+
+export async function sendHappyBirthdayEmail({
+  to,
+  name,
+  idempotencyKey,
+}: {
+  to: string
+  name: string | null
+  idempotencyKey?: string
+}): Promise<boolean> {
+  const { subject, html } = happyBirthdayEmail({ name })
+  return sendEmail({ to, subject, html, idempotencyKey })
+}
+
+export async function sendTerminationEmail({
+  to,
+  name,
+  reason,
+}: {
+  to: string
+  name: string | null
+  reason?: string | null
+}): Promise<boolean> {
+  const { subject, html } = terminationEmail({ name, reason })
+  return sendEmail({ to, subject, html })
 }
 
 export async function sendFineIssuedEmail({
@@ -283,7 +279,7 @@ export async function sendFineIssuedEmail({
   return sendEmail({
     to,
     subject: `A fine of ₹${amount.toFixed(2)} was added to your account`,
-    html: layout("Fine issued", body),
+    html: emailLayout("Fine issued", body),
     idempotencyKey: fineId ? `fine-issued/${fineId}` : undefined,
   })
 }

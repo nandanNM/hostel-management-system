@@ -1,9 +1,9 @@
 "use client"
 
 import * as React from "react"
-import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { CalendarIcon } from "@radix-ui/react-icons"
 import { addDays, format } from "date-fns"
+import { parseAsString, useQueryStates } from "nuqs"
 import type { DateRange } from "react-day-picker"
 
 import { cn } from "@/lib/utils"
@@ -15,8 +15,9 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 
-interface DateRangePickerProps
-  extends React.ComponentPropsWithoutRef<typeof PopoverContent> {
+interface DateRangePickerProps extends React.ComponentPropsWithoutRef<
+  typeof PopoverContent
+> {
   /**
    * The selected date range.
    * @default undefined
@@ -72,14 +73,17 @@ export function DateRangePicker({
   className,
   ...props
 }: DateRangePickerProps) {
-  const router = useRouter()
-  const pathname = usePathname()
-  const searchParams = useSearchParams()
+  // `from`/`to` stay in the URL exactly as before (yyyy-MM-dd strings).
+  // shallow: false keeps server components in sync, as router.replace did.
+  const [{ from: fromParam, to: toParam }, setRangeParams] = useQueryStates(
+    {
+      from: parseAsString,
+      to: parseAsString,
+    },
+    { history: "replace", shallow: false, scroll: false }
+  )
 
   const [date, setDate] = React.useState<DateRange | undefined>(() => {
-    const fromParam = searchParams.get("from")
-    const toParam = searchParams.get("to")
-
     let fromDay: Date | undefined
     let toDay: Date | undefined
 
@@ -99,21 +103,9 @@ export function DateRangePicker({
 
   // Update query string
   React.useEffect(() => {
-    const newSearchParams = new URLSearchParams(searchParams)
-    if (date?.from) {
-      newSearchParams.set("from", format(date.from, "yyyy-MM-dd"))
-    } else {
-      newSearchParams.delete("from")
-    }
-
-    if (date?.to) {
-      newSearchParams.set("to", format(date.to, "yyyy-MM-dd"))
-    } else {
-      newSearchParams.delete("to")
-    }
-
-    router.replace(`${pathname}?${newSearchParams.toString()}`, {
-      scroll: false,
+    void setRangeParams({
+      from: date?.from ? format(date.from, "yyyy-MM-dd") : null,
+      to: date?.to ? format(date.to, "yyyy-MM-dd") : null,
     })
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
