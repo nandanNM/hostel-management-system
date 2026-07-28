@@ -47,7 +47,7 @@ export default async function Page() {
           Continued misuse may result in temporary suspension.
         </p>
       </div>
-      <div className="flex w-full items-center gap-6 py-4 md:gap-12">
+      <div className="flex w-full flex-wrap items-center gap-4 py-4 md:gap-12">
         <MealTogleButton />
         <MealMessageDialog />
       </div>

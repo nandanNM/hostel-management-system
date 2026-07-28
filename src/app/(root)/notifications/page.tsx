@@ -41,7 +41,7 @@ export default function NotificationsList() {
     toast.error(error.message)
   }
   return (
-    <PageContainer className="mx-auto max-w-4xl space-y-0">
+    <PageContainer className="space-y-0">
       {/* Header */}
       <div className="bg-card flex items-center justify-between rounded-t-lg border-b p-6">
         <div className="flex items-center gap-3">

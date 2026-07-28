@@ -85,7 +85,9 @@ export function MealMessageDialog() {
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button variant="outline">
-          <SendIcon className="mr-2 h-4 w-4" /> Send Meal Message
+          <SendIcon className="mr-2 h-4 w-4" />
+          <span className="sm:hidden">Message</span>
+          <span className="hidden sm:inline">Send Meal Message</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">

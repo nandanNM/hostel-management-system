@@ -67,8 +67,8 @@ export default function GuestMealsPage() {
     return <Loader variant="comet" size={24} className="mx-auto my-6" />
   }
   return (
-    <PageContainer className="flex flex-col items-center justify-center space-y-0">
-      <div className="mb-3 rounded-md border px-4 py-3">
+    <PageContainer>
+      <div className="rounded-md border px-4 py-3">
         <p className="text-sm">
           <InfoIcon
             className="me-3 -mt-0.5 inline-flex text-blue-500"
@@ -79,7 +79,7 @@ export default function GuestMealsPage() {
           been added to your bill.
         </p>
       </div>
-      <Card className="w-full max-w-4xl shadow-sm">
+      <Card className="w-full shadow-sm">
         <CardHeader className="flex flex-col gap-3 border-b md:flex-row md:items-center md:justify-between">
           <div>
             <CardTitle className="text-foreground flex items-center gap-3 text-2xl font-bold">
