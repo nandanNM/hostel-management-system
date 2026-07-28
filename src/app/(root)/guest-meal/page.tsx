@@ -42,6 +42,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { PageContainer } from "@/components/page-container"
 
 import { CreateGuestMealSheet } from "./_components/create-guest-meal-sheet"
 import { useDeleteGuestMealRequest } from "./_lib/mutations"
@@ -66,7 +67,7 @@ export default function GuestMealsPage() {
     return <Loader2 className="mx-auto my-6 size-6 animate-spin" />
   }
   return (
-    <main className="flex flex-col items-center justify-center">
+    <PageContainer className="flex flex-col items-center justify-center space-y-0">
       <div className="mb-3 rounded-md border px-4 py-3">
         <p className="text-sm">
           <InfoIcon
@@ -115,7 +116,7 @@ export default function GuestMealsPage() {
           )}
         </CardContent>
       </Card>
-    </main>
+    </PageContainer>
   )
 }
 

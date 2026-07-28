@@ -5,6 +5,7 @@ import { InfoIcon, Loader2, TriangleAlert } from "lucide-react"
 
 import { requireUser } from "@/lib/require-user"
 import { Separator } from "@/components/ui/separator"
+import { PageContainer } from "@/components/page-container"
 
 import { MealMessageDialog } from "./_components/meal-message-dialog"
 import MealTogleButton from "./_components/meal-togle-button"
@@ -20,7 +21,7 @@ export default async function Page() {
   if (!user?.id) return notFound()
 
   return (
-    <div className="w-full md:mx-8 lg:mx-auto">
+    <PageContainer className="space-y-0">
       <h2 className="text-foreground mb-4 font-bold">User Dashboard</h2>
       {user.role === "ADMIN" && (
         <div className="mb-4 rounded-md border border-blue-500/50 bg-blue-50 px-4 py-3 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400">
@@ -65,6 +66,6 @@ export default async function Page() {
           </Suspense>
         </div>
       </div>
-    </div>
+    </PageContainer>
   )
 }

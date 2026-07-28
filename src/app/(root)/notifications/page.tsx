@@ -7,6 +7,7 @@ import { toast } from "sonner"
 
 import { GetNotificationWithIssuer } from "@/types/prisma.type"
 import kyInstance from "@/lib/ky"
+import { PageContainer } from "@/components/page-container"
 
 import Notification from "./_components/notification"
 import { useMarkNotificationsAsRead } from "./_lib/mutations"
@@ -39,7 +40,7 @@ export default function NotificationsList() {
     toast.error(error.message)
   }
   return (
-    <div className="mx-auto w-full max-w-4xl">
+    <PageContainer className="mx-auto max-w-4xl space-y-0">
       {/* Header */}
       <div className="bg-card flex items-center justify-between rounded-t-lg border-b p-6">
         <div className="flex items-center gap-3">
@@ -69,6 +70,6 @@ export default function NotificationsList() {
           </div>
         )}
       </div>
-    </div>
+    </PageContainer>
   )
 }
