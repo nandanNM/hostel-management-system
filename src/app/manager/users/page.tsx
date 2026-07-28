@@ -2,7 +2,6 @@ import React from "react"
 import { SearchParams } from "@/types"
 
 import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton"
-import { Shell } from "@/components/shell"
 
 import { TasksTable } from "./_components/users-meal-table"
 import { getMealsForManager } from "./_lib/actions"
@@ -17,7 +16,7 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
 
   const mealsPromise = getMealsForManager(search)
   return (
-    <Shell className="gap-2">
+    <div className="w-full space-y-6 p-4 sm:p-6">
       <React.Suspense
         fallback={
           <DataTableSkeleton
@@ -31,6 +30,6 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
       >
         <TasksTable tasksPromise={mealsPromise} />
       </React.Suspense>
-    </Shell>
+    </div>
   )
 }

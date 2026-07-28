@@ -254,6 +254,8 @@ export function BillingExclusionTable({
           <div className="relative w-full max-w-sm">
             <Search className="text-muted-foreground absolute top-1/2 left-2 h-4 w-4 -translate-y-1/2" />
             <Input
+              type="search"
+              autoComplete="off"
               value={globalFilter}
               onChange={(e) => setGlobalFilter(e.target.value)}
               placeholder="Search by name, email or room…"

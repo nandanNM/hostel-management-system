@@ -8,7 +8,7 @@ import { MessagesList } from "./_components/messages-list"
 
 export default function Page() {
   return (
-    <div className="flex-1 space-y-6 p-6">
+    <div className="flex-1 space-y-6 p-4 sm:p-6">
       <div className="rounded-md border border-amber-500/50 px-4 py-3 text-amber-600">
         <p className="text-sm">
           <InfoIcon

@@ -202,6 +202,8 @@ export function AlumniTable({
           <div className="relative w-full max-w-sm">
             <MagnifyingGlass className="text-muted-foreground absolute top-1/2 left-2 size-4 -translate-y-1/2" />
             <Input
+              type="search"
+              autoComplete="off"
               value={globalFilter}
               onChange={(e) => setGlobalFilter(e.target.value)}
               placeholder="Search alumni by name, department, email…"
