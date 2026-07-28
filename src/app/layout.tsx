@@ -6,6 +6,7 @@ import { Geist_Mono } from "next/font/google"
 import AuthProvider from "@/context/AuthProvider"
 import ReactQueryProvider from "@/context/ReactQueryProvider"
 import { ThemeProvider } from "@/context/theme-provider"
+import { NuqsAdapter } from "nuqs/adapters/next/app"
 
 import { siteConfig } from "@/config/site"
 import { Toaster } from "@/lib/toast"
@@ -72,17 +73,19 @@ export default function RootLayout({
             "antialiased"
           )}
         >
-          <ReactQueryProvider>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="system"
-              enableSystem
-              disableTransitionOnChange
-            >
-              {children}
-            </ThemeProvider>
-            <Toaster />
-          </ReactQueryProvider>
+          <NuqsAdapter>
+            <ReactQueryProvider>
+              <ThemeProvider
+                attribute="class"
+                defaultTheme="system"
+                enableSystem
+                disableTransitionOnChange
+              >
+                {children}
+              </ThemeProvider>
+              <Toaster />
+            </ReactQueryProvider>
+          </NuqsAdapter>
         </body>
       </AuthProvider>
     </html>

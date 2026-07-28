@@ -1,7 +1,8 @@
 "use client"
 
 import { useCallback, type ReactNode } from "react"
-import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { usePathname, useSearchParams } from "next/navigation"
+import { parseAsInteger, useQueryState } from "nuqs"
 
 import { cn } from "@/lib/utils"
 
@@ -52,9 +53,16 @@ export function PaginationWithLinks({
   page,
   pageSearchParam,
 }: PaginationWithLinksProps) {
-  const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
+
+  // Page size lives in the URL; nuqs keeps it in sync without a full navigation.
+  const [, setPageSizeParam] = useQueryState(
+    pageSizeSelectOptions?.pageSizeSearchParam || "pageSize",
+    // shallow: false so server components reading `pageSize` still re-render,
+    // matching the previous router.push behaviour.
+    parseAsInteger.withOptions({ shallow: false, history: "push" })
+  )
 
   const totalPageCount = Math.ceil(totalCount / pageSize)
 
@@ -71,12 +79,9 @@ export function PaginationWithLinks({
 
   const navToPageSize = useCallback(
     (newPageSize: number) => {
-      const key = pageSizeSelectOptions?.pageSizeSearchParam || "pageSize"
-      const newSearchParams = new URLSearchParams(searchParams || undefined)
-      newSearchParams.set(key, String(newPageSize))
-      router.push(`${pathname}?${newSearchParams.toString()}`)
+      void setPageSizeParam(newPageSize)
     },
-    [searchParams, pathname, pageSizeSelectOptions, router]
+    [setPageSizeParam]
   )
 
   const renderPageNumbers = () => {
