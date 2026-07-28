@@ -1,5 +1,6 @@
 import {
   Cow as Beef,
+  Bird,
   Circle as CircleIcon,
   Egg,
   Fish,
@@ -17,7 +18,7 @@ import { MealStatusType, NonVegType } from "@/lib/generated/prisma"
 export function getNonVegTypeIcon(type: NonVegType) {
   const iconMap = {
     [NonVegType.NONE]: X,
-    [NonVegType.CHICKEN]: Beef,
+    [NonVegType.CHICKEN]: Bird,
     [NonVegType.MUTTON]: Beef,
     [NonVegType.FISH]: Fish,
     [NonVegType.EGG]: Egg,
