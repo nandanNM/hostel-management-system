@@ -13,10 +13,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import { useMarkNotificationsAsRead } from "@/app/(root)/notifications/_lib/mutations"
 
 export default function NavNotifications() {
   const router = useRouter()
   const [open, setOpen] = useState(false)
+  const { mutate: markAllRead, isPending: isMarking } =
+    useMarkNotificationsAsRead()
 
   const { data } = useQuery({
     queryKey: ["notifications"],
@@ -27,8 +30,15 @@ export default function NavNotifications() {
     refetchOnWindowFocus: false,
   })
 
+  const { data: unreadCount } = useQuery({
+    queryKey: ["notifications", "unread-count"],
+    queryFn: () =>
+      kyInstance.get("/api/user/notifications/unread-count").json<number>(),
+    refetchOnWindowFocus: false,
+  })
+
   const notifications = data ?? []
-  const count = notifications.length
+  const count = unreadCount ?? 0
 
   const viewAll = () => {
     setOpen(false)
@@ -59,7 +69,14 @@ export default function NavNotifications() {
         <div className="flex items-center justify-between border-b px-4 py-3">
           <span className="text-sm font-semibold">Notifications</span>
           {count > 0 ? (
-            <span className="text-muted-foreground text-xs">{count} new</span>
+            <button
+              type="button"
+              onClick={() => markAllRead()}
+              disabled={isMarking}
+              className="text-primary text-xs font-medium hover:underline disabled:opacity-50"
+            >
+              Mark all read
+            </button>
           ) : null}
         </div>
 

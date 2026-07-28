@@ -1,12 +1,12 @@
 "use client"
 
-import { useEffect } from "react"
-import { Bell } from "@phosphor-icons/react"
+import { Bell, Check } from "@phosphor-icons/react"
 import { useQuery } from "@tanstack/react-query"
 
 import { GetNotificationWithIssuer } from "@/types/prisma.type"
 import kyInstance from "@/lib/ky"
 import { toast } from "@/lib/toast"
+import { Button } from "@/components/ui/button"
 import { Loader } from "@/components/ui/loader"
 import { PageContainer } from "@/components/page-container"
 
@@ -14,7 +14,8 @@ import Notification from "./_components/notification"
 import { useMarkNotificationsAsRead } from "./_lib/mutations"
 
 export default function NotificationsList() {
-  const { mutate: markAsRead } = useMarkNotificationsAsRead()
+  const { mutate: markAllRead, isPending: isMarking } =
+    useMarkNotificationsAsRead()
   const {
     data: notifications,
     isLoading: isPending,
@@ -28,22 +29,18 @@ export default function NotificationsList() {
         .json<GetNotificationWithIssuer[]>(),
   })
 
-  useEffect(() => {
-    if (notifications?.length) {
-      markAsRead()
-    }
-  }, [notifications, markAsRead])
-
   if (isPending) {
     return <Loader variant="comet" size={24} className="mx-auto my-6" />
   }
   if (isError && error) {
     toast.error(error.message)
   }
+
+  const unreadCount = notifications?.filter((n) => !n.read).length ?? 0
+
   return (
     <PageContainer className="space-y-0">
-      {/* Header */}
-      <div className="bg-card flex items-center justify-between rounded-t-lg border-b p-6">
+      <div className="bg-card flex flex-wrap items-center justify-between gap-3 rounded-t-lg border-b p-6">
         <div className="flex items-center gap-3">
           <Bell className="text-primary size-6" />
           <div>
@@ -53,9 +50,23 @@ export default function NotificationsList() {
             </p>
           </div>
         </div>
+        {unreadCount > 0 ? (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => markAllRead()}
+            disabled={isMarking}
+          >
+            {isMarking ? (
+              <Loader variant="comet" size={14} className="mr-1" />
+            ) : (
+              <Check className="mr-1 size-4" />
+            )}
+            Mark all as read
+          </Button>
+        ) : null}
       </div>
 
-      {/* Notifications */}
       <div className="bg-card space-y-4 rounded-b-lg border border-t-0 p-6">
         {notifications && notifications.length > 0 ? (
           notifications.map((notification) => (
