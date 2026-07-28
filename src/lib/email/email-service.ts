@@ -130,6 +130,7 @@ export async function sendPaymentReceivedEmail({
   newBalance,
   method,
   billId,
+  kind = "payment",
 }: {
   to: string
   name: string | null
@@ -137,11 +138,18 @@ export async function sendPaymentReceivedEmail({
   newBalance: number
   method?: string | null
   billId?: string
+  kind?: "payment" | "advance"
 }): Promise<boolean> {
+  const isAdvance = kind === "advance"
+  const noun = isAdvance ? "advance" : "payment"
+  const heading = isAdvance ? "Advance received" : "Payment received"
+
   const body = `
     <p style="font-size: 14px; line-height: 1.6;">Hi ${name ?? "there"},</p>
     <p style="font-size: 14px; line-height: 1.6;">
-      The mess prefect has recorded a payment received against your account.
+      The mess prefect has recorded ${
+        isAdvance ? "an advance" : "a payment"
+      } received against your account.
     </p>
     <table style="width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px;">
       <tr>
@@ -172,9 +180,11 @@ export async function sendPaymentReceivedEmail({
 
   return sendEmail({
     to,
-    subject: `Payment of ₹${amount.toFixed(2)} received`,
-    html: layout("Payment received", body),
-    idempotencyKey: billId ? `payment-received/${billId}` : undefined,
+    subject: `${
+      isAdvance ? "Advance" : "Payment"
+    } of ₹${amount.toFixed(2)} received`,
+    html: layout(heading, body),
+    idempotencyKey: billId ? `${noun}-received/${billId}` : undefined,
   })
 }
 

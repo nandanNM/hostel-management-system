@@ -130,12 +130,14 @@ model Audit {
   riceExpenses       Float    @map("rice_expenses")
   vegetableExpenses  Float    @map("vegetable_expenses")
   fishExpenses       Float    @map("fish_expenses")
+  groceryExpenses    Float    @default(0) @map("grocery_expenses")
   dailyExpenses      Float    @map("daily_expenses")
   grandTotalExpenses Float    @map("grand_total_expenses")
   adjustment         Float
   otherExpenses      Float    @map("other_expenses")
   totalBoarders      Int      @map("total_boarders")
   mealCharge         Float    @map("meal_charge")
+  excludedUserIds    String[] @default([]) @map("excluded_user_ids")
   createdAt          DateTime @default(now()) @map("created_at")
 
   auditor     User          @relation(fields: [auditorId], references: [id], onDelete: Restrict)
@@ -402,6 +404,10 @@ model Alumni {
   mobileNumber String   @map("mobile_number")
   email        String
   year         String
+  address      String?
+  roomNo       String?  @map("room_no")
+  image        String?
+  snapshot     Json?
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 

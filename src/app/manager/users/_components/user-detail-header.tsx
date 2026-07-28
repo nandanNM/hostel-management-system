@@ -1,10 +1,15 @@
 "use client"
 
-import { useState, useTransition } from "react"
-import { usePathname, useRouter } from "next/navigation"
+import { useState } from "react"
+import { usePathname } from "next/navigation"
 import { format } from "date-fns"
-import { GraduationCap, Loader2, MinusCircle, Plus } from "lucide-react"
-import { toast } from "sonner"
+import {
+  GraduationCap,
+  Loader2,
+  MinusCircle,
+  PiggyBank,
+  Plus,
+} from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
@@ -21,12 +26,13 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import UserAvatar from "@/components/UserAvatar"
 
-import type { UserSummary } from "../_lib/user-detail"
 import {
-  addUserDue,
-  recordPayment,
-  transferUserToAlumni,
-} from "../_lib/user-detail"
+  useAddUserAdvance,
+  useAddUserDue,
+  useRecordPayment,
+  useTransferUserToAlumni,
+} from "../_lib/mutations"
+import type { UserSummary } from "../_lib/user-detail"
 
 function inr(n: number) {
   return `₹${n.toFixed(2)}`
@@ -34,12 +40,11 @@ function inr(n: number) {
 
 export function UserDetailHeader({ data }: { data: UserSummary }) {
   const [payOpen, setPayOpen] = useState(false)
+  const [advanceOpen, setAdvanceOpen] = useState(false)
   const [dueOpen, setDueOpen] = useState(false)
   const [transferOpen, setTransferOpen] = useState(false)
   const { user, summary } = data
 
-  // Add-due and transfer-to-alumni are mess-prefect-only. The server actions
-  // enforce this too; here we only surface the controls on the prefect's routes.
   const pathname = usePathname()
   const isMessPrefect = pathname.startsWith("/mess-prefect")
   const isArchived = user.status.toUpperCase() === "FORMA"
@@ -93,6 +98,9 @@ export function UserDetailHeader({ data }: { data: UserSummary }) {
         </Button>
         {isMessPrefect && (
           <>
+            <Button variant="outline" onClick={() => setAdvanceOpen(true)}>
+              <PiggyBank className="mr-1 h-4 w-4" /> Add advance
+            </Button>
             <Button variant="outline" onClick={() => setDueOpen(true)}>
               <MinusCircle className="mr-1 h-4 w-4" /> Add due
             </Button>
@@ -117,6 +125,12 @@ export function UserDetailHeader({ data }: { data: UserSummary }) {
 
       {isMessPrefect && (
         <>
+          <AddAdvanceDialog
+            userId={user.id}
+            currentDue={summary.currentDue}
+            open={advanceOpen}
+            onOpenChange={setAdvanceOpen}
+          />
           <AddDueDialog
             userId={user.id}
             currentDue={summary.currentDue}
@@ -181,8 +195,7 @@ function RecordPaymentDialog({
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
-  const router = useRouter()
-  const [isPending, startTransition] = useTransition()
+  const { mutate, isPending } = useRecordPayment()
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -198,21 +211,19 @@ function RecordPaymentDialog({
           onSubmit={(e) => {
             e.preventDefault()
             const form = new FormData(e.currentTarget)
-            startTransition(async () => {
-              const res = await recordPayment({
+            mutate(
+              {
                 userId,
                 amount: Number(form.get("amount")),
                 paymentMethod: String(form.get("paymentMethod") ?? ""),
                 transactionId: String(form.get("transactionId") ?? ""),
-              })
-              if (res.status === "success") {
-                toast.success(res.message)
-                router.refresh()
-                onOpenChange(false)
-              } else {
-                toast.error(res.message)
+              },
+              {
+                onSuccess: (res) => {
+                  if (res.status === "success") onOpenChange(false)
+                },
               }
-            })
+            )
           }}
           className="space-y-4"
         >
@@ -256,6 +267,89 @@ function RecordPaymentDialog({
   )
 }
 
+function AddAdvanceDialog({
+  userId,
+  currentDue,
+  open,
+  onOpenChange,
+}: {
+  userId: string
+  currentDue: number
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}) {
+  const { mutate, isPending } = useAddUserAdvance()
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Add advance</DialogTitle>
+          <DialogDescription>
+            Current due: {inr(currentDue)}. Records money paid in advance as a
+            credit on the user&apos;s account and notifies them by email.
+          </DialogDescription>
+        </DialogHeader>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            const form = new FormData(e.currentTarget)
+            mutate(
+              {
+                userId,
+                amount: Number(form.get("amount")),
+                paymentMethod: String(form.get("paymentMethod") ?? ""),
+                note: String(form.get("note") ?? ""),
+              },
+              {
+                onSuccess: (res) => {
+                  if (res.status === "success") onOpenChange(false)
+                },
+              }
+            )
+          }}
+          className="space-y-4"
+        >
+          <div className="space-y-2">
+            <Label htmlFor="advance-amount">Amount (₹)</Label>
+            <Input
+              id="advance-amount"
+              name="amount"
+              type="number"
+              min="0.01"
+              step="0.01"
+              required
+              placeholder="0.00"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="advance-method">Method (optional)</Label>
+            <Input
+              id="advance-method"
+              name="paymentMethod"
+              placeholder="Cash / UPI / Bank"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="advance-note">Note (optional)</Label>
+            <Input
+              id="advance-note"
+              name="note"
+              placeholder="e.g. Advance for next month"
+            />
+          </div>
+          <DialogFooter>
+            <Button type="submit" disabled={isPending}>
+              {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
+              Save advance
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 function AddDueDialog({
   userId,
   currentDue,
@@ -267,8 +361,7 @@ function AddDueDialog({
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
-  const router = useRouter()
-  const [isPending, startTransition] = useTransition()
+  const { mutate, isPending } = useAddUserDue()
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -284,20 +377,18 @@ function AddDueDialog({
           onSubmit={(e) => {
             e.preventDefault()
             const form = new FormData(e.currentTarget)
-            startTransition(async () => {
-              const res = await addUserDue({
+            mutate(
+              {
                 userId,
                 amount: Number(form.get("amount")),
                 description: String(form.get("description") ?? ""),
-              })
-              if (res.status === "success") {
-                toast.success(res.message)
-                router.refresh()
-                onOpenChange(false)
-              } else {
-                toast.error(res.message)
+              },
+              {
+                onSuccess: (res) => {
+                  if (res.status === "success") onOpenChange(false)
+                },
               }
-            })
+            )
           }}
           className="space-y-4"
         >
@@ -349,8 +440,7 @@ function TransferToAlumniDialog({
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
-  const router = useRouter()
-  const [isPending, startTransition] = useTransition()
+  const { mutate, isPending } = useTransferUserToAlumni()
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -369,22 +459,19 @@ function TransferToAlumniDialog({
           onSubmit={(e) => {
             e.preventDefault()
             const form = new FormData(e.currentTarget)
-            startTransition(async () => {
-              const res = await transferUserToAlumni({
+            mutate(
+              {
                 userId,
                 department: String(form.get("department") ?? ""),
                 year: String(form.get("year") ?? ""),
                 mobileNumber: String(form.get("mobileNumber") ?? ""),
-              })
-              if (res.status === "success") {
-                toast.success(res.message)
-                onOpenChange(false)
-                // The user is now archived — leave their (empty) detail page.
-                router.push("/mess-prefect/users")
-              } else {
-                toast.error(res.message)
+              },
+              {
+                onSuccess: (res) => {
+                  if (res.status === "success") onOpenChange(false)
+                },
               }
-            })
+            )
           }}
           className="space-y-4"
         >

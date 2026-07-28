@@ -3,8 +3,8 @@ import { addMonths, startOfMonth, subMonths } from "date-fns"
 import { toZonedTime } from "date-fns-tz"
 import { ChevronLeft, ChevronRight, Receipt } from "lucide-react"
 
-import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { buttonVariants } from "@/components/ui/button"
 
 import { BillingWorkflow } from "./_components/billing-workflow"
 import { getBillingData } from "./_lib/actions"
@@ -34,7 +34,9 @@ export default async function BillingPage({
   // Month navigation bounds: you can bill up to (but not including) the current,
   // still-incomplete month in Asia/Kolkata.
   const current = data.period
-  const currentStart = startOfMonth(new Date(current.year, current.month - 1, 1))
+  const currentStart = startOfMonth(
+    new Date(current.year, current.month - 1, 1)
+  )
   const prev = subMonths(currentStart, 1)
   const next = addMonths(currentStart, 1)
   const maxBillable = startOfMonth(
@@ -46,7 +48,7 @@ export default async function BillingPage({
     `/mess-prefect/billing?year=${d.getFullYear()}&month=${d.getMonth() + 1}`
 
   return (
-    <div className="flex-1 space-y-6 p-6">
+    <div className="w-full flex-1 space-y-6 p-4 sm:p-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <Receipt className="h-6 w-6" />
@@ -62,7 +64,10 @@ export default async function BillingPage({
         <div className="flex items-center gap-2">
           <Link
             href={href(prev)}
-            className={cn(buttonVariants({ variant: "outline", size: "icon" }), "h-9 w-9")}
+            className={cn(
+              buttonVariants({ variant: "outline", size: "icon" }),
+              "h-9 w-9"
+            )}
           >
             <ChevronLeft className="h-4 w-4" />
           </Link>
@@ -72,7 +77,10 @@ export default async function BillingPage({
           {canGoNext ? (
             <Link
               href={href(next)}
-              className={cn(buttonVariants({ variant: "outline", size: "icon" }), "h-9 w-9")}
+              className={cn(
+                buttonVariants({ variant: "outline", size: "icon" }),
+                "h-9 w-9"
+              )}
             >
               <ChevronRight className="h-4 w-4" />
             </Link>

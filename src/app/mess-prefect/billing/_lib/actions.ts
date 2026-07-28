@@ -1,18 +1,18 @@
 "use server"
 
 import { unstable_noStore as noStore, revalidatePath } from "next/cache"
+import requireMessPrefect from "@/data/mess-prefect/require-mess-prefect"
+import { ApiResponse } from "@/types"
 import { addDays, endOfMonth, format, startOfMonth, subMonths } from "date-fns"
 import { toZonedTime } from "date-fns-tz"
 import { z } from "zod"
 
-import requireMessPrefect from "@/data/mess-prefect/require-mess-prefect"
 import {
   BillEntryType,
   GuestMealStatusType,
   UserStatusType,
 } from "@/lib/generated/prisma"
 import prisma from "@/lib/prisma"
-import { ApiResponse } from "@/types"
 
 const TZ = "Asia/Kolkata"
 
@@ -36,6 +36,7 @@ function computeGrandTotal(e: {
   riceExpenses: number
   vegetableExpenses: number
   fishExpenses: number
+  groceryExpenses: number
   dailyExpenses: number
   otherExpenses: number
 }) {
@@ -43,9 +44,20 @@ function computeGrandTotal(e: {
     e.riceExpenses +
     e.vegetableExpenses +
     e.fishExpenses +
+    e.groceryExpenses +
     e.dailyExpenses +
     e.otherExpenses
   )
+}
+
+function computeMealCharge(
+  grandTotalExpenses: number,
+  adjustment: number,
+  billableBoarders: number
+) {
+  return billableBoarders > 0
+    ? (grandTotalExpenses + adjustment) / billableBoarders
+    : 0
 }
 
 // A month can only be billed once it has fully ended (previous months only).
@@ -64,12 +76,16 @@ export async function getBillingData(input?: { year: number; month: number }) {
   const period = resolveMonth(input)
   const dateRange = { gte: period.start, lte: period.end }
 
-  const [audit, activeBoarders, mealActivity, guestAgg] = await Promise.all([
+  const [audit, boarders, mealActivity, guestAgg] = await Promise.all([
     prisma.audit.findFirst({
       where: { date: dateRange },
       orderBy: { createdAt: "desc" },
     }),
-    prisma.user.count({ where: { status: UserStatusType.ACTIVE } }),
+    prisma.user.findMany({
+      where: { status: UserStatusType.ACTIVE },
+      select: { id: true, name: true, email: true, image: true, roomNo: true },
+      orderBy: { name: "asc" },
+    }),
     prisma.dailyMealActivity.aggregate({
       _sum: { totalMeal: true, totalGuestMeal: true },
       where: { date: dateRange },
@@ -85,6 +101,13 @@ export async function getBillingData(input?: { year: number; month: number }) {
       },
     }),
   ])
+
+  const activeBoarders = boarders.length
+  const activeIds = new Set(boarders.map((b) => b.id))
+  const excludedUserIds = (audit?.excludedUserIds ?? []).filter((id) =>
+    activeIds.has(id)
+  )
+  const billableBoarders = Math.max(0, activeBoarders - excludedUserIds.length)
 
   const distributedBills = audit
     ? await prisma.userBill.findMany({
@@ -144,8 +167,12 @@ export async function getBillingData(input?: { year: number; month: number }) {
     isFinalized: !!audit?.approvedAt,
     distributedCount: billRows.length,
     distributedBills: billRows,
+    boarders,
+    excludedUserIds,
     stats: {
       activeBoarders,
+      billableBoarders,
+      excludedCount: excludedUserIds.length,
       mealsServed: mealActivity._sum.totalMeal ?? 0,
       guestMealsServed: mealActivity._sum.totalGuestMeal ?? 0,
       guestMealCount: guestAgg._count,
@@ -160,6 +187,7 @@ const draftSchema = z.object({
   riceExpenses: z.number().min(0).default(0),
   vegetableExpenses: z.number().min(0).default(0),
   fishExpenses: z.number().min(0).default(0),
+  groceryExpenses: z.number().min(0).default(0),
   dailyExpenses: z.number().min(0).default(0),
   otherExpenses: z.number().min(0).default(0),
   adjustment: z.number().default(0),
@@ -200,19 +228,29 @@ export async function saveAuditDraft(
       }
     }
 
-    const totalBoarders = await prisma.user.count({
-      where: { status: UserStatusType.ACTIVE },
-    })
+    const activeIds = (
+      await prisma.user.findMany({
+        where: { status: UserStatusType.ACTIVE },
+        select: { id: true },
+      })
+    ).map((u) => u.id)
+    const activeIdSet = new Set(activeIds)
+    const excludedUserIds = (existing?.excludedUserIds ?? []).filter((id) =>
+      activeIdSet.has(id)
+    )
+    const totalBoarders = Math.max(0, activeIds.length - excludedUserIds.length)
     const grandTotalExpenses = computeGrandTotal(data)
-    const mealCharge =
-      totalBoarders > 0
-        ? (grandTotalExpenses + data.adjustment) / totalBoarders
-        : 0
+    const mealCharge = computeMealCharge(
+      grandTotalExpenses,
+      data.adjustment,
+      totalBoarders
+    )
 
     const payload = {
       riceExpenses: data.riceExpenses,
       vegetableExpenses: data.vegetableExpenses,
       fishExpenses: data.fishExpenses,
+      groceryExpenses: data.groceryExpenses,
       dailyExpenses: data.dailyExpenses,
       otherExpenses: data.otherExpenses,
       adjustment: data.adjustment,
@@ -274,12 +312,19 @@ export async function finalizeAndDistributeBills(
       }
     }
 
-    const activeUsers = await prisma.user.findMany({
-      where: { status: UserStatusType.ACTIVE },
-      select: { id: true },
-    })
+    const excludedSet = new Set(audit.excludedUserIds)
+    const activeUsers = (
+      await prisma.user.findMany({
+        where: { status: UserStatusType.ACTIVE },
+        select: { id: true },
+      })
+    ).filter((u) => !excludedSet.has(u.id))
     if (activeUsers.length === 0) {
-      return { status: "error", message: "There are no active users to bill." }
+      return {
+        status: "error",
+        message:
+          "There are no boarders to bill (all active users are excluded).",
+      }
     }
 
     const monthLabel = format(audit.date, "MMMM yyyy")
@@ -360,6 +405,114 @@ export async function finalizeAndDistributeBills(
         error instanceof Error
           ? error.message
           : "Failed to distribute the bills.",
+    }
+  }
+}
+
+const exclusionsSchema = z.object({
+  year: z.number().int(),
+  month: z.number().int().min(1).max(12),
+  excludedUserIds: z.array(z.string().min(1)).default([]),
+})
+
+export type SetBillingExclusionsInput = z.infer<typeof exclusionsSchema>
+
+export async function setBillingExclusions(
+  input: SetBillingExclusionsInput
+): Promise<ApiResponse> {
+  const session = await requireMessPrefect()
+  if (!session) return { status: "error", message: "Unauthorized" }
+
+  const parsed = exclusionsSchema.safeParse(input)
+  if (!parsed.success) {
+    return { status: "error", message: "Invalid exclusion selection." }
+  }
+  const { year, month, excludedUserIds } = parsed.data
+  const period = resolveMonth({ year, month })
+
+  if (!isBillableMonth(period.start)) {
+    return {
+      status: "error",
+      message: "You can only edit exclusions for a month after it has ended.",
+    }
+  }
+
+  try {
+    const existing = await prisma.audit.findFirst({
+      where: { date: { gte: period.start, lte: period.end } },
+      orderBy: { createdAt: "desc" },
+    })
+    if (existing?.approvedAt) {
+      return {
+        status: "error",
+        message: `Bills for ${period.label} are already finalized and cannot be edited.`,
+      }
+    }
+
+    const activeIds = (
+      await prisma.user.findMany({
+        where: { status: UserStatusType.ACTIVE },
+        select: { id: true },
+      })
+    ).map((u) => u.id)
+    const activeIdSet = new Set(activeIds)
+    const cleanExcluded = [...new Set(excludedUserIds)].filter((id) =>
+      activeIdSet.has(id)
+    )
+    const billableBoarders = Math.max(
+      0,
+      activeIds.length - cleanExcluded.length
+    )
+
+    if (existing) {
+      const mealCharge = computeMealCharge(
+        existing.grandTotalExpenses,
+        existing.adjustment,
+        billableBoarders
+      )
+      await prisma.audit.update({
+        where: { id: existing.id },
+        data: {
+          excludedUserIds: cleanExcluded,
+          totalBoarders: billableBoarders,
+          mealCharge,
+          version: { increment: 1 },
+        },
+      })
+    } else {
+      await prisma.audit.create({
+        data: {
+          date: period.start,
+          riceExpenses: 0,
+          vegetableExpenses: 0,
+          fishExpenses: 0,
+          groceryExpenses: 0,
+          dailyExpenses: 0,
+          otherExpenses: 0,
+          adjustment: 0,
+          grandTotalExpenses: 0,
+          totalBoarders: billableBoarders,
+          mealCharge: 0,
+          excludedUserIds: cleanExcluded,
+          auditor: { connect: { id: session.user.id } },
+        },
+      })
+    }
+
+    revalidatePath("/mess-prefect/billing")
+    return {
+      status: "success",
+      message: cleanExcluded.length
+        ? `${cleanExcluded.length} boarder(s) excluded from ${period.label}. ${billableBoarders} will be billed.`
+        : `No boarders excluded — all ${billableBoarders} active boarders will be billed for ${period.label}.`,
+    }
+  } catch (error) {
+    return {
+      status: "error",
+      message:
+        error instanceof Error
+          ? error.message
+          : "Failed to update the billing exclusions.",
     }
   }
 }

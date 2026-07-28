@@ -26,7 +26,7 @@ export default async function AlumniPage() {
   })
 
   return (
-    <div className="flex-1 space-y-6 p-6">
+    <div className="w-full flex-1 space-y-6 p-4 sm:p-6">
       <div className="flex items-center gap-3">
         <GraduationCap className="h-6 w-6" />
         <div>
