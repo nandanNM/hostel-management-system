@@ -4,7 +4,6 @@ import { useState } from "react"
 import { usePathname } from "next/navigation"
 import {
   GraduationCap,
-  CircleNotch as Loader2,
   MinusCircle,
   PiggyBank,
   Plus,
@@ -24,6 +23,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Loader } from "@/components/ui/loader"
 import UserAvatar from "@/components/UserAvatar"
 
 import {
@@ -257,7 +257,9 @@ function RecordPaymentDialog({
           </div>
           <DialogFooter>
             <Button type="submit" disabled={isPending}>
-              {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
+              {isPending && (
+                <Loader variant="comet" size={16} className="mr-2" />
+              )}
               Save payment
             </Button>
           </DialogFooter>
@@ -340,7 +342,9 @@ function AddAdvanceDialog({
           </div>
           <DialogFooter>
             <Button type="submit" disabled={isPending}>
-              {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
+              {isPending && (
+                <Loader variant="comet" size={16} className="mr-2" />
+              )}
               Save advance
             </Button>
           </DialogFooter>
@@ -415,7 +419,9 @@ function AddDueDialog({
           </div>
           <DialogFooter>
             <Button type="submit" disabled={isPending}>
-              {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
+              {isPending && (
+                <Loader variant="comet" size={16} className="mr-2" />
+              )}
               Add due
             </Button>
           </DialogFooter>
@@ -516,7 +522,9 @@ function TransferToAlumniDialog({
           </div>
           <DialogFooter>
             <Button type="submit" variant="destructive" disabled={isPending}>
-              {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
+              {isPending && (
+                <Loader variant="comet" size={16} className="mr-2" />
+              )}
               Transfer to alumni
             </Button>
           </DialogFooter>

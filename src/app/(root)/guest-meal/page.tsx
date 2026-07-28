@@ -3,7 +3,6 @@
 import { useState } from "react"
 import {
   Info as InfoIcon,
-  CircleNotch as Loader2,
   Plus,
   Trash as Trash2Icon,
   ForkKnife as UtensilsCrossedIcon,
@@ -34,6 +33,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { Loader } from "@/components/ui/loader"
 import {
   Table,
   TableBody,
@@ -64,7 +64,7 @@ export default function GuestMealsPage() {
   }
 
   if (isPending) {
-    return <Loader2 className="mx-auto my-6 size-6 animate-spin" />
+    return <Loader variant="comet" size={24} className="mx-auto my-6" />
   }
   return (
     <PageContainer className="flex flex-col items-center justify-center space-y-0">
@@ -161,7 +161,7 @@ function GuestMealsTable({ meals }: GuestMealsTableProps) {
                       disabled={isPendingDelete}
                     >
                       {isPendingDelete ? (
-                        <Loader2 className="size-4 animate-spin" />
+                        <Loader variant="comet" size={16} />
                       ) : (
                         <Trash2Icon className="h-4 w-4" />
                       )}

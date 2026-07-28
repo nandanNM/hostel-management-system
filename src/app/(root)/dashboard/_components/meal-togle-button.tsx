@@ -2,7 +2,6 @@
 
 import { useId } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { CircleNotch as Loader2 } from "@phosphor-icons/react"
 import { useQuery } from "@tanstack/react-query"
 import { useForm } from "react-hook-form"
 import z from "zod"
@@ -23,6 +22,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/crazxy-ui/badge"
 import { Label } from "@/components/ui/label"
+import { Loader } from "@/components/ui/loader"
 import { Switch } from "@/components/ui/switch"
 
 import { useToggleMealStatus } from "../_lib/mutations"
@@ -119,7 +119,7 @@ export default function MealToggleButton() {
         className="ml-2"
       >
         {isPending ? (
-          <Loader2 className="mr-2 size-4 animate-spin" />
+          <Loader variant="comet" size={16} className="mr-2" />
         ) : currentStatus === "SUSPENDED" ? (
           "Meal status: Suspended"
         ) : (

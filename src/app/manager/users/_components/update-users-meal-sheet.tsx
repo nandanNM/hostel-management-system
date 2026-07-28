@@ -8,7 +8,6 @@ import {
 } from "@/constants/form.constants"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Check as CheckIcon } from "@phosphor-icons/react"
-import { ReloadIcon } from "@radix-ui/react-icons"
 import { Controller, useForm } from "react-hook-form"
 import z from "zod"
 
@@ -26,6 +25,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
+import { Loader } from "@/components/ui/loader"
 import {
   Select,
   SelectContent,
@@ -258,10 +258,7 @@ export function UpdateMealSheet({ meal, ...props }: UpdateMealSheetProps) {
               </SheetClose>
               <Button disabled={isUpdatePending}>
                 {isUpdatePending && (
-                  <ReloadIcon
-                    className="mr-2 size-4 animate-spin"
-                    aria-hidden="true"
-                  />
+                  <Loader variant="comet" size={16} className="mr-2" />
                 )}
                 Save
               </Button>

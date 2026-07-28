@@ -4,7 +4,6 @@ import { useTransition } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import {
   Calendar as CalendarIcon,
-  CircleNotch as Loader2,
   FloppyDisk as Save,
 } from "@phosphor-icons/react"
 import { format } from "date-fns"
@@ -31,6 +30,7 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import { Loader } from "@/components/ui/loader"
 import {
   Popover,
   PopoverContent,
@@ -171,7 +171,7 @@ export default function SettingsForm({ user }: SettingsFormProps) {
               >
                 {isPending ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader variant="comet" size={16} className="mr-2" />
                     Updating...
                   </>
                 ) : (

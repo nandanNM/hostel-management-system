@@ -4,7 +4,6 @@ import { useMemo, useState } from "react"
 import {
   CheckCircle as CheckCircle2,
   ClipboardText as ClipboardCheck,
-  CircleNotch as Loader2,
   Receipt,
   SlidersHorizontal,
 } from "@phosphor-icons/react"
@@ -22,6 +21,7 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Loader } from "@/components/ui/loader"
 import { Separator } from "@/components/ui/separator"
 import {
   Table,
@@ -276,7 +276,7 @@ export function BillingWorkflow({ data }: { data: BillingData }) {
                 </Button>
                 <Button onClick={handleSaveDraft} disabled={isPending}>
                   {isSaving && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader variant="comet" size={16} className="mr-2" />
                   )}
                   Save draft & continue
                 </Button>
@@ -327,7 +327,7 @@ export function BillingWorkflow({ data }: { data: BillingData }) {
                     </Button>
                     <Button onClick={handleFinalize} disabled={isPending}>
                       {isFinalizing && (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        <Loader variant="comet" size={16} className="mr-2" />
                       )}
                       Finalize & distribute bills
                     </Button>

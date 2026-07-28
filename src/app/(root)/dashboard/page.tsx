@@ -3,11 +3,11 @@ import { Metadata } from "next"
 import { notFound } from "next/navigation"
 import {
   Info as InfoIcon,
-  CircleNotch as Loader2,
   Warning as TriangleAlert,
 } from "@phosphor-icons/react/ssr"
 
 import { requireUser } from "@/lib/require-user"
+import { Loader } from "@/components/ui/loader"
 import { Separator } from "@/components/ui/separator"
 import { PageContainer } from "@/components/page-container"
 
@@ -65,7 +65,9 @@ export default async function Page() {
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <UserDetails userId={user.id} />
-          <Suspense fallback={<Loader2 className="mx-auto animate-spin" />}>
+          <Suspense
+            fallback={<Loader variant="comet" size={20} className="mx-auto" />}
+          >
             <UserActivity userId={user.id} />
           </Suspense>
         </div>

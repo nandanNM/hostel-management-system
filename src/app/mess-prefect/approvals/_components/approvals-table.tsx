@@ -2,12 +2,7 @@
 
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
-import {
-  Check,
-  CircleNotch as Loader2,
-  UserCheck,
-  X,
-} from "@phosphor-icons/react"
+import { Check, UserCheck, X } from "@phosphor-icons/react"
 import { format } from "date-fns"
 
 import { toast } from "@/lib/toast"
@@ -21,6 +16,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { Loader } from "@/components/ui/loader"
 import {
   Table,
   TableBody,
@@ -142,7 +138,11 @@ export function ApprovalsTable({ users }: { users: PendingUser[] }) {
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
                           {rowBusy && (
-                            <Loader2 className="text-muted-foreground size-4 animate-spin" />
+                            <Loader
+                              variant="comet"
+                              size={16}
+                              className="text-muted-foreground"
+                            />
                           )}
                           <Button
                             size="sm"

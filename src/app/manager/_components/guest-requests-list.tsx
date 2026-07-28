@@ -4,7 +4,6 @@ import {
   WarningCircle as CircleAlert,
   Clock,
   Leaf,
-  CircleNotch as Loader2,
   Users,
   ForkKnife as Utensils,
 } from "@phosphor-icons/react"
@@ -35,6 +34,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Badge } from "@/components/ui/crazxy-ui/badge"
+import { Loader } from "@/components/ui/loader"
 import { Separator } from "@/components/ui/separator"
 import { P } from "@/components/custom/p"
 
@@ -79,7 +79,7 @@ export function GuestRequestsList() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Loader2 className="mx-auto mt-4 size-6 animate-spin" />
+          <Loader variant="comet" size={24} className="mx-auto mt-4" />
         </CardContent>
       </Card>
     )
@@ -235,7 +235,11 @@ export function GuestRequestsList() {
                             disabled={updateMutation.isPending}
                           >
                             {updateMutation.isPending ? (
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              <Loader
+                                variant="comet"
+                                size={16}
+                                className="mr-2"
+                              />
                             ) : null}
                             Approve
                           </AlertDialogAction>
@@ -252,7 +256,11 @@ export function GuestRequestsList() {
                             disabled={updateMutation.isPending}
                           >
                             {updateMutation.isPending ? (
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              <Loader
+                                variant="comet"
+                                size={16}
+                                className="mr-2"
+                              />
                             ) : null}
                             Decline
                           </AlertDialogAction>

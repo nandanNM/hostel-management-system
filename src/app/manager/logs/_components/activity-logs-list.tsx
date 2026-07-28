@@ -1,11 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import {
-  Pulse as Activity,
-  ArrowRight,
-  CircleNotch as Loader2,
-} from "@phosphor-icons/react"
+import { Pulse as Activity, ArrowRight } from "@phosphor-icons/react"
 import { useQuery } from "@tanstack/react-query"
 import { format } from "date-fns"
 
@@ -19,6 +15,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { Loader } from "@/components/ui/loader"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   Select,
@@ -163,7 +160,7 @@ export function ActivityLogsList() {
 
         {isLoading && (
           <div className="flex justify-center py-8">
-            <Loader2 className="size-6 animate-spin" />
+            <Loader variant="comet" size={24} />
           </div>
         )}
 

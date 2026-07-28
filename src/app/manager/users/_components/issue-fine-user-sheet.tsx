@@ -2,7 +2,7 @@
 
 import React from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { CalendarIcon, ReloadIcon } from "@radix-ui/react-icons"
+import { CalendarIcon } from "@radix-ui/react-icons"
 import { addDays, format, isAfter, isBefore, startOfDay } from "date-fns"
 import { useForm } from "react-hook-form"
 
@@ -20,6 +20,7 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import { Loader } from "@/components/ui/loader"
 import {
   Popover,
   PopoverContent,
@@ -190,7 +191,7 @@ export function CreateFineSheet({
               </SheetClose>
               <Button disabled={isPending}>
                 {isPending && (
-                  <ReloadIcon className="mr-2 size-4 animate-spin" />
+                  <Loader variant="comet" size={16} className="mr-2" />
                 )}
                 Issue Fine
               </Button>

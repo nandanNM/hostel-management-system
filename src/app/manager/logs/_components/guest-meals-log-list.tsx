@@ -5,7 +5,6 @@ import {
   CaretLeft as ChevronLeft,
   CaretRight as ChevronRight,
   Leaf,
-  CircleNotch as Loader2,
   ForkKnife as UtensilsCrossed,
 } from "@phosphor-icons/react"
 import { useQuery } from "@tanstack/react-query"
@@ -23,6 +22,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { Loader } from "@/components/ui/loader"
 import {
   Table,
   TableBody,
@@ -110,7 +110,7 @@ export function GuestMealsLogList() {
 
         {isLoading && (
           <div className="flex justify-center py-8">
-            <Loader2 className="size-6 animate-spin" />
+            <Loader variant="comet" size={24} />
           </div>
         )}
 

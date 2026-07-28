@@ -3,7 +3,6 @@
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import {
-  CircleNotch as Loader2,
   PencilSimple as Pencil,
   Plus,
   Trash as Trash2,
@@ -38,6 +37,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Loader } from "@/components/ui/loader"
 import {
   Table,
   TableBody,
@@ -215,7 +215,9 @@ export function AlumniTable({
                 if (deleting) handleDelete(deleting)
               }}
             >
-              {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
+              {isPending && (
+                <Loader variant="comet" size={16} className="mr-2" />
+              )}
               Remove
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -329,7 +331,9 @@ function AlumniFormDialog({
           </div>
           <DialogFooter>
             <Button type="submit" disabled={isPending}>
-              {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
+              {isPending && (
+                <Loader variant="comet" size={16} className="mr-2" />
+              )}
               {isEdit ? "Save changes" : "Add alumni"}
             </Button>
           </DialogFooter>

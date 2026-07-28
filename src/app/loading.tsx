@@ -1,5 +1,5 @@
-import { CircleNotch as Loader2 } from "@phosphor-icons/react/ssr"
+import { Loader } from "@/components/ui/loader"
 
 export default function Loading() {
-  return <Loader2 className="mx-auto my-6 size-6 animate-spin" />
+  return <Loader variant="comet" size={24} className="mx-auto my-6" />
 }

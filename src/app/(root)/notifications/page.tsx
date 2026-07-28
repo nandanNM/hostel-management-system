@@ -1,12 +1,13 @@
 "use client"
 
 import { useEffect } from "react"
-import { Bell, CircleNotch as Loader2 } from "@phosphor-icons/react"
+import { Bell } from "@phosphor-icons/react"
 import { useQuery } from "@tanstack/react-query"
 
 import { GetNotificationWithIssuer } from "@/types/prisma.type"
 import kyInstance from "@/lib/ky"
 import { toast } from "@/lib/toast"
+import { Loader } from "@/components/ui/loader"
 import { PageContainer } from "@/components/page-container"
 
 import Notification from "./_components/notification"
@@ -34,7 +35,7 @@ export default function NotificationsList() {
   }, [notifications, markAsRead])
 
   if (isPending) {
-    return <Loader2 className="mx-auto my-6 size-6 animate-spin" />
+    return <Loader variant="comet" size={24} className="mx-auto my-6" />
   }
   if (isError && error) {
     toast.error(error.message)

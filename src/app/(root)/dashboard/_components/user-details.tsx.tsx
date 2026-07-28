@@ -4,7 +4,6 @@ import { MealPreference } from "@/types"
 import type { Icon } from "@phosphor-icons/react"
 import {
   Gavel,
-  CircleNotch as Loader2,
   MapPin,
   TrendUp as TrendingUp,
   User as UserIcon,
@@ -26,6 +25,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { Loader } from "@/components/ui/loader"
 
 import { getUserDeshboardStats } from "../_lib/action"
 import RecentTransactions from "./recent-transactions"
@@ -42,7 +42,9 @@ export default async function UserDetails({ userId }: UserDetailsProps) {
   const user = await getUserById(userId)
   return (
     <div className="space-y-8 lg:col-span-2">
-      <Suspense fallback={<Loader2 className="mx-auto animate-spin" />}>
+      <Suspense
+        fallback={<Loader variant="comet" size={20} className="mx-auto" />}
+      >
         <OverviewCards />
         <RecentTransactions userId={userId} />
         <UserDataCard user={user} />

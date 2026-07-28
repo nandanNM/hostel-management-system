@@ -1,9 +1,6 @@
 "use client"
 
-import {
-  CircleNotch as Loader2,
-  ChatText as MessageSquare,
-} from "@phosphor-icons/react"
+import { ChatText as MessageSquare } from "@phosphor-icons/react"
 import { useQuery } from "@tanstack/react-query"
 
 import { GetUserMealEventWithUser } from "@/types/prisma.type"
@@ -16,6 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { Loader } from "@/components/ui/loader"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { P } from "@/components/custom/p"
@@ -48,7 +46,7 @@ export function MessagesList() {
           </CardDescription>
         </CardHeader>
         <CardContent className="flex justify-center">
-          <Loader2 className="size-6 animate-spin" />
+          <Loader variant="comet" size={24} />
         </CardContent>
       </Card>
     )

@@ -2,10 +2,7 @@
 
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
-import {
-  CircleNotch as Loader2,
-  PencilSimple as Pencil,
-} from "@phosphor-icons/react"
+import { PencilSimple as Pencil } from "@phosphor-icons/react"
 
 import { UserRoleType, UserStatusType } from "@/lib/generated/prisma"
 import { toast } from "@/lib/toast"
@@ -29,6 +26,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Loader } from "@/components/ui/loader"
 import {
   Select,
   SelectContent,
@@ -191,7 +189,11 @@ export function ManagersTable({
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
                         {rowPending && (
-                          <Loader2 className="text-muted-foreground size-4 animate-spin" />
+                          <Loader
+                            variant="comet"
+                            size={16}
+                            className="text-muted-foreground"
+                          />
                         )}
                         <Select
                           value={
@@ -324,7 +326,9 @@ function EditDetailsDialog({
             </div>
             <DialogFooter>
               <Button type="submit" disabled={isPending}>
-                {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
+                {isPending && (
+                  <Loader variant="comet" size={16} className="mr-2" />
+                )}
                 Save changes
               </Button>
             </DialogFooter>
