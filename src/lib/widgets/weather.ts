@@ -1,9 +1,17 @@
+/**
+ * Default location for weather data fetching.
+ * Change these coordinates to customize the weather location.
+ */
 export const WEATHER_LOCATION = {
   name: "Kalyani",
   latitude: 22.975,
   longitude: 88.434,
 }
 
+/**
+ * Weather condition categories for icon mapping and UI display.
+ * Each group represents a broader weather condition.
+ */
 export type WeatherGroup =
   | "clear"
   | "cloudy"
@@ -41,10 +49,36 @@ const WEATHER_CODES: Record<number, string> = {
   99: "Thunderstorm with hail",
 }
 
+/**
+ * Converts WMO weather code to human-readable description.
+ *
+ * @param code - WMO weather code from Open-Meteo API
+ * @returns Human-readable weather description
+ *
+ * @example
+ * ```typescript
+ * describeWeather(0) // "Clear sky"
+ * describeWeather(61) // "Light rain"
+ * ```
+ */
 export function describeWeather(code: number): string {
   return WEATHER_CODES[code] ?? "—"
 }
 
+/**
+ * Maps WMO weather code to a broader weather group category.
+ * Used for selecting appropriate weather icons in the UI.
+ *
+ * @param code - WMO weather code from Open-Meteo API
+ * @returns Weather group category for icon mapping
+ *
+ * @example
+ * ```typescript
+ * weatherGroup(0) // "clear"
+ * weatherGroup(61) // "rain"
+ * weatherGroup(95) // "storm"
+ * ```
+ */
 export function weatherGroup(code: number): WeatherGroup {
   if (code === 0 || code === 1) return "clear"
   if (code === 2 || code === 3) return "cloudy"

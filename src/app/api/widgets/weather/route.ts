@@ -4,6 +4,39 @@ import {
   weatherGroup,
 } from "@/lib/widgets/weather"
 
+/**
+ * Weather Widget API Endpoint
+ *
+ * Fetches current weather data from Open-Meteo API for the configured location.
+ *
+ * @returns JSON response with weather data or error
+ *
+ * **Success Response (200):**
+ * ```json
+ * {
+ *   "location": "Kalyani",
+ *   "temperature": 28,
+ *   "humidity": 65,
+ *   "wind": 12,
+ *   "code": 1,
+ *   "description": "Mainly clear",
+ *   "group": "clear"
+ * }
+ * ```
+ *
+ * **Error Response (502):**
+ * ```json
+ * { "error": "Weather unavailable" }
+ * ```
+ *
+ * **Caching:** Data is cached for 15 minutes (900 seconds)
+ *
+ * @example
+ * ```typescript
+ * const response = await fetch('/api/widgets/weather')
+ * const weather = await response.json()
+ * ```
+ */
 export async function GET() {
   try {
     const { latitude, longitude, name } = WEATHER_LOCATION

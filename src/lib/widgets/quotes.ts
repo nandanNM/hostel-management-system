@@ -1,4 +1,11 @@
+/**
+ * Represents a Hindi quote with its English meaning.
+ */
 export type HindiQuote = { text: string; meaning: string }
+
+/**
+ * Represents an English quote with attribution.
+ */
 export type EnglishQuote = { text: string; author: string }
 
 export const HINDI_QUOTES: HindiQuote[] = [
@@ -38,6 +45,18 @@ export const ENGLISH_FALLBACK: EnglishQuote[] = [
   { text: "Quality is not an act, it is a habit.", author: "Aristotle" },
 ]
 
+/**
+ * Selects a random item from an array.
+ *
+ * @param items - Array of items to choose from
+ * @returns A randomly selected item
+ *
+ * @example
+ * ```typescript
+ * const quote = pickRandom(HINDI_QUOTES)
+ * const fallback = pickRandom(ENGLISH_FALLBACK)
+ * ```
+ */
 export function pickRandom<T>(items: T[]): T {
   return items[Math.floor(Math.random() * items.length)] as T
 }

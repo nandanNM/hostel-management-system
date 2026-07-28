@@ -35,6 +35,9 @@ type QuoteData = {
   english: { text: string; author: string }
 }
 
+/**
+ * Maps weather groups to their corresponding Phosphor icons
+ */
 const WEATHER_ICON: Record<WeatherGroup, Icon> = {
   clear: Sun,
   cloudy: CloudSun,
@@ -44,6 +47,26 @@ const WEATHER_ICON: Record<WeatherGroup, Icon> = {
   storm: CloudLightning,
 }
 
+/**
+ * HomeWidgets Component
+ *
+ * Displays weather and inspirational quote widgets on the dashboard.
+ * Fetches data from dedicated API endpoints with automatic caching and error handling.
+ *
+ * **Features:**
+ * - Real-time weather data with temperature, humidity, and wind speed
+ * - Dual-language quotes (Hindi with meaning + English with author)
+ * - Loading states with spinner
+ * - Graceful error handling
+ * - Responsive grid layout
+ * - Auto-refresh: Weather data cached for 15 minutes
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <HomeWidgets />
+ * ```
+ */
 export function HomeWidgets() {
   const weather = useQuery({
     queryKey: ["widget", "weather"],
@@ -73,7 +96,7 @@ export function HomeWidgets() {
         </CardHeader>
         <CardContent>
           {weather.isLoading ? (
-            <Loader variant="comet" size={22} />
+            <Loader variant="dither" size={22} />
           ) : weather.isError || !weather.data ? (
             <p className="text-muted-foreground text-sm">
               Weather is unavailable right now.
@@ -111,7 +134,7 @@ export function HomeWidgets() {
         </CardHeader>
         <CardContent>
           {quote.isLoading ? (
-            <Loader variant="comet" size={22} />
+            <Loader variant="dither" size={22} />
           ) : quote.isError || !quote.data ? (
             <p className="text-muted-foreground text-sm">
               No quote available right now.
