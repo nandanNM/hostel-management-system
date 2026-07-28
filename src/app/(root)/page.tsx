@@ -3,6 +3,8 @@ import { Info as InfoIcon } from "@phosphor-icons/react/ssr"
 
 import { BirthdayAnnouncements } from "./_components/birthday-announcements"
 import { HomeWidgets } from "./_components/home-widgets"
+import { LeaderboardCard } from "./_components/leaderboard-card"
+import { StreakCard } from "./_components/streak-card"
 
 export const metadata: Metadata = {
   title: "Home",
@@ -36,6 +38,11 @@ export default async function Home() {
       </div>
 
       <BirthdayAnnouncements />
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <StreakCard />
+        <LeaderboardCard />
+      </div>
 
       <HomeWidgets />
 

@@ -70,8 +70,8 @@ export function MealDataCard() {
         </CardTitle>
         <CardDescription>
           {mealData
-            ? `View today's meal statistics and requirements generated at ${formatRelativeDate(new Date(mealData.createdAt))}`
-            : " Generate and view today's meal statistics and requirements"}
+            ? `Today's meal statistics and requirements, generated ${formatRelativeDate(new Date(mealData.createdAt))}`
+            : "Generate and view today's meal statistics and requirements"}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -128,6 +128,7 @@ type MealCardItem = {
   count: number
   icon: React.ReactNode
   colorClass: string
+  bgClass: string
 }
 
 function MealBreakdownCards({ mealData }: { mealData: DailyMealActivity }) {
@@ -141,43 +142,49 @@ function MealBreakdownCards({ mealData }: { mealData: DailyMealActivity }) {
       cards.push({
         label: "Chicken",
         count: mealData.totalNonvegChicken,
-        icon: <Utensils className="h-6 w-6 text-orange-600" />,
+        icon: <Utensils className="h-5 w-5 text-orange-600" />,
         colorClass: "text-orange-600",
+        bgClass: "bg-orange-600/10",
       })
       cards.push({
         label: "Fish",
         sublabel: "dislikes Chicken",
         count: mealData.totalNonvegFish,
-        icon: <Fish className="h-6 w-6 text-blue-500" />,
+        icon: <Fish className="h-5 w-5 text-blue-500" />,
         colorClass: "text-blue-500",
+        bgClass: "bg-blue-500/10",
       })
       cards.push({
         label: "Egg",
         sublabel: "dislikes Chicken & Fish",
         count: mealData.totalNonvegEgg,
-        icon: <Egg className="h-6 w-6 text-yellow-500" />,
+        icon: <Egg className="h-5 w-5 text-yellow-500" />,
         colorClass: "text-yellow-500",
+        bgClass: "bg-yellow-500/10",
       })
     } else if (serving === "FISH") {
       cards.push({
         label: "Fish",
         count: mealData.totalNonvegFish,
-        icon: <Fish className="h-6 w-6 text-blue-500" />,
+        icon: <Fish className="h-5 w-5 text-blue-500" />,
         colorClass: "text-blue-500",
+        bgClass: "bg-blue-500/10",
       })
       cards.push({
         label: "Egg",
         sublabel: "dislikes Fish",
         count: mealData.totalNonvegEgg,
-        icon: <Egg className="h-6 w-6 text-yellow-500" />,
+        icon: <Egg className="h-5 w-5 text-yellow-500" />,
         colorClass: "text-yellow-500",
+        bgClass: "bg-yellow-500/10",
       })
     } else if (serving === "EGG") {
       cards.push({
         label: "Egg",
         count: mealData.totalNonvegEgg,
-        icon: <Egg className="h-6 w-6 text-yellow-500" />,
+        icon: <Egg className="h-5 w-5 text-yellow-500" />,
         colorClass: "text-yellow-500",
+        bgClass: "bg-yellow-500/10",
       })
     }
 
@@ -185,23 +192,26 @@ function MealBreakdownCards({ mealData }: { mealData: DailyMealActivity }) {
       label: "Vegetarian",
       sublabel: serving !== "EGG" ? "incl. all fallbacks" : undefined,
       count: mealData.totalVeg,
-      icon: <Leaf className="h-6 w-6 text-green-600" />,
+      icon: <Leaf className="h-5 w-5 text-green-600" />,
       colorClass: "text-green-600",
+      bgClass: "bg-green-600/10",
     })
   } else {
     // No schedule or veg day: show simple Veg / Non-Veg split
     cards.push({
       label: "Vegetarian",
       count: mealData.totalVeg,
-      icon: <Leaf className="h-6 w-6 text-green-600" />,
+      icon: <Leaf className="h-5 w-5 text-green-600" />,
       colorClass: "text-green-600",
+      bgClass: "bg-green-600/10",
     })
     if (mealData.totalNonvegChicken > 0) {
       cards.push({
         label: "Non-Vegetarian",
         count: mealData.totalNonvegChicken,
-        icon: <Utensils className="h-6 w-6 text-orange-600" />,
+        icon: <Utensils className="h-5 w-5 text-orange-600" />,
         colorClass: "text-orange-600",
+        bgClass: "bg-orange-600/10",
       })
     }
   }
@@ -231,55 +241,54 @@ function MealBreakdownCards({ mealData }: { mealData: DailyMealActivity }) {
           </Badge>
         </div>
       )}
-      <div className={cn("grid grid-cols-1 gap-6", cols)}>
+      <div className={cn("grid grid-cols-1 gap-4 sm:grid-cols-2", cols)}>
         {cards.map((card) => (
           <Card
             key={card.label}
-            className="py-4 shadow-lg transition-shadow duration-300 hover:shadow-xl"
+            className="bg-card gap-0 py-0 shadow-none transition-shadow hover:shadow-sm"
           >
-            <CardContent className="p-2 text-center">
-              <div className="mb-3 flex items-center justify-center gap-2">
+            <CardContent className="flex items-center gap-4 p-5">
+              <div
+                className={cn(
+                  "flex size-11 shrink-0 items-center justify-center rounded-xl",
+                  card.bgClass
+                )}
+              >
                 {card.icon}
-                <h4 className={cn("text-lg font-semibold", card.colorClass)}>
-                  {card.label}
-                </h4>
               </div>
-              <p className={cn("text-5xl font-extrabold", card.colorClass)}>
-                {card.count}
-              </p>
-              {card.sublabel ? (
-                <p className="text-muted-foreground mt-1 text-xs">
-                  {card.sublabel}
+              <div className="min-w-0">
+                <p
+                  className={cn(
+                    "text-3xl leading-none font-bold tabular-nums",
+                    card.colorClass
+                  )}
+                >
+                  {card.count}
                 </p>
-              ) : (
-                <p className="text-muted-foreground mt-1 text-sm">
-                  meals today
+                <p className="mt-1.5 text-sm font-medium">{card.label}</p>
+                <p className="text-muted-foreground truncate text-xs">
+                  {card.sublabel ?? "meals today"}
                 </p>
-              )}
+              </div>
             </CardContent>
           </Card>
         ))}
 
         {/* Total Meals Card */}
-        <Card className="py-4 shadow-lg transition-shadow duration-300 hover:shadow-xl">
-          <CardContent className="p-3 text-center">
-            <div className="mb-3 flex items-center justify-center gap-2">
-              <ChefHat className="text-primary h-6 w-6" />
-              <h3 className="text-primary text-lg font-semibold">
-                Total Meals
-              </h3>
+        <Card className="from-primary/10 border-primary/20 gap-0 bg-linear-to-br to-transparent py-0 shadow-none">
+          <CardContent className="flex items-center gap-4 p-5">
+            <div className="bg-primary/15 flex size-11 shrink-0 items-center justify-center rounded-xl">
+              <ChefHat className="text-primary h-5 w-5" />
             </div>
-            <p className="text-primary text-5xl font-extrabold">
-              {mealData.totalMeal}
-            </p>
-            <p className="text-muted-foreground mt-1 text-sm">
-              including guest meals
-            </p>
-            <div className="mt-4 flex items-center justify-center gap-2 text-sm">
-              <span className="text-muted-foreground">Guest Meals:</span>
-              <span className="text-muted-foreground font-semibold">
-                {mealData.totalGuestMeal}
-              </span>
+            <div className="min-w-0">
+              <p className="text-primary text-3xl leading-none font-bold tabular-nums">
+                {mealData.totalMeal}
+              </p>
+              <p className="mt-1.5 text-sm font-medium">Total Meals</p>
+              <p className="text-muted-foreground truncate text-xs">
+                incl. {mealData.totalGuestMeal} guest meal
+                {mealData.totalGuestMeal === 1 ? "" : "s"}
+              </p>
             </div>
           </CardContent>
         </Card>
