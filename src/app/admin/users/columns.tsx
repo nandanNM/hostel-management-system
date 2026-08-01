@@ -122,10 +122,8 @@ export const userColumns: ColumnDef<UserRow>[] = [
     cell: ({ row }) => {
       const user = row.original
 
-      const handleAction = (action: string) => {
-        // In a real app, you would call your API here
-        // console.log(`${action} user:`, user.id)
-      }
+      // TODO: wire these menu items to the real user actions.
+      const handleAction = (_action: string) => {}
 
       return (
         <DropdownMenu>

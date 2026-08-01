@@ -23,3 +23,9 @@ runs:
     - name: Generate Prisma client
       shell: bash
       run: pnpm exec prisma generate
+
+    - name: Generate Next types
+      shell: bash
+      # next-env.d.ts is gitignored and only created by a next run, so without
+      # this `tsc` cannot resolve JSX or image imports on a fresh checkout.
+      run: pnpm exec next typegen

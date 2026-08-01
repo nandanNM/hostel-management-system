@@ -56,7 +56,7 @@ export async function deleteMenuItem(id: string): Promise<ApiResponse> {
     })
     revalidatePath("/manager/settings/meal-scheduling")
     return { status: "success", message: "Menu item deleted successfully" }
-  } catch (error) {
+  } catch {
     return {
       status: "error",
       message: "Failed to delete menu item (check if it's used in a schedule)",
@@ -149,7 +149,7 @@ export async function seedDefaultMenuItems(): Promise<ApiResponse> {
       status: "success",
       message: "Standard menu items seeded successfully",
     }
-  } catch (error) {
+  } catch {
     return { status: "error", message: "Failed to seed menu items" }
   }
 }

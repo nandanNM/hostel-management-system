@@ -1,6 +1,6 @@
 import { Metadata } from "next"
 import Link from "next/link"
-import { Calendar, ForkKnife as Utensils } from "@phosphor-icons/react/ssr"
+import { Calendar } from "@phosphor-icons/react/ssr"
 
 import {
   Card,
