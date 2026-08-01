@@ -40,7 +40,7 @@ import LoadingButton from "@/components/LoadingButton"
 import { useGenerateMealData } from "../_lib/mutations"
 
 type DailyMealActivityWithGenerator = DailyMealActivity & {
-  generatedBy: Pick<User, "id" | "name" | "email" | "image"> | null
+  generatedBy: Pick<User, "id" | "name" | "image"> | null
 }
 
 export function MealDataCard() {
@@ -79,14 +79,13 @@ export function MealDataCard() {
           {mealData
             ? `Today's meal statistics and requirements, generated ${formatRelativeDate(new Date(mealData.createdAt))}${
                 mealData.generatedBy
-                  ? ` by ${mealData.generatedBy.name ?? mealData.generatedBy.email ?? "a manager"}`
+                  ? ` by ${mealData.generatedBy.name ?? "a manager"}`
                   : ""
               }`
             : "Generate and view today's meal statistics and requirements"}
         </CardDescription>
         {mealData?.generatedBy && (
           <p className="text-muted-foreground text-xs">
-            {mealData.generatedBy.email} &middot;{" "}
             {formatIST(mealData.createdAt, "dd MMM yyyy, hh:mm a")}
           </p>
         )}

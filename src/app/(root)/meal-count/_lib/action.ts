@@ -2,6 +2,7 @@
 
 import { unstable_noStore as noStore } from "next/cache"
 
+import { canManage } from "@/lib/authz"
 import { istCalendarDay } from "@/lib/date"
 import { MealTimeType } from "@/lib/generated/prisma"
 import prisma from "@/lib/prisma"
@@ -14,16 +15,14 @@ export type MealSlotCount = {
   totalVeg: number
   totalNonVeg: number
   generatedAt: Date
-  generatedBy: {
-    name: string | null
-    email: string | null
-    image: string | null
-  } | null
+  generatedBy: { name: string | null } | null
 }
 
 export async function getDailyMealCounts() {
   noStore()
-  await requireUser()
+  // Boarders see the counts; only staff see who produced them.
+  const session = await requireUser()
+  const canSeeGenerator = canManage(session.user.role)
 
   // Today's day-key in India.
   const todayStart = istCalendarDay()
@@ -41,7 +40,7 @@ export async function getDailyMealCounts() {
       totalNonvegEgg: true,
       createdAt: true,
       generatedBy: {
-        select: { name: true, email: true, image: true },
+        select: { name: true },
       },
     },
   })
@@ -53,7 +52,7 @@ export async function getDailyMealCounts() {
     totalVeg: r.totalVeg,
     totalNonVeg: r.totalNonvegChicken + r.totalNonvegFish + r.totalNonvegEgg,
     generatedAt: r.createdAt,
-    generatedBy: r.generatedBy,
+    generatedBy: canSeeGenerator ? r.generatedBy : null,
   }))
 
   const totals = slots.reduce(
@@ -66,7 +65,7 @@ export async function getDailyMealCounts() {
     { totalMeal: 0, totalGuestMeal: 0, totalVeg: 0, totalNonVeg: 0 }
   )
 
-  return { date: todayStart, slots, totals }
+  return { date: todayStart, slots, totals, canSeeGenerator }
 }
 
 export type DailyMealCounts = Awaited<ReturnType<typeof getDailyMealCounts>>

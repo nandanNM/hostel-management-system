@@ -41,7 +41,7 @@ export async function GET() {
       },
       include: {
         generatedBy: {
-          select: { id: true, name: true, email: true, image: true },
+          select: { id: true, name: true, image: true },
         },
       },
     })
