@@ -11,7 +11,8 @@ import {
 import { useQuery } from "@tanstack/react-query"
 import { useSession } from "next-auth/react"
 
-import type { DailyMealActivity } from "@/lib/generated/prisma"
+import { formatIST } from "@/lib/date"
+import type { DailyMealActivity, User } from "@/lib/generated/prisma"
 import kyInstance from "@/lib/ky"
 import { toast } from "@/lib/toast"
 import { cn, formatRelativeDate } from "@/lib/utils"
@@ -38,6 +39,10 @@ import LoadingButton from "@/components/LoadingButton"
 
 import { useGenerateMealData } from "../_lib/mutations"
 
+type DailyMealActivityWithGenerator = DailyMealActivity & {
+  generatedBy: Pick<User, "id" | "name" | "email" | "image"> | null
+}
+
 export function MealDataCard() {
   const { data: session } = useSession()
   const isReadOnly = session?.user?.role === "MESS_PREFECT"
@@ -52,7 +57,9 @@ export function MealDataCard() {
   } = useQuery({
     queryKey: ["daily-meal-activity", "manager"],
     queryFn: () =>
-      kyInstance.get("/api/manager/meal").json<DailyMealActivity>(),
+      kyInstance
+        .get("/api/manager/meal")
+        .json<DailyMealActivityWithGenerator>(),
     refetchOnWindowFocus: false,
   })
 
@@ -70,9 +77,19 @@ export function MealDataCard() {
         </CardTitle>
         <CardDescription>
           {mealData
-            ? `Today's meal statistics and requirements, generated ${formatRelativeDate(new Date(mealData.createdAt))}`
+            ? `Today's meal statistics and requirements, generated ${formatRelativeDate(new Date(mealData.createdAt))}${
+                mealData.generatedBy
+                  ? ` by ${mealData.generatedBy.name ?? mealData.generatedBy.email ?? "a manager"}`
+                  : ""
+              }`
             : "Generate and view today's meal statistics and requirements"}
         </CardDescription>
+        {mealData?.generatedBy && (
+          <p className="text-muted-foreground text-xs">
+            {mealData.generatedBy.email} &middot;{" "}
+            {formatIST(mealData.createdAt, "dd MMM yyyy, hh:mm a")}
+          </p>
+        )}
       </CardHeader>
       <CardContent className="space-y-4">
         {!mealData && isReadOnly && (

@@ -39,6 +39,11 @@ export async function GET() {
         mealTime,
         date: todayStart,
       },
+      include: {
+        generatedBy: {
+          select: { id: true, name: true, email: true, image: true },
+        },
+      },
     })
 
     return Response.json(data)
