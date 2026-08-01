@@ -1,10 +1,7 @@
-import { toZonedTime } from "date-fns-tz"
-
+import { istWallClock } from "@/lib/date"
 import { sendHappyBirthdayEmail } from "@/lib/email"
 import { UserStatusType } from "@/lib/generated/prisma"
 import prisma from "@/lib/prisma"
-
-const TZ = "Asia/Kolkata"
 
 export async function GET(request: Request) {
   const secret = process.env.CRON_SECRET
@@ -13,7 +10,8 @@ export async function GET(request: Request) {
     return Response.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const today = toZonedTime(new Date(), TZ)
+  // Wall-clock India time: this block compares month/day fields only.
+  const today = istWallClock()
   const month = today.getMonth()
   const day = today.getDate()
   const year = today.getFullYear()
@@ -28,7 +26,7 @@ export async function GET(request: Request) {
   })
 
   const birthdayUsers = users.filter((u) => {
-    const dob = toZonedTime(u.dob as Date, TZ)
+    const dob = istWallClock(u.dob as Date)
     return dob.getMonth() === month && dob.getDate() === day
   })
 

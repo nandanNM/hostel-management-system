@@ -1,10 +1,14 @@
-import { format, subDays } from "date-fns"
-import { toZonedTime } from "date-fns-tz"
+import { subDays } from "date-fns"
 
+import {
+  istCalendarMonthStart,
+  istParts,
+  istStartOfDaysAgo,
+  istYmd,
+} from "@/lib/date"
 import getSession from "@/lib/get-session"
 import prisma from "@/lib/prisma"
 
-const TZ = "Asia/Kolkata"
 const MAX_STREAK_DAYS = 31
 
 export async function GET() {
@@ -13,34 +17,29 @@ export async function GET() {
     if (!session?.user.id)
       return Response.json({ error: "Unauthorized" }, { status: 401 })
 
-    const now = toZonedTime(new Date(), TZ)
-    const from = subDays(now, MAX_STREAK_DAYS + 1)
+    const from = istStartOfDaysAgo(MAX_STREAK_DAYS + 1)
 
     const rows = await prisma.mealAttendance.findMany({
       where: { userId: session.user.id, date: { gte: from } },
       select: { date: true },
     })
 
-    const present = new Set(
-      rows.map((r) => format(toZonedTime(r.date, TZ), "yyyy-MM-dd"))
-    )
+    // Compare India calendar days, not server-local ones.
+    const present = new Set(rows.map((r) => istYmd(r.date)))
 
-    let cursor = now
-    if (!present.has(format(cursor, "yyyy-MM-dd"))) cursor = subDays(cursor, 1)
+    const today = new Date()
+    let cursor = today
+    if (!present.has(istYmd(cursor))) cursor = subDays(cursor, 1)
 
     let streak = 0
-    while (
-      streak < MAX_STREAK_DAYS &&
-      present.has(format(cursor, "yyyy-MM-dd"))
-    ) {
+    while (streak < MAX_STREAK_DAYS && present.has(istYmd(cursor))) {
       streak++
       cursor = subDays(cursor, 1)
     }
 
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
-    const monthMeals = rows.filter(
-      (r) => toZonedTime(r.date, TZ) >= monthStart
-    ).length
+    const { year, month } = istParts(today)
+    const monthStart = istCalendarMonthStart(year, month)
+    const monthMeals = rows.filter((r) => r.date >= monthStart).length
 
     return Response.json({ streak, monthMeals })
   } catch {

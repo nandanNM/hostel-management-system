@@ -1,11 +1,8 @@
 import { clsx, type ClassValue } from "clsx"
-import {
-  format,
-  formatDate as formatDateFn,
-  formatDistanceToNowStrict,
-  getHours,
-} from "date-fns"
+import { formatDistanceToNowStrict, getHours } from "date-fns"
 import { twMerge } from "tailwind-merge"
+
+import { formatIST, IST, istWallClock } from "@/lib/date"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -14,7 +11,8 @@ export function cn(...inputs: ClassValue[]) {
 export function getCurrentMealSlot(
   date: Date = new Date()
 ): "LUNCH" | "DINNER" {
-  const amPm = format(date, "a")
+  // India time: on a UTC server 6:00 IST would otherwise read as 00:30 AM.
+  const amPm = formatIST(date, "a")
   return amPm === "AM" ? "LUNCH" : "DINNER"
 }
 
@@ -23,10 +21,10 @@ export function formatRelativeDate(from: Date) {
   if (currentDate.getTime() - from.getTime() < 24 * 60 * 60 * 1000) {
     return formatDistanceToNowStrict(from, { addSuffix: true })
   } else {
-    if (currentDate.getFullYear() === from.getFullYear()) {
-      return formatDateFn(from, "MMM d")
+    if (formatIST(currentDate, "yyyy") === formatIST(from, "yyyy")) {
+      return formatIST(from, "MMM d")
     } else {
-      return formatDateFn(from, "MMM d, yyy")
+      return formatIST(from, "MMM d, yyyy")
     }
   }
 }
@@ -46,6 +44,9 @@ export function formatDate(
     month: opts.month ?? "long",
     day: opts.day ?? "numeric",
     year: opts.year ?? "numeric",
+    // Pin to India time: without this the server (UTC on Vercel) renders the
+    // previous day for anything stored near midnight IST.
+    timeZone: opts.timeZone ?? IST,
     ...opts,
   }).format(new Date(date))
 }
@@ -61,7 +62,8 @@ export function parseEnumList<T extends string>(
 }
 
 export function isActiveTime(date: Date = new Date()): boolean {
-  const hour = getHours(date)
+  // Hour-of-day only makes sense in India time.
+  const hour = getHours(istWallClock(date))
 
   const isMorningInactive = hour >= 6 && hour < 12
   const isEveningInactive = hour >= 18 && hour < 24

@@ -1,9 +1,11 @@
-import { toZonedTime } from "date-fns-tz"
-
+import {
+  istCalendarMonthEnd,
+  istCalendarMonthStart,
+  istParts,
+} from "@/lib/date"
 import getSession from "@/lib/get-session"
 import prisma from "@/lib/prisma"
 
-const TZ = "Asia/Kolkata"
 const TOP_N = 10
 
 export async function GET() {
@@ -12,17 +14,10 @@ export async function GET() {
     if (!session?.user.id)
       return Response.json({ error: "Unauthorized" }, { status: 401 })
 
-    const now = toZonedTime(new Date(), TZ)
-    const fromDate = new Date(now.getFullYear(), now.getMonth(), 1)
-    const toDate = new Date(
-      now.getFullYear(),
-      now.getMonth() + 1,
-      0,
-      23,
-      59,
-      59,
-      999
-    )
+    // The current month in India, bounded with the `date` day-key convention.
+    const { year, month } = istParts()
+    const fromDate = istCalendarMonthStart(year, month)
+    const toDate = istCalendarMonthEnd(year, month)
 
     const grouped = await prisma.mealAttendance.groupBy({
       by: ["userId"],

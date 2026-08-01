@@ -3,10 +3,15 @@
 import { unstable_noStore as noStore, revalidatePath } from "next/cache"
 import requireMessPrefect from "@/data/mess-prefect/require-mess-prefect"
 import { ApiResponse } from "@/types"
-import { addDays, endOfMonth, format, startOfMonth, subMonths } from "date-fns"
-import { toZonedTime } from "date-fns-tz"
+import { addDays } from "date-fns"
 import { z } from "zod"
 
+import {
+  formatIST,
+  istCalendarMonthEnd,
+  istCalendarMonthStart,
+  istParts,
+} from "@/lib/date"
 import {
   BillEntryType,
   GuestMealStatusType,
@@ -14,21 +19,29 @@ import {
 } from "@/lib/generated/prisma"
 import prisma from "@/lib/prisma"
 
-const TZ = "Asia/Kolkata"
-
 function resolveMonth(input?: { year: number; month: number }) {
-  const nowZoned = toZonedTime(new Date(), TZ)
-  const base = input
-    ? new Date(input.year, input.month - 1, 1)
-    : subMonths(nowZoned, 1)
-  const start = startOfMonth(base)
-  const end = endOfMonth(base)
+  // Default to the month before the current India month. Bounds use the same
+  // day-key convention the `date` columns are written with, so they no longer
+  // depend on the server's own timezone.
+  const today = istParts()
+  let year = today.year
+  let month = today.month - 1
+  if (input) {
+    year = input.year
+    month = input.month - 1
+  } else if (month < 0) {
+    year -= 1
+    month = 11
+  }
+
+  const start = istCalendarMonthStart(year, month)
+  const end = istCalendarMonthEnd(year, month)
   return {
     start,
     end,
-    year: start.getFullYear(),
-    month: start.getMonth() + 1,
-    label: format(start, "MMMM yyyy"),
+    year,
+    month: month + 1,
+    label: formatIST(start, "MMMM yyyy"),
   }
 }
 
@@ -63,8 +76,8 @@ function computeMealCharge(
 // A month can only be billed once it has fully ended (previous months only).
 // The UI navigator enforces this too, but guard the server against direct calls.
 function isBillableMonth(periodStart: Date) {
-  const currentMonthStart = startOfMonth(toZonedTime(new Date(), TZ))
-  return periodStart < currentMonthStart
+  const { year, month } = istParts()
+  return periodStart < istCalendarMonthStart(year, month)
 }
 
 export type BillingData = Awaited<ReturnType<typeof getBillingData>>
@@ -327,7 +340,7 @@ export async function finalizeAndDistributeBills(
       }
     }
 
-    const monthLabel = format(audit.date, "MMMM yyyy")
+    const monthLabel = formatIST(audit.date, "MMMM yyyy")
     const dueDate = addDays(new Date(), 15)
 
     const result = await prisma.$transaction(

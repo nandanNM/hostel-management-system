@@ -1,6 +1,5 @@
-import { endOfDay, format, startOfDay } from "date-fns"
-import { toZonedTime } from "date-fns-tz"
-
+import { canManage, isManager } from "@/lib/authz"
+import { formatIST, istCalendarDay, istCalendarDayEnd } from "@/lib/date"
 import {
   DayOfWeek,
   GuestMealStatusType,
@@ -9,10 +8,10 @@ import {
   NonVegType,
   UserStatusType,
 } from "@/lib/generated/prisma"
-import { canManage, isManager } from "@/lib/authz"
 import getSession from "@/lib/get-session"
 import prisma from "@/lib/prisma"
 import { getCurrentMealSlot } from "@/lib/utils"
+
 import {
   calculateActualNonVegMeal,
   getNonVegTypeFromItemName,
@@ -31,10 +30,9 @@ export async function GET() {
         { status: 401 }
       )
 
-    const timeZone = "Asia/Kolkata"
-    const now = toZonedTime(new Date(), timeZone)
-    const todayStart = startOfDay(now)
-    const mealTime = getCurrentMealSlot(now)
+    // Today's day-key and current slot, both in India time.
+    const todayStart = istCalendarDay()
+    const mealTime = getCurrentMealSlot()
 
     const data = await prisma.dailyMealActivity.findFirst({
       where: {
@@ -53,8 +51,7 @@ export async function GET() {
 export async function POST() {
   try {
     const session = await getSession()
-    const timeZone = "Asia/Kolkata"
-    
+
     if (!session?.user.id) {
       return Response.json({ error: "Unauthorized" }, { status: 401 })
     }
@@ -67,11 +64,11 @@ export async function POST() {
     }
 
     const now = new Date()
-    const zonedDate = toZonedTime(now, timeZone)
-    const mealTime = getCurrentMealSlot(zonedDate)
-    const todayStart = startOfDay(zonedDate)
-    const todayEnd = endOfDay(zonedDate)
-    const dayOfWeek = format(zonedDate, "EEEE").toUpperCase() as DayOfWeek
+    const mealTime = getCurrentMealSlot(now)
+    // `guest_meals.date` and `daily_meal_activities.meal_date` are day-keys.
+    const todayStart = istCalendarDay(now)
+    const todayEnd = istCalendarDayEnd(now)
+    const dayOfWeek = formatIST(now, "EEEE").toUpperCase() as DayOfWeek
 
     const alreadyGenerated = await prisma.dailyMealActivity.findFirst({
       where: {
@@ -141,7 +138,12 @@ export async function POST() {
     let chickenCount = 0
     let fishCount = 0
     let eggCount = 0
-    const attendanceRecordsToCreate: { userId: string; mealTime: "LUNCH" | "DINNER"; date: Date; mealId: string }[] = []
+    const attendanceRecordsToCreate: {
+      userId: string
+      mealTime: "LUNCH" | "DINNER"
+      date: Date
+      mealId: string
+    }[] = []
 
     for (const meal of allRegularMeals) {
       if (meal.type === MealType.VEG) {
@@ -149,7 +151,9 @@ export async function POST() {
       } else if (hasSchedule) {
         // Apply priority chain: from today's offering downward, find the first type the user accepts
         const actualType = calculateActualNonVegMeal(
-          meal.nonVegType !== NonVegType.NONE ? meal.nonVegType : NonVegType.CHICKEN,
+          meal.nonVegType !== NonVegType.NONE
+            ? meal.nonVegType
+            : NonVegType.CHICKEN,
           meal.dislikedNonVegTypes,
           hostelDailyOffering
         )

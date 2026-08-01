@@ -1,11 +1,10 @@
 import { differenceInCalendarDays } from "date-fns"
-import { toZonedTime } from "date-fns-tz"
 
+import { istWallClock } from "@/lib/date"
 import { UserStatusType } from "@/lib/generated/prisma"
 import getSession from "@/lib/get-session"
 import prisma from "@/lib/prisma"
 
-const TZ = "Asia/Kolkata"
 const WINDOW_DAYS = 3
 
 export async function GET() {
@@ -23,11 +22,12 @@ export async function GET() {
       select: { id: true, name: true, image: true, dob: true },
     })
 
-    const today = toZonedTime(new Date(), TZ)
+    // Wall-clock India time: this block compares month/day fields only.
+    const today = istWallClock()
 
     const upcoming = users
       .map((u) => {
-        const dob = toZonedTime(u.dob as Date, TZ)
+        const dob = istWallClock(u.dob as Date)
         let next = new Date(today.getFullYear(), dob.getMonth(), dob.getDate())
         let daysUntil = differenceInCalendarDays(next, today)
         if (daysUntil < 0) {

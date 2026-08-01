@@ -4,8 +4,9 @@ import { revalidatePath } from "next/cache"
 import { auth } from "@/auth"
 import { ApiResponse } from "@/types"
 
+import { istDateOnly } from "@/lib/date"
 import prisma from "@/lib/prisma"
-import { settingsSchema, Settings } from "@/lib/validations"
+import { Settings, settingsSchema } from "@/lib/validations"
 
 export const updateUserSettings = async (
   values: Settings
@@ -33,13 +34,14 @@ export const updateUserSettings = async (
       },
       data: {
         selfPhNo: values.selfPhNo,
-        dob: values.dob,
+        // Anchor to 00:00 IST so the stored instant and IST reads agree.
+        dob: istDateOnly(values.dob),
         address: values.address,
       },
     })
 
     revalidatePath("/settings")
-    
+
     return {
       status: "success",
       message: "Personal information updated successfully. ✨",
@@ -48,7 +50,10 @@ export const updateUserSettings = async (
     console.error("Settings update error:", error)
     return {
       status: "error",
-      message: error instanceof Error ? error.message : "Something went wrong. Please try again.",
+      message:
+        error instanceof Error
+          ? error.message
+          : "Something went wrong. Please try again.",
     }
   }
 }

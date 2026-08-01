@@ -4,9 +4,8 @@ import {
   CaretRight as ChevronRight,
   Receipt,
 } from "@phosphor-icons/react/ssr"
-import { addMonths, startOfMonth, subMonths } from "date-fns"
-import { toZonedTime } from "date-fns-tz"
 
+import { istParts } from "@/lib/date"
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
 
@@ -38,18 +37,22 @@ export default async function BillingPage({
   // Month navigation bounds: you can bill up to (but not including) the current,
   // still-incomplete month in Asia/Kolkata.
   const current = data.period
-  const currentStart = startOfMonth(
-    new Date(current.year, current.month - 1, 1)
-  )
-  const prev = subMonths(currentStart, 1)
-  const next = addMonths(currentStart, 1)
-  const maxBillable = startOfMonth(
-    subMonths(toZonedTime(new Date(), "Asia/Kolkata"), 1)
-  )
-  const canGoNext = next <= maxBillable
+  const shiftMonth = (year: number, month: number, by: number) => {
+    const total = year * 12 + (month - 1) + by
+    return { year: Math.floor(total / 12), month: (total % 12) + 1 }
+  }
 
-  const href = (d: Date) =>
-    `/mess-prefect/billing?year=${d.getFullYear()}&month=${d.getMonth() + 1}`
+  const prev = shiftMonth(current.year, current.month, -1)
+  const next = shiftMonth(current.year, current.month, 1)
+
+  // The latest billable month is the one before the current India month.
+  const today = istParts()
+  const maxBillable = shiftMonth(today.year, today.month + 1, -1)
+  const canGoNext =
+    next.year * 12 + next.month <= maxBillable.year * 12 + maxBillable.month
+
+  const href = (m: { year: number; month: number }) =>
+    `/mess-prefect/billing?year=${m.year}&month=${m.month}`
 
   return (
     <div className="w-full flex-1 space-y-6 p-4 sm:p-6">
