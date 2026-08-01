@@ -62,6 +62,8 @@ export async function POST() {
       )
     }
 
+    const generatedById = session.user.id
+
     const now = new Date()
     const mealTime = getCurrentMealSlot(now)
     // `guest_meals.date` and `daily_meal_activities.meal_date` are day-keys.
@@ -202,6 +204,7 @@ export async function POST() {
           totalNonvegFish: fishCount,
           totalNonvegEgg: eggCount,
           actualNonVegServed: hostelDailyOffering,
+          generatedById,
         },
       })
 
@@ -210,6 +213,23 @@ export async function POST() {
           data: attendanceRecordsToCreate,
         })
       }
+
+      // Log it too, so the mess prefect sees the generation in Activity Logs
+      // alongside everything else, not only on the meal count screen.
+      await tx.activityLog.create({
+        data: {
+          userId: generatedById,
+          actionType: "MEAL_COUNT_GENERATED",
+          entityType: "DAILY_MEAL_ACTIVITY",
+          entityId: mealActivity.id,
+          newData: {
+            mealTime,
+            totalMeal: totalMeals,
+            totalGuestMeal: guestTotalMeals,
+          },
+          details: `Generated the ${mealTime.toLowerCase()} meal count (${totalMeals} meals).`,
+        },
+      })
 
       return mealActivity
     })
