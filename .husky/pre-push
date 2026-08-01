@@ -1,1 +1,4 @@
+# Keep this fast: the full pipeline runs in CI. This just catches the two
+# failures that are embarrassing to push - broken types and broken tests.
 pnpm typecheck
+pnpm test:run

@@ -14,7 +14,6 @@ export async function GET() {
         { error: "Unauthorized - You are not a manager" },
         { status: 401 }
       )
-    // `date` is a day-key column, so bound it with the same convention.
     const todayStart = istCalendarDay()
     const todayEnd = istCalendarDayEnd()
 

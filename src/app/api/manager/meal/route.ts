@@ -30,7 +30,6 @@ export async function GET() {
         { status: 401 }
       )
 
-    // Today's day-key and current slot, both in India time.
     const todayStart = istCalendarDay()
     const mealTime = getCurrentMealSlot()
 

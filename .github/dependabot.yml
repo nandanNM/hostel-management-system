@@ -1,0 +1,31 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    # Batch the noisy ecosystems so review stays manageable.
+    groups:
+      react:
+        patterns: ["react", "react-dom", "@types/react", "@types/react-dom"]
+      next:
+        patterns: ["next", "eslint-config-next"]
+      prisma:
+        patterns: ["prisma", "@prisma/*"]
+      dev-tooling:
+        dependency-type: development
+        patterns: ["eslint*", "prettier*", "vitest", "@vitest/*", "typescript"]
+    ignore:
+      # Majors for the framework and ORM deserve a deliberate migration, not a
+      # bot PR.
+      - dependency-name: "next"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "prisma"
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly

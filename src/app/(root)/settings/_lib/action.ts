@@ -34,7 +34,6 @@ export const updateUserSettings = async (
       },
       data: {
         selfPhNo: values.selfPhNo,
-        // Anchor to 00:00 IST so the stored instant and IST reads agree.
         dob: istDateOnly(values.dob),
         address: values.address,
       },

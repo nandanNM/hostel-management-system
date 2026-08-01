@@ -19,7 +19,6 @@ export async function getDailyMealCounts() {
   noStore()
   await requireUser()
 
-  // Today's day-key in India.
   const todayStart = istCalendarDay()
 
   const rows = await prisma.dailyMealActivity.findMany({

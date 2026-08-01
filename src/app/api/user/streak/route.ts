@@ -24,7 +24,6 @@ export async function GET() {
       select: { date: true },
     })
 
-    // Compare India calendar days, not server-local ones.
     const present = new Set(rows.map((r) => istYmd(r.date)))
 
     const today = new Date()
