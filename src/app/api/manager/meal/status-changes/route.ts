@@ -1,7 +1,5 @@
-import { endOfDay, startOfDay } from "date-fns"
-import { toZonedTime } from "date-fns-tz"
-
 import { canManage } from "@/lib/authz"
+import { istEndOfDay, istStartOfDay } from "@/lib/date"
 import getSession from "@/lib/get-session"
 import prisma from "@/lib/prisma"
 
@@ -13,10 +11,9 @@ export async function GET() {
     if (!canManage(session.user.role))
       return Response.json({ error: "Forbidden" }, { status: 403 })
 
-    const timeZone = "Asia/Kolkata"
-    const now = toZonedTime(new Date(), timeZone)
-    const todayStart = startOfDay(now)
-    const todayEnd = endOfDay(now)
+    // Today in India, as real instants (`timestamp` is a true timestamp).
+    const todayStart = istStartOfDay()
+    const todayEnd = istEndOfDay()
 
     const data = await prisma.activityLog.findMany({
       where: {

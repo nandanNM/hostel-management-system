@@ -276,7 +276,7 @@ export function getColumns(): ColumnDef<GetMealWithUser>[] {
                 {meal.status === MealStatusType.ACTIVE && (
                   <DropdownMenuItem
                     onClick={() => handleAction("deactivate-meal")}
-                    className="cursor-pointer text-gray-600"
+                    className="text-muted-foreground cursor-pointer"
                   >
                     <XCircle className="mr-2 h-4 w-4" />
                     Deactivate Meal

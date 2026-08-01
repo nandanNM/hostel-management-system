@@ -70,9 +70,9 @@ const ROLE_STYLES: Record<UserRoleType, string> = {
 
 const STATUS_STYLES: Record<UserStatusType, string> = {
   ACTIVE: "bg-green-100 text-green-700",
-  INACTIVE: "bg-gray-100 text-gray-600",
+  INACTIVE: "bg-muted text-muted-foreground",
   SUSPENDED: "bg-red-100 text-red-600",
-  FORMA: "bg-gray-100 text-gray-600",
+  FORMA: "bg-muted text-muted-foreground",
 }
 
 function prettify(value: string) {

@@ -1,7 +1,9 @@
-import { endOfMonth, startOfMonth } from "date-fns"
-import { toZonedTime } from "date-fns-tz"
-
 import { canManage } from "@/lib/authz"
+import {
+  istCalendarMonthEnd,
+  istCalendarMonthStart,
+  istParts,
+} from "@/lib/date"
 import getSession from "@/lib/get-session"
 import prisma from "@/lib/prisma"
 
@@ -14,15 +16,15 @@ export async function GET(request: Request) {
       return Response.json({ error: "Forbidden" }, { status: 403 })
 
     const { searchParams } = new URL(request.url)
-    const timeZone = "Asia/Kolkata"
-    const now = toZonedTime(new Date(), timeZone)
+    // Default to the current month in India, and bound the query with the
+    // same day-key convention the `date` column is written with.
+    const today = istParts()
+    const year = parseInt(searchParams.get("year") ?? String(today.year), 10)
+    const month =
+      parseInt(searchParams.get("month") ?? String(today.month + 1), 10) - 1
 
-    const year = parseInt(searchParams.get("year") ?? String(now.getFullYear()), 10)
-    const month = parseInt(searchParams.get("month") ?? String(now.getMonth() + 1), 10) - 1
-
-    const refDate = new Date(year, month, 1)
-    const from = startOfMonth(refDate)
-    const to = endOfMonth(refDate)
+    const from = istCalendarMonthStart(year, month)
+    const to = istCalendarMonthEnd(year, month)
 
     const data = await prisma.guestMeal.findMany({
       where: {

@@ -1,7 +1,5 @@
-import { endOfDay, startOfDay } from "date-fns"
-import { toZonedTime } from "date-fns-tz"
-
 import { canManage } from "@/lib/authz"
+import { istCalendarDay, istCalendarDayEnd } from "@/lib/date"
 import getSession from "@/lib/get-session"
 import prisma from "@/lib/prisma"
 
@@ -16,10 +14,9 @@ export async function GET() {
         { error: "Unauthorized - You are not a manager" },
         { status: 401 }
       )
-    const timeZone = "Asia/Kolkata"
-    const now = toZonedTime(new Date(), timeZone)
-    const todayStart = startOfDay(now)
-    const todayEnd = endOfDay(now)
+    // `date` is a day-key column, so bound it with the same convention.
+    const todayStart = istCalendarDay()
+    const todayEnd = istCalendarDayEnd()
 
     const data = await prisma.guestMeal.findMany({
       where: {

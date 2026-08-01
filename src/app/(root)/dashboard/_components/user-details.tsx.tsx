@@ -10,8 +10,8 @@ import {
   ForkKnife as Utensils,
   Wallet,
 } from "@phosphor-icons/react/ssr"
-import { formatDate } from "date-fns"
 
+import { formatIST } from "@/lib/date"
 import { User } from "@/lib/generated/prisma"
 import prisma from "@/lib/prisma"
 import { cn } from "@/lib/utils"
@@ -153,7 +153,7 @@ async function UserDataCard({ user }: UserDataCardProps) {
               <div>
                 <p className="text-muted-foreground text-xs">Date of Birth</p>
                 <p className="text-foreground text-sm font-medium">
-                  {formatDate(user.dob ?? new Date(), "dd/MM/yyyy")}
+                  {formatIST(user.dob ?? new Date(), "dd/MM/yyyy")}
                 </p>
               </div>
               <div>
@@ -242,8 +242,7 @@ async function UserDataCard({ user }: UserDataCardProps) {
                         Joined Date
                       </p>
                       <p className="text-foreground text-sm font-medium">
-                        Boarder since{" "}
-                        {formatDate(user.createdAt, "MMM d, yyyy")}
+                        Boarder since {formatIST(user.createdAt, "MMM d, yyyy")}
                       </p>
                     </div>
                   </div>

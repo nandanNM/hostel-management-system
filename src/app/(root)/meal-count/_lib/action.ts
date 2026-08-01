@@ -1,14 +1,11 @@
 "use server"
 
 import { unstable_noStore as noStore } from "next/cache"
-import { startOfDay } from "date-fns"
-import { toZonedTime } from "date-fns-tz"
 
+import { istCalendarDay } from "@/lib/date"
 import { MealTimeType } from "@/lib/generated/prisma"
 import prisma from "@/lib/prisma"
 import { requireUser } from "@/lib/require-user"
-
-const TZ = "Asia/Kolkata"
 
 export type MealSlotCount = {
   mealTime: MealTimeType
@@ -22,8 +19,8 @@ export async function getDailyMealCounts() {
   noStore()
   await requireUser()
 
-  const now = toZonedTime(new Date(), TZ)
-  const todayStart = startOfDay(now)
+  // Today's day-key in India.
+  const todayStart = istCalendarDay()
 
   const rows = await prisma.dailyMealActivity.findMany({
     where: { date: todayStart },
