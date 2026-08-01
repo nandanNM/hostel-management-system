@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 import requireManager from "@/data/manager/require-manager"
 import { ApiResponse } from "@/types"
+
 import { DayOfWeek, MealTimeType } from "@/lib/generated/prisma"
 import prisma from "@/lib/prisma"
 
@@ -39,7 +40,11 @@ export async function upsertMenuItem(data: {
     revalidatePath("/manager/settings/meal-scheduling")
     return { status: "success", message: "Menu item saved successfully" }
   } catch (error) {
-    return { status: "error", message: error instanceof Error ? error.message : "Failed to save menu item" }
+    return {
+      status: "error",
+      message:
+        error instanceof Error ? error.message : "Failed to save menu item",
+    }
   }
 }
 
@@ -52,7 +57,10 @@ export async function deleteMenuItem(id: string): Promise<ApiResponse> {
     revalidatePath("/manager/settings/meal-scheduling")
     return { status: "success", message: "Menu item deleted successfully" }
   } catch (error) {
-    return { status: "error", message: "Failed to delete menu item (check if it's used in a schedule)" }
+    return {
+      status: "error",
+      message: "Failed to delete menu item (check if it's used in a schedule)",
+    }
   }
 }
 
@@ -111,7 +119,11 @@ export async function upsertMealSchedule(data: {
     revalidatePath("/manager/settings/meal-scheduling")
     return { status: "success", message: "Schedule updated successfully" }
   } catch (error) {
-    return { status: "error", message: error instanceof Error ? error.message : "Failed to update schedule" }
+    return {
+      status: "error",
+      message:
+        error instanceof Error ? error.message : "Failed to update schedule",
+    }
   }
 }
 
@@ -133,7 +145,10 @@ export async function seedDefaultMenuItems(): Promise<ApiResponse> {
       })
     }
     revalidatePath("/manager/settings/meal-scheduling")
-    return { status: "success", message: "Standard menu items seeded successfully" }
+    return {
+      status: "success",
+      message: "Standard menu items seeded successfully",
+    }
   } catch (error) {
     return { status: "error", message: "Failed to seed menu items" }
   }

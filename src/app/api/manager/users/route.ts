@@ -1,5 +1,5 @@
-import { UserStatusType } from "@/lib/generated/prisma"
 import { canManage } from "@/lib/authz"
+import { UserStatusType } from "@/lib/generated/prisma"
 import getSession from "@/lib/get-session"
 import prisma from "@/lib/prisma"
 

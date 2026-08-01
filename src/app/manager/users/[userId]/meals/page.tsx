@@ -1,5 +1,5 @@
-import { getUserMealHistory } from "../../_lib/user-detail"
 import { MealsSection } from "../../_components/user-section-tables"
+import { getUserMealHistory } from "../../_lib/user-detail"
 
 export default async function UserMealsPage({
   params,

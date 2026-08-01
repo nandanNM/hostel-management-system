@@ -14,8 +14,9 @@ import { DataTableFilterCombobox } from "./data-table-filter-combobox"
 import { DataTableFilterItem } from "./data-table-filter-item"
 import { DataTableMultiFilter } from "./data-table-multi-filter"
 
-interface DataTableAdvancedToolbarProps<TData>
-  extends React.HTMLAttributes<HTMLDivElement> {
+interface DataTableAdvancedToolbarProps<
+  TData,
+> extends React.HTMLAttributes<HTMLDivElement> {
   table: Table<TData>
   filterFields?: DataTableFilterField<TData>[]
 }
