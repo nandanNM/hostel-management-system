@@ -11,7 +11,6 @@ export async function GET() {
     if (!canManage(session.user.role))
       return Response.json({ error: "Forbidden" }, { status: 403 })
 
-    // Today in India, as real instants (`timestamp` is a true timestamp).
     const todayStart = istStartOfDay()
     const todayEnd = istEndOfDay()
 

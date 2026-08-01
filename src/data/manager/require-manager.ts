@@ -2,8 +2,8 @@
 
 import { redirect } from "next/navigation"
 
-import { UserStatusType } from "@/lib/generated/prisma"
 import { canManage } from "@/lib/authz"
+import { UserStatusType } from "@/lib/generated/prisma"
 import getSession from "@/lib/get-session"
 
 export default async function requireManager() {

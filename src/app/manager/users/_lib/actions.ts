@@ -6,6 +6,7 @@ import { ApiResponse } from "@/types"
 import z from "zod"
 
 import { GetMealWithUser } from "@/types/prisma.type"
+import { sendFineIssuedEmail, sendMealStatusEmail } from "@/lib/email"
 import {
   BillEntryType,
   MealStatusType,
@@ -14,7 +15,6 @@ import {
   Prisma,
   UserStatusType,
 } from "@/lib/generated/prisma"
-import { sendFineIssuedEmail, sendMealStatusEmail } from "@/lib/email"
 import prisma from "@/lib/prisma"
 import { parseEnumList } from "@/lib/utils"
 import { mealSchema } from "@/lib/validations"

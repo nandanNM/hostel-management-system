@@ -1,5 +1,5 @@
-import { getUserSummary } from "../_lib/user-detail"
 import { UserDetailHeader } from "../_components/user-detail-header"
+import { getUserSummary } from "../_lib/user-detail"
 
 export default async function UserDetailLayout({
   children,

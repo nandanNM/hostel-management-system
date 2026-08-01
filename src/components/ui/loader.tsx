@@ -29,7 +29,22 @@ const ASCII_SETS: Record<string, string[]> = {
   ascii: ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"],
   "ascii-line": ["|", "/", "-", "\\"],
   "ascii-braille": ["⣾", "⣽", "⣻", "⢿", "⡿", "⣟", "⣯", "⣷"],
-  "ascii-blocks": ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█", "▇", "▆", "▅", "▄", "▃", "▂"],
+  "ascii-blocks": [
+    "▁",
+    "▂",
+    "▃",
+    "▄",
+    "▅",
+    "▆",
+    "▇",
+    "█",
+    "▇",
+    "▆",
+    "▅",
+    "▄",
+    "▃",
+    "▂",
+  ],
   "ascii-bounce": ["⠁", "⠂", "⠄", "⡀", "⢀", "⠠", "⠐", "⠈"],
 }
 
@@ -502,7 +517,7 @@ function Percent({ size, speed, reduce }: PartProps) {
         {p}%
       </span>
       <span
-        className="bg-current/15 w-full overflow-hidden rounded-full"
+        className="w-full overflow-hidden rounded-full bg-current/15"
         style={{ height: Math.max(3, size * 0.1) }}
       >
         <span

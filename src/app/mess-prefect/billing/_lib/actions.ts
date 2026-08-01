@@ -20,9 +20,6 @@ import {
 import prisma from "@/lib/prisma"
 
 function resolveMonth(input?: { year: number; month: number }) {
-  // Default to the month before the current India month. Bounds use the same
-  // day-key convention the `date` columns are written with, so they no longer
-  // depend on the server's own timezone.
   const today = istParts()
   let year = today.year
   let month = today.month - 1

@@ -6,7 +6,8 @@ import { cn } from "@/lib/utils"
 import { MotionButton } from "@/components/ui/motion-button"
 
 export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+  extends
+    React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean
 }
@@ -59,9 +60,7 @@ function Button({
   )
 
   if (asChild) {
-    return (
-      <Slot data-slot="button" className={classes} {...props} />
-    )
+    return <Slot data-slot="button" className={classes} {...props} />
   }
 
   return <MotionButton data-slot="button" className={classes} {...props} />

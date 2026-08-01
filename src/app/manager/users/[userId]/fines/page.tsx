@@ -1,5 +1,5 @@
-import { getUserFines } from "../../_lib/user-detail"
 import { FinesSection } from "../../_components/user-section-tables"
+import { getUserFines } from "../../_lib/user-detail"
 
 export default async function UserFinesPage({
   params,

@@ -1,5 +1,5 @@
-import { getUserGuestMeals } from "../../_lib/user-detail"
 import { GuestMealsSection } from "../../_components/user-section-tables"
+import { getUserGuestMeals } from "../../_lib/user-detail"
 
 export default async function UserGuestMealsPage({
   params,

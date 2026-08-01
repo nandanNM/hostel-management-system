@@ -11,18 +11,13 @@ const MENU_ITEM_COSTS: Record<string, number> = {
   MUTTON: 130,
 }
 
-export async function POST(
-  req: NextRequest
-) {
+export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
     const { schedule } = body
 
     if (!schedule) {
-      return NextResponse.json(
-        { error: "Missing schedule" },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: "Missing schedule" }, { status: 400 })
     }
 
     // Ensure all needed menu items exist
