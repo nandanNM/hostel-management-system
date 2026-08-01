@@ -39,20 +39,21 @@ model User {
   guestMeals            GuestMeal[]
   payments              UserPayment[]
   userBills             UserBill[]
-  fines                 UserFine[]       @relation("UserFines")
-  issuedFines           UserFine[]       @relation("FineIssuer")
+  fines                 UserFine[]          @relation("UserFines")
+  issuedFines           UserFine[]          @relation("FineIssuer")
   audits                Audit[]
   attendances           MealAttendance[]
-  receivedNotifications Notification[]   @relation("Recipient")
-  issuedNotifications   Notification[]   @relation("Issuer")
-  activityLogs          ActivityLog[]    @relation("UserActivity")
+  receivedNotifications Notification[]      @relation("Recipient")
+  issuedNotifications   Notification[]      @relation("Issuer")
+  activityLogs          ActivityLog[]       @relation("UserActivity")
   accounts              Account[]
   sessions              Session[]
   userMealEvent         UserMealEvent[]
-  audit                 Audit[]          @relation("AuditApprover")
-  UserPayment           UserPayment[]    @relation("PaymentProcessor")
-  GuestMeal             GuestMeal[]      @relation("GuestMealApprover")
-  UserFine              UserFine[]       @relation("FineWaiver")
+  audit                 Audit[]             @relation("AuditApprover")
+  UserPayment           UserPayment[]       @relation("PaymentProcessor")
+  GuestMeal             GuestMeal[]         @relation("GuestMealApprover")
+  UserFine              UserFine[]          @relation("FineWaiver")
+  generatedMealCounts   DailyMealActivity[] @relation("MealCountGenerator")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -269,8 +270,13 @@ model DailyMealActivity {
   createdAt          DateTime    @default(now()) @map("created_at")
   updatedAt          DateTime    @updatedAt @map("updated_at")
 
+  // Nullable: rows generated before this column existed have no author.
+  generatedById String? @map("generated_by_id")
+  generatedBy   User?   @relation("MealCountGenerator", fields: [generatedById], references: [id], onDelete: SetNull)
+
   @@unique([mealTime, createdAt])
   @@index([mealTime, createdAt])
+  @@index([generatedById])
   @@map("daily_meal_activities")
 }
 

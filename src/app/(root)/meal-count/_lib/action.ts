@@ -13,6 +13,12 @@ export type MealSlotCount = {
   totalGuestMeal: number
   totalVeg: number
   totalNonVeg: number
+  generatedAt: Date
+  generatedBy: {
+    name: string | null
+    email: string | null
+    image: string | null
+  } | null
 }
 
 export async function getDailyMealCounts() {
@@ -33,6 +39,10 @@ export async function getDailyMealCounts() {
       totalNonvegChicken: true,
       totalNonvegFish: true,
       totalNonvegEgg: true,
+      createdAt: true,
+      generatedBy: {
+        select: { name: true, email: true, image: true },
+      },
     },
   })
 
@@ -42,6 +52,8 @@ export async function getDailyMealCounts() {
     totalGuestMeal: r.totalGuestMeal,
     totalVeg: r.totalVeg,
     totalNonVeg: r.totalNonvegChicken + r.totalNonvegFish + r.totalNonvegEgg,
+    generatedAt: r.createdAt,
+    generatedBy: r.generatedBy,
   }))
 
   const totals = slots.reduce(

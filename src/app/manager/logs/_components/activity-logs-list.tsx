@@ -29,6 +29,7 @@ import { P } from "@/components/custom/p"
 
 const ACTION_TYPE_LABELS: Record<string, string> = {
   MEAL_STATUS_CHANGE: "Meal Toggle",
+  MEAL_COUNT_GENERATED: "Meal Count",
   CREATE: "Created",
   UPDATE: "Updated",
   DELETE: "Deleted",
@@ -38,6 +39,7 @@ const ACTION_TYPE_LABELS: Record<string, string> = {
 
 const ACTION_TYPE_COLORS: Record<string, string> = {
   MEAL_STATUS_CHANGE: "bg-blue-100 text-blue-700",
+  MEAL_COUNT_GENERATED: "bg-indigo-100 text-indigo-700",
   CREATE: "bg-green-100 text-green-700",
   UPDATE: "bg-yellow-100 text-yellow-700",
   DELETE: "bg-red-100 text-red-600",
