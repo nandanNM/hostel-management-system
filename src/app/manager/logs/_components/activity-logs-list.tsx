@@ -186,7 +186,7 @@ export function ActivityLogsList() {
                             className={cn(
                               "rounded-full px-2 py-0.5 text-[10px] font-bold",
                               ACTION_TYPE_COLORS[log.actionType] ??
-                                "bg-gray-100 text-gray-600"
+                                "bg-muted text-muted-foreground"
                             )}
                           >
                             {ACTION_TYPE_LABELS[log.actionType] ??

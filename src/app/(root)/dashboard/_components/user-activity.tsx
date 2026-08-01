@@ -75,7 +75,7 @@ export default async function UserActivity({ userId }: UserActivityProps) {
           <Terminal className="text-primary size-5" weight="bold" />
           Your Activity
         </CardTitle>
-        <CardDescription className="text-gray-500">
+        <CardDescription className="text-muted-foreground">
           Recent actions by you and the system.
         </CardDescription>
       </CardHeader>

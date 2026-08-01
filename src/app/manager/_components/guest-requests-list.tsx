@@ -133,7 +133,7 @@ export function GuestRequestsList() {
           {currentRequests.length > 0 ? (
             currentRequests.map((request, index) => (
               <div key={request.id}>
-                <div className="flex flex-col justify-between rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-all hover:shadow-md sm:flex-row sm:items-center">
+                <div className="bg-card flex flex-col justify-between rounded-lg border p-4 shadow-sm transition-all hover:shadow-md sm:flex-row sm:items-center">
                   <div className="flex flex-col gap-1">
                     <p className="text-muted-foreground text-xs">
                       Requested by:{" "}
@@ -143,7 +143,7 @@ export function GuestRequestsList() {
                       &bull; {request.user?.email}
                     </p>
                     <div className="mb-1 flex items-center gap-2">
-                      <h4 className="text-lg font-semibold text-gray-800">
+                      <h4 className="text-foreground text-lg font-semibold">
                         {request.name}
                       </h4>
                       <Badge
