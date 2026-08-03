@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation"
 import {
   ArrowLeft,
   Calendar,
+  ChartBar,
   CaretUp as ChevronUp,
   ClipboardText as ClipboardList,
   FileText as FileCheck,
@@ -188,6 +189,14 @@ export default function AppSideBar({ state, user }: AppSideBarProps) {
                         <Link href={`${basePath}/guest-meal-logs`}>
                           <UtensilsCrossed />
                           <span>Guest Meal Logs</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild>
+                        <Link href={`${basePath}/reports/monthly-meals`}>
+                          <ChartBar />
+                          <span>Monthly Meals</span>
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
