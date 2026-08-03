@@ -163,75 +163,6 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
               <div className="flex flex-wrap gap-4">
                 <FormField
                   control={form.control}
-                  name="type"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Meal Type</FormLabel>
-                      <Select
-                        onValueChange={(val: "VEG" | "NON_VEG") => {
-                          field.onChange(val)
-                          if (val === "VEG") {
-                            form.setValue("nonVegType", "NONE")
-                          }
-                        }}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select meal type" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {MEAL_TYPE_OPTIONS.map((type) => (
-                            <SelectItem key={type} value={type}>
-                              {type === "NON_VEG" ? "Non-Veg" : "Veg"}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                {form.watch("type") === "NON_VEG" && (
-                  <FormField
-                    control={form.control}
-                    name="nonVegType"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Non-Veg Type</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select non-veg type" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {nonVegChoices.map((type) => (
-                              <SelectItem key={type} value={type}>
-                                {type.charAt(0) + type.slice(1).toLowerCase()}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        {offering && (
-                          <FormDescription>
-                            {offering.charAt(0) +
-                              offering.slice(1).toLowerCase()}{" "}
-                            is scheduled for this meal, so richer options are
-                            not available.
-                          </FormDescription>
-                        )}
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
-                <FormField
-                  control={form.control}
                   name="date"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
@@ -306,6 +237,75 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
                     </FormItem>
                   )}
                 />
+                <FormField
+                  control={form.control}
+                  name="type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Meal Type</FormLabel>
+                      <Select
+                        onValueChange={(val: "VEG" | "NON_VEG") => {
+                          field.onChange(val)
+                          if (val === "VEG") {
+                            form.setValue("nonVegType", "NONE")
+                          }
+                        }}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select meal type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {MEAL_TYPE_OPTIONS.map((type) => (
+                            <SelectItem key={type} value={type}>
+                              {type === "NON_VEG" ? "Non-Veg" : "Veg"}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                {form.watch("type") === "NON_VEG" && (
+                  <FormField
+                    control={form.control}
+                    name="nonVegType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Non-Veg Type</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select non-veg type" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {nonVegChoices.map((type) => (
+                              <SelectItem key={type} value={type}>
+                                {type.charAt(0) + type.slice(1).toLowerCase()}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {offering && (
+                          <FormDescription>
+                            {offering.charAt(0) +
+                              offering.slice(1).toLowerCase()}{" "}
+                            is scheduled for this meal, so richer options are
+                            not available.
+                          </FormDescription>
+                        )}
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
               </div>
               <FormField
                 control={form.control}
