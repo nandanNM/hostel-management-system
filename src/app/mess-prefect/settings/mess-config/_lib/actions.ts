@@ -5,6 +5,7 @@ import requireMessPrefect from "@/data/mess-prefect/require-mess-prefect"
 import { ApiResponse } from "@/types"
 import { z } from "zod"
 
+import { cacheKeys, invalidate } from "@/lib/cache"
 import { MealTimeType, MealType, NonVegType } from "@/lib/generated/prisma"
 import {
   getMessConfig,
@@ -121,6 +122,7 @@ export async function updateMessConfig(
 
     // These values gate the booking form and the meal count, so every surface
     // that reads them has to be refreshed.
+    await invalidate(cacheKeys.messConfig())
     revalidatePath("/mess-prefect/settings/mess-config")
     revalidatePath("/guest-meal")
     revalidatePath("/meal-count")
@@ -156,6 +158,7 @@ export async function resetMessConfig(): Promise<ApiResponse> {
       },
     })
 
+    await invalidate(cacheKeys.messConfig())
     revalidatePath("/mess-prefect/settings/mess-config")
     return { status: "success", message: "Restored the default settings." }
   } catch (error) {
@@ -188,6 +191,7 @@ export async function upsertGuestMealRate(
       update: { amount: row.amount },
     })
 
+    await invalidate(cacheKeys.messConfig())
     revalidatePath("/mess-prefect/settings/mess-config")
     revalidatePath("/guest-meal")
     return { status: "success", message: "Rate saved." }

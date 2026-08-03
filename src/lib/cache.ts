@@ -15,7 +15,28 @@ export const cacheKeys = {
     `${V}:leaderboard:${year}-${String(month + 1).padStart(2, "0")}`,
   /** Changes at most once per India day. */
   birthdays: (day: string = istYmd()) => `${V}:birthdays:${day}`,
+  /** One row, read on every booking interaction and every count generation. */
+  messConfig: () => `${V}:mess-config`,
+  /** 14 rows total, read whenever the booking form or the count needs a menu. */
+  mealSchedule: (dayOfWeek: string, mealTime: string) =>
+    `${V}:meal-schedule:${dayOfWeek}:${mealTime}`,
 } as const
+
+/** Every meal schedule key, for clearing the lot after a menu edit. */
+export function mealScheduleKeys(): string[] {
+  const days = [
+    "MONDAY",
+    "TUESDAY",
+    "WEDNESDAY",
+    "THURSDAY",
+    "FRIDAY",
+    "SATURDAY",
+    "SUNDAY",
+  ]
+  return days.flatMap((day) =>
+    ["LUNCH", "DINNER"].map((slot) => cacheKeys.mealSchedule(day, slot))
+  )
+}
 
 /**
  * Cache-aside with fail-open semantics.

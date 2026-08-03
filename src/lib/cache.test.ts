@@ -5,7 +5,8 @@ import { describe, expect, it, vi } from "vitest"
 vi.mock("server-only", () => ({}))
 vi.mock("./redis", () => ({ redis: null, isRedisEnabled: false }))
 
-const { cacheKeys, cached, secondsUntilIstMidnight } = await import("./cache")
+const { cacheKeys, cached, mealScheduleKeys, secondsUntilIstMidnight } =
+  await import("./cache")
 
 describe("cacheKeys", () => {
   it("uses one key per month for the whole hostel", () => {
@@ -20,6 +21,16 @@ describe("cacheKeys", () => {
 
   it("keys birthdays by the India day", () => {
     expect(cacheKeys.birthdays("2026-08-03")).toBe("v1:birthdays:2026-08-03")
+  })
+})
+
+describe("mealScheduleKeys", () => {
+  it("covers all 14 day/slot combinations", () => {
+    const keys = mealScheduleKeys()
+    expect(keys).toHaveLength(14)
+    expect(new Set(keys).size).toBe(14)
+    expect(keys).toContain(cacheKeys.mealSchedule("MONDAY", "LUNCH"))
+    expect(keys).toContain(cacheKeys.mealSchedule("SUNDAY", "DINNER"))
   })
 })
 

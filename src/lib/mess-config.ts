@@ -2,6 +2,7 @@ import "server-only"
 
 import { cache } from "react"
 
+import { cached, cacheKeys } from "@/lib/cache"
 import { NonVegType } from "@/lib/generated/prisma"
 import { NON_VEG_PRIORITY } from "@/lib/meal-priority"
 import prisma from "@/lib/prisma"
@@ -35,7 +36,15 @@ export type MessConfigValues = {
  * Cached per request, so the many call sites that need one number do not each
  * make their own query.
  */
-export const getMessConfig = cache(async (): Promise<MessConfigValues> => {
+/** An hour is plenty: every write path invalidates the key explicitly. */
+const TTL_SECONDS = 60 * 60
+
+export const getMessConfig = cache(
+  async (): Promise<MessConfigValues> =>
+    cached(cacheKeys.messConfig(), TTL_SECONDS, readMessConfig)
+)
+
+async function readMessConfig(): Promise<MessConfigValues> {
   const row = await prisma.messConfig.findUnique({
     where: { id: MESS_CONFIG_ID },
   })
@@ -59,4 +68,4 @@ export const getMessConfig = cache(async (): Promise<MessConfigValues> => {
     maxGuestMealsPerUserPerMonth: row.maxGuestMealsPerUserPerMonth,
     mealPreferenceLockMinutes: row.mealPreferenceLockMinutes,
   }
-})
+}

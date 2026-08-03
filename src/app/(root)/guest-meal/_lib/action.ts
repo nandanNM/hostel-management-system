@@ -2,6 +2,7 @@
 
 import { ApiResponse } from "@/types"
 
+import { cached, cacheKeys } from "@/lib/cache"
 import {
   formatIST,
   istCalendarDay,
@@ -24,8 +25,15 @@ import {
 import { getAllowedNonVegTypes, resolveOffering } from "@/lib/meal-priority"
 import { getMessConfig } from "@/lib/mess-config"
 import prisma from "@/lib/prisma"
+import {
+  checkRateLimit,
+  describeRetryAfter,
+  guestMealBookingLimiter,
+} from "@/lib/ratelimit"
 import { requireUser } from "@/lib/require-user"
 import { GuestMeal, guestMealSchema } from "@/lib/validations"
+
+const MENU_TTL_SECONDS = 60 * 60
 
 /**
  * The non-veg options a guest meal may use for a given day and slot, derived
@@ -43,16 +51,22 @@ export async function getAllowedGuestMealOptions(
   const { nonVegPriority } = await getMessConfig()
   const dayOfWeek = formatIST(date, "EEEE").toUpperCase() as DayOfWeek
 
-  const entry = await prisma.mealScheduleEntry.findUnique({
-    where: { dayOfWeek_mealTime: { dayOfWeek, mealTime } },
-    include: { menuItems: { include: { menuItem: true } } },
-  })
+  // Only the item names matter here, and the menu changes when the prefect
+  // edits it - which invalidates this key.
+  const menuItemNames = await cached(
+    cacheKeys.mealSchedule(dayOfWeek, mealTime),
+    MENU_TTL_SECONDS,
+    async () => {
+      const entry = await prisma.mealScheduleEntry.findUnique({
+        where: { dayOfWeek_mealTime: { dayOfWeek, mealTime } },
+        include: { menuItems: { include: { menuItem: true } } },
+      })
+      return entry?.menuItems.map((mi) => mi.menuItem.name) ?? null
+    }
+  )
 
-  const offering = entry
-    ? resolveOffering(
-        entry.menuItems.map((mi) => mi.menuItem.name),
-        nonVegPriority
-      )
+  const offering = menuItemNames
+    ? resolveOffering(menuItemNames, nonVegPriority)
     : null
 
   return {
@@ -118,6 +132,19 @@ export async function createGuestMeal(values: GuestMeal): Promise<ApiResponse> {
         message: "Unauthorized",
       }
     }
+    // Abuse brake before any query runs: a retry loop should cost one Redis
+    // command, not a fistful of Postgres round trips.
+    const limit = await checkRateLimit(
+      guestMealBookingLimiter,
+      `guest-meal:${session.user.id}`
+    )
+    if (!limit.allowed) {
+      return {
+        status: "error",
+        message: `Too many booking attempts. Try again in ${describeRetryAfter(limit.retryAfterSeconds)}.`,
+      }
+    }
+
     const config = await getMessConfig()
 
     // Every rule is enforced here, not only in the form: the UI narrows the
