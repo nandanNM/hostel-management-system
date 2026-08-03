@@ -24,8 +24,7 @@ export default function SettingsPage() {
     },
     {
       title: "Mess Settings",
-      description:
-        "Guest meal booking rules, non-veg priority order and rates. Mess prefect only.",
+      description: "Set guest meal booking rules, priority order and rates.",
       href: "/mess-prefect/settings/mess-config",
       icon: Gear,
     },
@@ -43,11 +42,11 @@ export default function SettingsPage() {
       </div>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         {settings.map((item) => (
-          <Link key={item.href} href={item.href} className="group">
-            <Card className="hover:bg-accent transition-all hover:shadow-md">
+          <Link key={item.href} href={item.href} className="group h-full">
+            <Card className="hover:bg-accent h-full transition-all hover:shadow-md">
               <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="bg-primary/10 text-primary group-hover:bg-primary/20 rounded-md p-2">
+                <div className="flex items-start gap-3">
+                  <div className="bg-primary/10 text-primary group-hover:bg-primary/20 shrink-0 rounded-md p-2">
                     <item.icon size={24} />
                   </div>
                   <div className="space-y-1">

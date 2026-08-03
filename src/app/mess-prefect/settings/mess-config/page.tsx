@@ -15,7 +15,7 @@ export default async function MessConfigPage() {
   const { config, rates } = await getMessConfigForEditing()
 
   return (
-    <PageContainer>
+    <PageContainer className="flex-1 p-4 sm:p-6">
       <PageHeader
         icon={Gear}
         title="Mess Settings"
