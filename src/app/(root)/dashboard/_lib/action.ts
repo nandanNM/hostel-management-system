@@ -9,6 +9,11 @@ import {
   MEAL_PREFERENCE_LOCK_MESSAGE,
 } from "@/lib/meal-lock"
 import prisma from "@/lib/prisma"
+import {
+  checkRateLimit,
+  describeRetryAfter,
+  mealToggleLimiter,
+} from "@/lib/ratelimit"
 import { requireUser } from "@/lib/require-user"
 
 import { MealMessage } from "./validation"
@@ -27,6 +32,17 @@ export async function toggleMealStatus(
     return {
       status: "error",
       message: "Unauthorized - You are not a boarder member",
+    }
+  }
+
+  const limit = await checkRateLimit(
+    mealToggleLimiter,
+    `meal-toggle:${session.user.id}`
+  )
+  if (!limit.allowed) {
+    return {
+      status: "error",
+      message: `Too many changes. Try again in ${describeRetryAfter(limit.retryAfterSeconds)}.`,
     }
   }
 

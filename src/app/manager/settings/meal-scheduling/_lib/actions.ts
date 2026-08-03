@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 import requireManager from "@/data/manager/require-manager"
 import { ApiResponse } from "@/types"
 
+import { invalidate, mealScheduleKeys } from "@/lib/cache"
 import { DayOfWeek, MealTimeType } from "@/lib/generated/prisma"
 import prisma from "@/lib/prisma"
 
@@ -37,6 +38,7 @@ export async function upsertMenuItem(data: {
         },
       })
     }
+    await invalidate(...mealScheduleKeys())
     revalidatePath("/manager/settings/meal-scheduling")
     return { status: "success", message: "Menu item saved successfully" }
   } catch (error) {
@@ -54,6 +56,7 @@ export async function deleteMenuItem(id: string): Promise<ApiResponse> {
     await prisma.menuItem.delete({
       where: { id },
     })
+    await invalidate(...mealScheduleKeys())
     revalidatePath("/manager/settings/meal-scheduling")
     return { status: "success", message: "Menu item deleted successfully" }
   } catch {
@@ -116,6 +119,7 @@ export async function upsertMealSchedule(data: {
       }
     })
 
+    await invalidate(...mealScheduleKeys())
     revalidatePath("/manager/settings/meal-scheduling")
     return { status: "success", message: "Schedule updated successfully" }
   } catch (error) {
@@ -144,6 +148,7 @@ export async function seedDefaultMenuItems(): Promise<ApiResponse> {
         create: { name: item.name, costPerUnit: item.costPerUnit },
       })
     }
+    await invalidate(...mealScheduleKeys())
     revalidatePath("/manager/settings/meal-scheduling")
     return {
       status: "success",

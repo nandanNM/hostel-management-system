@@ -1,5 +1,12 @@
 import { canManage, isManager } from "@/lib/authz"
-import { formatIST, istCalendarDay, istCalendarDayEnd } from "@/lib/date"
+import { cacheKeys, invalidate } from "@/lib/cache"
+import {
+  formatIST,
+  istCalendarDay,
+  istEndOfDay,
+  istParts,
+  istStartOfDay,
+} from "@/lib/date"
 import {
   DayOfWeek,
   GuestMealStatusType,
@@ -9,13 +16,12 @@ import {
   UserStatusType,
 } from "@/lib/generated/prisma"
 import getSession from "@/lib/get-session"
+import { resolveOffering } from "@/lib/meal-priority"
+import { getMessConfig } from "@/lib/mess-config"
 import prisma from "@/lib/prisma"
 import { getCurrentMealSlot } from "@/lib/utils"
 
-import {
-  calculateActualNonVegMeal,
-  getNonVegTypeFromItemName,
-} from "./_lib/utils"
+import { calculateActualNonVegMeal } from "./_lib/utils"
 
 export async function GET() {
   try {
@@ -73,7 +79,12 @@ export async function POST() {
     const mealTime = getCurrentMealSlot(now)
     // `guest_meals.date` and `daily_meal_activities.meal_date` are day-keys.
     const todayStart = istCalendarDay(now)
-    const todayEnd = istCalendarDayEnd(now)
+    // Guest meal rows carry three historical date conventions (India midnight
+    // from the picker, UTC midnight day-keys, and a raw booking timestamp).
+    // The true India-day window is the only range that captures all three
+    // without pulling in the neighbouring day.
+    const guestDayStart = istStartOfDay(now)
+    const guestDayEnd = istEndOfDay(now)
     const dayOfWeek = formatIST(now, "EEEE").toUpperCase() as DayOfWeek
 
     const alreadyGenerated = await prisma.dailyMealActivity.findFirst({
@@ -96,14 +107,15 @@ export async function POST() {
     const hasSchedule = !!todayScheduleEntry
     let hostelDailyOffering: NonVegType | null = null
 
+    // Same configured chain the booking form uses, so the count and the
+    // bookings can never disagree about what is on offer.
+    const { nonVegPriority } = await getMessConfig()
+
     if (hasSchedule && todayScheduleEntry.menuItems.length > 0) {
-      for (const mi of todayScheduleEntry.menuItems) {
-        const nvType = getNonVegTypeFromItemName(mi.menuItem.name)
-        if (nvType !== NonVegType.NONE) {
-          hostelDailyOffering = nvType
-          break
-        }
-      }
+      hostelDailyOffering = resolveOffering(
+        todayScheduleEntry.menuItems.map((mi) => mi.menuItem.name),
+        nonVegPriority
+      )
     }
 
     const [allRegularMeals, allActiveGuestMeals] = await Promise.all([
@@ -126,8 +138,8 @@ export async function POST() {
         where: {
           mealTime,
           date: {
-            gte: todayStart,
-            lte: todayEnd,
+            gte: guestDayStart,
+            lte: guestDayEnd,
           },
           status: GuestMealStatusType.APPROVED,
         },
@@ -161,7 +173,8 @@ export async function POST() {
             ? meal.nonVegType
             : NonVegType.CHICKEN,
           meal.dislikedNonVegTypes,
-          hostelDailyOffering
+          hostelDailyOffering,
+          nonVegPriority
         )
         if (actualType === NonVegType.CHICKEN) chickenCount++
         else if (actualType === NonVegType.FISH) fishCount++
@@ -238,6 +251,11 @@ export async function POST() {
 
       return mealActivity
     })
+
+    // Attendance changed, so the cached board is stale. Best effort: a failed
+    // invalidation only means the TTL decides instead.
+    const { year, month } = istParts(now)
+    await invalidate(cacheKeys.leaderboard(year, month))
 
     return Response.json(result, { status: 200 })
   } catch (error) {

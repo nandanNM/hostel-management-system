@@ -8,6 +8,7 @@ import {
 } from "@tanstack/react-table"
 import { format } from "date-fns"
 
+import { formatIST } from "@/lib/date"
 import { BillEntryType } from "@/lib/generated/prisma"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
@@ -115,7 +116,7 @@ const guestMealColumns: ColumnDef<GuestMealRow, unknown>[] = [
     header: "Date",
     cell: ({ row }) => (
       <span className="text-muted-foreground text-xs">
-        {format(new Date(row.original.date), "dd MMM yyyy")}
+        {formatIST(row.original.date, "dd MMM yyyy")}
       </span>
     ),
   },

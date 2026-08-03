@@ -11,6 +11,7 @@ import { useQuery } from "@tanstack/react-query"
 import { addMonths, format, subMonths } from "date-fns"
 
 import { GetGuestMealWithUser } from "@/types/prisma.type"
+import { formatIST } from "@/lib/date"
 import { GuestMealStatusType } from "@/lib/generated/prisma"
 import kyInstance from "@/lib/ky"
 import { cn } from "@/lib/utils"
@@ -166,7 +167,7 @@ export function GuestMealsLogList() {
                           </div>
                         </TableCell>
                         <TableCell className="text-sm">
-                          {format(new Date(m.date), "dd MMM yyyy")}
+                          {formatIST(m.date, "dd MMM yyyy")}
                         </TableCell>
                         <TableCell className="text-sm capitalize">
                           {m.mealTime.toLowerCase()}

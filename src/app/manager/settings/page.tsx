@@ -1,6 +1,6 @@
 import { Metadata } from "next"
 import Link from "next/link"
-import { Calendar } from "@phosphor-icons/react/ssr"
+import { Calendar, Gear } from "@phosphor-icons/react/ssr"
 
 import {
   Card,
@@ -22,7 +22,13 @@ export default function SettingsPage() {
       href: "/manager/settings/meal-scheduling",
       icon: Calendar,
     },
-    // Add more section here later
+    {
+      title: "Mess Settings",
+      description:
+        "Guest meal booking rules, non-veg priority order and rates. Mess prefect only.",
+      href: "/mess-prefect/settings/mess-config",
+      icon: Gear,
+    },
   ]
 
   return (
