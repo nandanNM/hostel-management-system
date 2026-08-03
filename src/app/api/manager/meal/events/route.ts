@@ -8,7 +8,6 @@ export async function GET() {
     if (!session?.user.id)
       return Response.json({ error: "Unauthorized" }, { status: 401 })
 
-    // Today in India, as real instants (`createdAt` is a true timestamp).
     const todayStart = istStartOfDay()
     const todayEnd = istEndOfDay()
 

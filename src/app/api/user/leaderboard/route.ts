@@ -14,7 +14,6 @@ export async function GET() {
     if (!session?.user.id)
       return Response.json({ error: "Unauthorized" }, { status: 401 })
 
-    // The current month in India, bounded with the `date` day-key convention.
     const { year, month } = istParts()
     const fromDate = istCalendarMonthStart(year, month)
     const toDate = istCalendarMonthEnd(year, month)

@@ -1,6 +1,6 @@
-import { siteConfig } from "@/config/site";
-import type { MetadataRoute } from "next";
+import type { MetadataRoute } from "next"
 
+import { siteConfig } from "@/config/site"
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
@@ -33,5 +33,5 @@ export default function manifest(): MetadataRoute.Manifest {
     scope: "/",
     background_color: "#ffffff",
     theme_color: "#C45A1A",
-  };
+  }
 }

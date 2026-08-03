@@ -1,5 +1,5 @@
-import { getUserPayments } from "../../_lib/user-detail"
 import { LedgerSection } from "../../_components/user-section-tables"
+import { getUserPayments } from "../../_lib/user-detail"
 
 export default async function UserPaymentsPage({
   params,

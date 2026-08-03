@@ -11,7 +11,6 @@ export function cn(...inputs: ClassValue[]) {
 export function getCurrentMealSlot(
   date: Date = new Date()
 ): "LUNCH" | "DINNER" {
-  // India time: on a UTC server 6:00 IST would otherwise read as 00:30 AM.
   const amPm = formatIST(date, "a")
   return amPm === "AM" ? "LUNCH" : "DINNER"
 }
@@ -62,7 +61,6 @@ export function parseEnumList<T extends string>(
 }
 
 export function isActiveTime(date: Date = new Date()): boolean {
-  // Hour-of-day only makes sense in India time.
   const hour = getHours(istWallClock(date))
 
   const isMorningInactive = hour >= 6 && hour < 12

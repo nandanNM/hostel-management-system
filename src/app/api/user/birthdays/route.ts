@@ -22,7 +22,6 @@ export async function GET() {
       select: { id: true, name: true, image: true, dob: true },
     })
 
-    // Wall-clock India time: this block compares month/day fields only.
     const today = istWallClock()
 
     const upcoming = users

@@ -12,8 +12,6 @@ export async function GET(request: Request) {
       return Response.json({ error: "Forbidden" }, { status: 403 })
 
     const { searchParams } = new URL(request.url)
-    // Default to the current month in India, and bound the query with the
-    // same day-key convention the `date` column is written with.
     const today = istParts()
     const year = parseInt(searchParams.get("year") ?? String(today.year), 10)
     const month =

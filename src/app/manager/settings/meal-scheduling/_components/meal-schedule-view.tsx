@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import {
-  Calendar,
   CaretDown as ChevronDown,
   Plus,
   Trash as Trash2,
@@ -18,13 +17,7 @@ import {
 import { toast } from "@/lib/toast"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
   Dialog,
@@ -46,11 +39,13 @@ import {
   upsertMenuItem,
 } from "../_lib/actions"
 
+type ScheduleEntry = MealScheduleEntry & {
+  menuItems: { menuItem: MenuItem }[]
+}
+
 interface MealScheduleViewProps {
   initialMenuItems: MenuItem[]
-  initialSchedule: (MealScheduleEntry & {
-    menuItems: { menuItem: MenuItem }[]
-  })[]
+  initialSchedule: ScheduleEntry[]
 }
 
 const DAYS: DayOfWeek[] = [
@@ -71,7 +66,7 @@ function DayMealCard({
 }: {
   day: DayOfWeek
   meal: MealTimeType
-  schedule: any[]
+  schedule: ScheduleEntry[]
   onOpen: (day: DayOfWeek, meal: MealTimeType) => void
 }) {
   const entry = schedule.find((s) => s.dayOfWeek === day && s.mealTime === meal)
@@ -91,7 +86,7 @@ function DayMealCard({
       <CardContent className="px-2 pt-0 pb-2 sm:px-3 sm:pb-3">
         {entry?.menuItems && entry.menuItems.length > 0 ? (
           <div className="flex flex-wrap gap-1">
-            {entry.menuItems.map((mi: any) => (
+            {entry.menuItems.map((mi) => (
               <span
                 key={mi.menuItem.id}
                 className="bg-primary/5 border-primary/10 text-primary/80 inline-flex rounded-sm border px-1 py-0.5 text-[9px] font-semibold sm:text-[10px]"
@@ -114,8 +109,8 @@ export default function MealScheduleView({
   initialMenuItems,
   initialSchedule,
 }: MealScheduleViewProps) {
-  const [menuItems, setMenuItems] = useState(initialMenuItems)
-  const [schedule, setSchedule] = useState(initialSchedule)
+  const [menuItems] = useState(initialMenuItems)
+  const [schedule] = useState(initialSchedule)
   const [isMenuItemModalOpen, setIsMenuItemModalOpen] = useState(false)
   const [editingMenuItem, setEditingMenuItem] = useState<MenuItem | null>(null)
 
@@ -168,7 +163,7 @@ export default function MealScheduleView({
     const entry = schedule.find(
       (s) => s.dayOfWeek === day && s.mealTime === meal
     )
-    const currentIds = entry?.menuItems.map((mi: any) => mi.menuItem.id) || []
+    const currentIds = entry?.menuItems.map((mi) => mi.menuItem.id) || []
     setSelectedMenuItemIds(currentIds)
     setActiveSlot({ day, meal })
     setIsScheduleModalOpen(true)

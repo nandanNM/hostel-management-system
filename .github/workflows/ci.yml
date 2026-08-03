@@ -1,0 +1,141 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# A new push to the same branch cancels the previous run.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Placeholders so src/lib/env.ts parses. Nothing here reaches a real database.
+  DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci?schema=public"
+  AUTH_GOOGLE_ID: "ci-placeholder"
+  AUTH_GOOGLE_SECRET: "ci-placeholder"
+  NEXT_TELEMETRY_DISABLED: "1"
+
+jobs:
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - run: pnpm typecheck
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - run: pnpm lint
+
+  format:
+    name: Format
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - run: pnpm format:check
+
+  test:
+    name: Test (TZ=${{ matrix.tz }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        # Vercel runs UTC, laptops run IST; the third zone catches lazy
+        # assumptions in the other direction.
+        tz: ["UTC", "Asia/Kolkata", "America/New_York"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - run: pnpm test:run
+        env:
+          TZ: ${{ matrix.tz }}
+
+  prisma:
+    name: Prisma schema
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Throwaway Postgres so migrations are replayed from zero. Never point this
+    # at the real database.
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: ci
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - name: Validate schema
+        run: pnpm exec prisma validate
+      - name: Check schema is formatted
+        run: |
+          pnpm exec prisma format
+          git diff --exit-code prisma/schema.prisma \
+            || (echo "::error::prisma/schema.prisma is not formatted. Run 'pnpm exec prisma format'." && exit 1)
+      - name: Apply every migration from scratch
+        run: pnpm exec prisma migrate deploy
+      - name: Detect schema drift (schema.prisma with no migration)
+        run: |
+          if pnpm exec prisma migrate diff \
+            --from-url "$DATABASE_URL" \
+            --to-schema-datamodel prisma/schema.prisma \
+            --exit-code; then
+            echo "Schema and migrations are in sync."
+          else
+            echo "::error::prisma/schema.prisma differs from the migrations. Run 'prisma migrate dev' and commit the migration."
+            exit 1
+          fi
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [typecheck, lint, test]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - name: Cache Next.js build
+        uses: actions/cache@v4
+        with:
+          path: .next/cache
+          key: next-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('src/**', 'prisma/**') }}
+          restore-keys: |
+            next-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
+      # Deliberately NOT `pnpm build` - that runs `prisma migrate deploy`,
+      # which must never touch a real database from CI.
+      - run: pnpm exec next build
+
+  # Single gate for branch protection.
+  ci:
+    name: CI
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [typecheck, lint, format, test, prisma, build]
+    steps:
+      - name: Fail if any required job failed
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: |
+          echo "::error::One or more CI jobs failed."
+          exit 1
+      - run: echo "All checks passed."

@@ -11,8 +11,9 @@ import { Input } from "@/components/ui/input"
 import { DataTableFacetedFilter } from "@/components/data-table/data-table-faceted-filter"
 import { DataTableViewOptions } from "@/components/data-table/data-table-view-options"
 
-interface DataTableToolbarProps<TData>
-  extends React.HTMLAttributes<HTMLDivElement> {
+interface DataTableToolbarProps<
+  TData,
+> extends React.HTMLAttributes<HTMLDivElement> {
   table: Table<TData>
   filterFields?: DataTableFilterField<TData>[]
 }

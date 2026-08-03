@@ -33,7 +33,8 @@ const paragraphVariants = cva("leading-7 [&:not(:first-child)]:mt-0", {
 
 // Extend with native attributes
 interface ParagraphProps
-  extends React.HTMLAttributes<HTMLParagraphElement>,
+  extends
+    React.HTMLAttributes<HTMLParagraphElement>,
     VariantProps<typeof paragraphVariants> {}
 
 const P = ({ className, variant, size, weight, ...props }: ParagraphProps) => {

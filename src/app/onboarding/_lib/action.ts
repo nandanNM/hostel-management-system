@@ -33,8 +33,6 @@ export const createUserOnboarding = async (
         },
         data: {
           ...values,
-          // Anchor the picked calendar day to 00:00 IST so a UTC server never
-          // reads it back as the previous day.
           dob: istDateOnly(values.dob),
           onboardingCompleted: true,
           status: UserStatusType.INACTIVE,

@@ -1,12 +1,12 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import requireMessPrefect from "@/data/mess-prefect/require-mess-prefect"
+import { ApiResponse } from "@/types"
 import { z } from "zod"
 
-import requireMessPrefect from "@/data/mess-prefect/require-mess-prefect"
 import { NotificationType, UserStatusType } from "@/lib/generated/prisma"
 import prisma from "@/lib/prisma"
-import { ApiResponse } from "@/types"
 
 const userIdSchema = z.object({ userId: z.string().min(1) })
 

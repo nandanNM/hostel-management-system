@@ -1,0 +1,31 @@
+name: Setup
+description: Install pnpm, Node and dependencies with a warm store cache.
+
+runs:
+  using: composite
+  steps:
+    - name: Install pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 11
+
+    - name: Install Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22
+        cache: pnpm
+
+    - name: Install dependencies
+      shell: bash
+      # Fail on a stale lockfile rather than silently resolving other versions.
+      run: pnpm install --frozen-lockfile
+
+    - name: Generate Prisma client
+      shell: bash
+      run: pnpm exec prisma generate
+
+    - name: Generate Next types
+      shell: bash
+      # next-env.d.ts is gitignored and only created by a next run, so without
+      # this `tsc` cannot resolve JSX or image imports on a fresh checkout.
+      run: pnpm exec next typegen

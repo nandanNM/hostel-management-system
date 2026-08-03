@@ -10,7 +10,6 @@ export async function GET(request: Request) {
     return Response.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  // Wall-clock India time: this block compares month/day fields only.
   const today = istWallClock()
   const month = today.getMonth()
   const day = today.getDate()

@@ -14,7 +14,6 @@ export async function GET() {
         { error: "Unauthorized - You are not a manager" },
         { status: 401 }
       )
-    // `date` is a day-key column, so bound it with the same convention.
     // The India-day window, so a request booked for today via the date picker
     // is not filed under yesterday.
     const todayStart = istStartOfDay()
