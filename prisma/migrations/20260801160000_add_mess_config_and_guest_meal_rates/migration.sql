@@ -1,5 +1,3 @@
-Already up to date
-Done in 415ms using pnpm v11.9.0
 -- CreateTable
 CREATE TABLE "mess_config" (
     "id" TEXT NOT NULL DEFAULT 'singleton',
@@ -35,4 +33,3 @@ CREATE UNIQUE INDEX "guest_meal_rates_meal_time_type_non_veg_type_key" ON "guest
 
 -- AddForeignKey
 ALTER TABLE "mess_config" ADD CONSTRAINT "mess_config_updated_by_id_fkey" FOREIGN KEY ("updated_by_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
