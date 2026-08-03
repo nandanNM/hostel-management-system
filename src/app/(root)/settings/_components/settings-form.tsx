@@ -171,7 +171,7 @@ export default function SettingsForm({ user }: SettingsFormProps) {
               >
                 {isPending ? (
                   <>
-                    <Loader variant="comet" size={16} className="mr-2" />
+                    <Loader variant="spinner" size={16} className="mr-2" />
                     Updating...
                   </>
                 ) : (

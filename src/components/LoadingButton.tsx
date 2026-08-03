@@ -21,7 +21,7 @@ const LoadingButton: React.FC<LoadingButtonProps> = ({
       className={cn("flex items-center gap-2", className)}
       {...props}
     >
-      {loading ? <Loader variant="comet" size={16} /> : children}
+      {loading ? <Loader variant="spinner" size={16} /> : children}
     </Button>
   )
 }

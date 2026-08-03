@@ -190,7 +190,7 @@ export function ManagersTable({
                       <div className="flex items-center justify-end gap-2">
                         {rowPending && (
                           <Loader
-                            variant="comet"
+                            variant="spinner"
                             size={16}
                             className="text-muted-foreground"
                           />
@@ -327,7 +327,7 @@ function EditDetailsDialog({
             <DialogFooter>
               <Button type="submit" disabled={isPending}>
                 {isPending && (
-                  <Loader variant="comet" size={16} className="mr-2" />
+                  <Loader variant="spinner" size={16} className="mr-2" />
                 )}
                 Save changes
               </Button>

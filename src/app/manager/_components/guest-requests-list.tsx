@@ -79,7 +79,7 @@ export function GuestRequestsList() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Loader variant="comet" size={24} className="mx-auto mt-4" />
+          <Loader variant="spinner" size={24} className="mx-auto mt-4" />
         </CardContent>
       </Card>
     )
@@ -236,7 +236,7 @@ export function GuestRequestsList() {
                           >
                             {updateMutation.isPending ? (
                               <Loader
-                                variant="comet"
+                                variant="spinner"
                                 size={16}
                                 className="mr-2"
                               />
@@ -257,7 +257,7 @@ export function GuestRequestsList() {
                           >
                             {updateMutation.isPending ? (
                               <Loader
-                                variant="comet"
+                                variant="spinner"
                                 size={16}
                                 className="mr-2"
                               />

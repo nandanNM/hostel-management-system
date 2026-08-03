@@ -66,7 +66,9 @@ export default async function Page() {
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <UserDetails userId={user.id} />
           <Suspense
-            fallback={<Loader variant="comet" size={20} className="mx-auto" />}
+            fallback={
+              <Loader variant="spinner" size={20} className="mx-auto" />
+            }
           >
             <UserActivity userId={user.id} />
           </Suspense>

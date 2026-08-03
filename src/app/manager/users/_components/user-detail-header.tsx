@@ -258,7 +258,7 @@ function RecordPaymentDialog({
           <DialogFooter>
             <Button type="submit" disabled={isPending}>
               {isPending && (
-                <Loader variant="comet" size={16} className="mr-2" />
+                <Loader variant="spinner" size={16} className="mr-2" />
               )}
               Save payment
             </Button>
@@ -343,7 +343,7 @@ function AddAdvanceDialog({
           <DialogFooter>
             <Button type="submit" disabled={isPending}>
               {isPending && (
-                <Loader variant="comet" size={16} className="mr-2" />
+                <Loader variant="spinner" size={16} className="mr-2" />
               )}
               Save advance
             </Button>
@@ -420,7 +420,7 @@ function AddDueDialog({
           <DialogFooter>
             <Button type="submit" disabled={isPending}>
               {isPending && (
-                <Loader variant="comet" size={16} className="mr-2" />
+                <Loader variant="spinner" size={16} className="mr-2" />
               )}
               Add due
             </Button>
@@ -523,7 +523,7 @@ function TransferToAlumniDialog({
           <DialogFooter>
             <Button type="submit" variant="destructive" disabled={isPending}>
               {isPending && (
-                <Loader variant="comet" size={16} className="mr-2" />
+                <Loader variant="spinner" size={16} className="mr-2" />
               )}
               Transfer to alumni
             </Button>

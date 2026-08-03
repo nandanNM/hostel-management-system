@@ -31,7 +31,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import {
   Select,
   SelectContent,
@@ -133,19 +132,21 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
 
   return (
     <Sheet {...props}>
-      <SheetContent className="flex flex-col gap-6 sm:max-w-md">
-        <SheetHeader className="text-left">
+      <SheetContent className="flex h-full flex-col gap-0 p-0 sm:max-w-md">
+        <SheetHeader className="border-b p-4 text-left">
           <SheetTitle>Create Guest Meal Request</SheetTitle>
           <SheetDescription>
             Fill out the form to create a new guest meal request
           </SheetDescription>
         </SheetHeader>
         <Form {...form}>
-          <ScrollArea className="flex-grow">
-            <form
-              onSubmit={form.handleSubmit(onSubmit)}
-              className="mx-auto max-w-xl space-y-4 p-4"
-            >
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex min-h-0 flex-1 flex-col"
+          >
+            {/* min-h-0 is what lets this shrink inside the flex column - without
+                it the fields push the footer past the bottom of the screen. */}
+            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4">
               <FormField
                 control={form.control}
                 name="name"
@@ -160,75 +161,6 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
                 )}
               />
               <div className="flex flex-wrap gap-4">
-                <FormField
-                  control={form.control}
-                  name="type"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Meal Type</FormLabel>
-                      <Select
-                        onValueChange={(val: "VEG" | "NON_VEG") => {
-                          field.onChange(val)
-                          if (val === "VEG") {
-                            form.setValue("nonVegType", "NONE")
-                          }
-                        }}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select meal type" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {MEAL_TYPE_OPTIONS.map((type) => (
-                            <SelectItem key={type} value={type}>
-                              {type === "NON_VEG" ? "Non-Veg" : "Veg"}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                {form.watch("type") === "NON_VEG" && (
-                  <FormField
-                    control={form.control}
-                    name="nonVegType"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Non-Veg Type</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select non-veg type" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {nonVegChoices.map((type) => (
-                              <SelectItem key={type} value={type}>
-                                {type.charAt(0) + type.slice(1).toLowerCase()}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        {offering && (
-                          <FormDescription>
-                            {offering.charAt(0) +
-                              offering.slice(1).toLowerCase()}{" "}
-                            is scheduled for this meal, so richer options are
-                            not available.
-                          </FormDescription>
-                        )}
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
                 <FormField
                   control={form.control}
                   name="date"
@@ -305,6 +237,75 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
                     </FormItem>
                   )}
                 />
+                <FormField
+                  control={form.control}
+                  name="type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Meal Type</FormLabel>
+                      <Select
+                        onValueChange={(val: "VEG" | "NON_VEG") => {
+                          field.onChange(val)
+                          if (val === "VEG") {
+                            form.setValue("nonVegType", "NONE")
+                          }
+                        }}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select meal type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {MEAL_TYPE_OPTIONS.map((type) => (
+                            <SelectItem key={type} value={type}>
+                              {type === "NON_VEG" ? "Non-Veg" : "Veg"}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                {form.watch("type") === "NON_VEG" && (
+                  <FormField
+                    control={form.control}
+                    name="nonVegType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Non-Veg Type</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select non-veg type" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {nonVegChoices.map((type) => (
+                              <SelectItem key={type} value={type}>
+                                {type.charAt(0) + type.slice(1).toLowerCase()}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {offering && (
+                          <FormDescription>
+                            {offering.charAt(0) +
+                              offering.slice(1).toLowerCase()}{" "}
+                            is scheduled for this meal, so richer options are
+                            not available.
+                          </FormDescription>
+                        )}
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
               </div>
               <FormField
                 control={form.control}
@@ -366,19 +367,18 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
                   </FormItem>
                 )}
               /> */}
-              <SheetFooter className="gap-2 p-0 sm:space-x-0">
-                <SheetClose asChild>
-                  <Button type="button" variant="outline">
-                    Cancel
-                  </Button>
-                </SheetClose>
-                <LoadingButton loading={isCreatePending} type="submit">
-                  Submit
-                </LoadingButton>
-              </SheetFooter>
-            </form>
-            <ScrollBar orientation="vertical" />
-          </ScrollArea>
+            </div>
+            <SheetFooter className="bg-background gap-2 border-t p-4 sm:space-x-0">
+              <SheetClose asChild>
+                <Button type="button" variant="outline">
+                  Cancel
+                </Button>
+              </SheetClose>
+              <LoadingButton loading={isCreatePending} type="submit">
+                Submit
+              </LoadingButton>
+            </SheetFooter>
+          </form>
         </Form>
       </SheetContent>
     </Sheet>

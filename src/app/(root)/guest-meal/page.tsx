@@ -64,7 +64,7 @@ export default function GuestMealsPage() {
   }
 
   if (isPending) {
-    return <Loader variant="comet" size={24} className="mx-auto my-6" />
+    return <Loader variant="spinner" size={24} className="mx-auto my-6" />
   }
   return (
     <PageContainer>
@@ -161,7 +161,7 @@ function GuestMealsTable({ meals }: GuestMealsTableProps) {
                       disabled={isPendingDelete}
                     >
                       {isPendingDelete ? (
-                        <Loader variant="comet" size={16} />
+                        <Loader variant="spinner" size={16} />
                       ) : (
                         <Trash2Icon className="h-4 w-4" />
                       )}
