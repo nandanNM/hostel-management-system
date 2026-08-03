@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 import { auth } from "@/auth"
 import { ApiResponse } from "@/types"
 
+import { cacheKeys, invalidate } from "@/lib/cache"
 import { istDateOnly } from "@/lib/date"
 import prisma from "@/lib/prisma"
 import { Settings, settingsSchema } from "@/lib/validations"
@@ -38,6 +39,9 @@ export const updateUserSettings = async (
         address: values.address,
       },
     })
+
+    // The birthday widget is cached for the whole hostel.
+    await invalidate(cacheKeys.birthdays())
 
     revalidatePath("/settings")
 

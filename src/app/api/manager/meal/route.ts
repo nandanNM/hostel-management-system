@@ -1,8 +1,10 @@
 import { canManage, isManager } from "@/lib/authz"
+import { cacheKeys, invalidate } from "@/lib/cache"
 import {
   formatIST,
   istCalendarDay,
   istEndOfDay,
+  istParts,
   istStartOfDay,
 } from "@/lib/date"
 import {
@@ -224,6 +226,11 @@ export async function POST() {
 
       return mealActivity
     })
+
+    // Attendance changed, so the cached board is stale. Best effort: a failed
+    // invalidation only means the TTL decides instead.
+    const { year, month } = istParts(now)
+    await invalidate(cacheKeys.leaderboard(year, month))
 
     return Response.json(result, { status: 200 })
   } catch (error) {
