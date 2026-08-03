@@ -10,7 +10,9 @@ import {
   formatIST,
   istCalendarMonthEnd,
   istCalendarMonthStart,
+  istEndOfMonth,
   istParts,
+  istStartOfMonth,
 } from "@/lib/date"
 import {
   BillEntryType,
@@ -88,6 +90,13 @@ export async function getBillingData(input?: { year: number; month: number }) {
 
   const period = resolveMonth(input)
   const dateRange = { gte: period.start, lte: period.end }
+  // Guest meal dates are stored in mixed conventions, so they need the true
+  // India-month window; day-key bounds bill a meal taken on the 1st to the
+  // previous month.
+  const guestDateRange = {
+    gte: istStartOfMonth(period.year, period.month - 1),
+    lte: istEndOfMonth(period.year, period.month - 1),
+  }
 
   const [audit, boarders, mealActivity, guestAgg] = await Promise.all([
     prisma.audit.findFirst({
@@ -107,7 +116,7 @@ export async function getBillingData(input?: { year: number; month: number }) {
       _sum: { mealCharge: true, numberOfMeals: true },
       _count: true,
       where: {
-        date: dateRange,
+        date: guestDateRange,
         status: {
           in: [GuestMealStatusType.APPROVED, GuestMealStatusType.SERVED],
         },
@@ -149,7 +158,7 @@ export async function getBillingData(input?: { year: number; month: number }) {
       ? await prisma.guestMeal.groupBy({
           by: ["userId"],
           where: {
-            date: dateRange,
+            date: guestDateRange,
             status: {
               in: [GuestMealStatusType.APPROVED, GuestMealStatusType.SERVED],
             },

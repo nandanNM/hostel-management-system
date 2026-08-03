@@ -2,6 +2,7 @@
 
 import { ApiResponse } from "@/types"
 
+import { istCalendarDay } from "@/lib/date"
 import prisma from "@/lib/prisma"
 import { requireUser } from "@/lib/require-user"
 import { GuestMeal, guestMealSchema } from "@/lib/validations"
@@ -86,6 +87,10 @@ export async function createGuestMeal(values: GuestMeal): Promise<ApiResponse> {
     const meal = await prisma.guestMeal.create({
       data: {
         ...values,
+        // The picker hands back the browser's local midnight, which for India
+        // serialises to 18:30Z on the *previous* day. Store the India calendar
+        // day instead, so the row cannot drift out of its own day's window.
+        date: istCalendarDay(values.date),
         nonVegType: values.nonVegType ?? "NONE",
         userId: session.user.id,
         mealCharge: (MenuItemData?.costPerUnit ?? 60) * values.numberOfMeals,

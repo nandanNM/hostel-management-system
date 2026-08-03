@@ -1,13 +1,14 @@
 "use client"
 
 import {
-  type ColumnDef,
   getCoreRowModel,
   getPaginationRowModel,
   useReactTable,
+  type ColumnDef,
 } from "@tanstack/react-table"
 import { format } from "date-fns"
 
+import { formatIST } from "@/lib/date"
 import { BillEntryType } from "@/lib/generated/prisma"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
@@ -105,18 +106,34 @@ export function LedgerSection({ data }: { data: LedgerRow[] }) {
 }
 
 const guestMealColumns: ColumnDef<GuestMealRow, unknown>[] = [
-  { id: "name", header: "Guest", cell: ({ row }) => <span className="font-medium">{row.original.name}</span> },
+  {
+    id: "name",
+    header: "Guest",
+    cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
+  },
   {
     id: "date",
     header: "Date",
     cell: ({ row }) => (
       <span className="text-muted-foreground text-xs">
-        {format(new Date(row.original.date), "dd MMM yyyy")}
+        {formatIST(row.original.date, "dd MMM yyyy")}
       </span>
     ),
   },
-  { id: "qty", header: () => <div className="text-center">Qty</div>, cell: ({ row }) => <div className="text-center">{row.original.numberOfMeals}</div> },
-  { id: "charge", header: () => <div className="text-right">Charge</div>, cell: ({ row }) => <div className="text-right">{inr(row.original.mealCharge)}</div> },
+  {
+    id: "qty",
+    header: () => <div className="text-center">Qty</div>,
+    cell: ({ row }) => (
+      <div className="text-center">{row.original.numberOfMeals}</div>
+    ),
+  },
+  {
+    id: "charge",
+    header: () => <div className="text-right">Charge</div>,
+    cell: ({ row }) => (
+      <div className="text-right">{inr(row.original.mealCharge)}</div>
+    ),
+  },
   {
     id: "status",
     header: "Status",
@@ -133,8 +150,20 @@ export function GuestMealsSection({ data }: { data: GuestMealRow[] }) {
 }
 
 const fineColumns: ColumnDef<FineRow, unknown>[] = [
-  { id: "reason", header: "Reason", cell: ({ row }) => <span className="font-medium">{row.original.reason}</span> },
-  { id: "amount", header: () => <div className="text-right">Amount</div>, cell: ({ row }) => <div className="text-right">{inr(row.original.amount)}</div> },
+  {
+    id: "reason",
+    header: "Reason",
+    cell: ({ row }) => (
+      <span className="font-medium">{row.original.reason}</span>
+    ),
+  },
+  {
+    id: "amount",
+    header: () => <div className="text-right">Amount</div>,
+    cell: ({ row }) => (
+      <div className="text-right">{inr(row.original.amount)}</div>
+    ),
+  },
   {
     id: "due",
     header: "Due",

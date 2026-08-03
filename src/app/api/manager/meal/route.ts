@@ -1,5 +1,10 @@
 import { canManage, isManager } from "@/lib/authz"
-import { formatIST, istCalendarDay, istCalendarDayEnd } from "@/lib/date"
+import {
+  formatIST,
+  istCalendarDay,
+  istEndOfDay,
+  istStartOfDay,
+} from "@/lib/date"
 import {
   DayOfWeek,
   GuestMealStatusType,
@@ -67,7 +72,12 @@ export async function POST() {
     const mealTime = getCurrentMealSlot(now)
     // `guest_meals.date` and `daily_meal_activities.meal_date` are day-keys.
     const todayStart = istCalendarDay(now)
-    const todayEnd = istCalendarDayEnd(now)
+    // Guest meal rows carry three historical date conventions (India midnight
+    // from the picker, UTC midnight day-keys, and a raw booking timestamp).
+    // The true India-day window is the only range that captures all three
+    // without pulling in the neighbouring day.
+    const guestDayStart = istStartOfDay(now)
+    const guestDayEnd = istEndOfDay(now)
     const dayOfWeek = formatIST(now, "EEEE").toUpperCase() as DayOfWeek
 
     const alreadyGenerated = await prisma.dailyMealActivity.findFirst({
@@ -120,8 +130,8 @@ export async function POST() {
         where: {
           mealTime,
           date: {
-            gte: todayStart,
-            lte: todayEnd,
+            gte: guestDayStart,
+            lte: guestDayEnd,
           },
           status: GuestMealStatusType.APPROVED,
         },

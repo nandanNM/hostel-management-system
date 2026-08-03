@@ -1,9 +1,5 @@
 import { canManage } from "@/lib/authz"
-import {
-  istCalendarMonthEnd,
-  istCalendarMonthStart,
-  istParts,
-} from "@/lib/date"
+import { istEndOfMonth, istParts, istStartOfMonth } from "@/lib/date"
 import getSession from "@/lib/get-session"
 import prisma from "@/lib/prisma"
 
@@ -23,8 +19,11 @@ export async function GET(request: Request) {
     const month =
       parseInt(searchParams.get("month") ?? String(today.month + 1), 10) - 1
 
-    const from = istCalendarMonthStart(year, month)
-    const to = istCalendarMonthEnd(year, month)
+    // India-month instants: a meal booked for the 1st is stored at 18:30Z on
+    // the last day of the previous month, so day-key bounds filed it under the
+    // wrong month.
+    const from = istStartOfMonth(year, month)
+    const to = istEndOfMonth(year, month)
 
     const data = await prisma.guestMeal.findMany({
       where: {

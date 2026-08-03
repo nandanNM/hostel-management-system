@@ -10,6 +10,7 @@ import {
 import { useQuery } from "@tanstack/react-query"
 import { format } from "date-fns"
 
+import { formatIST } from "@/lib/date"
 import { GuestMeal } from "@/lib/generated/prisma"
 import kyInstance from "@/lib/ky"
 import { toast } from "@/lib/toast"
@@ -142,7 +143,7 @@ function GuestMealsTable({ meals }: GuestMealsTableProps) {
         <TableBody>
           {meals?.map((meal) => (
             <TableRow key={meal.id} className="hover:bg-accent">
-              <TableCell>{format(new Date(meal.date), "dd/MM/yyyy")}</TableCell>
+              <TableCell>{formatIST(meal.date, "dd/MM/yyyy")}</TableCell>
               <TableCell>{meal.numberOfMeals}</TableCell>
               <TableCell className="capitalize">
                 {meal.mealTime.replace("_", " ")}
