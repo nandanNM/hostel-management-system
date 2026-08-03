@@ -2,10 +2,39 @@
 
 import { ApiResponse } from "@/types"
 
-import { istCalendarDay } from "@/lib/date"
+import { formatIST, istCalendarDay } from "@/lib/date"
+import { DayOfWeek, MealTimeType, NonVegType } from "@/lib/generated/prisma"
+import { getAllowedNonVegTypes, resolveOffering } from "@/lib/meal-priority"
 import prisma from "@/lib/prisma"
 import { requireUser } from "@/lib/require-user"
 import { GuestMeal, guestMealSchema } from "@/lib/validations"
+
+/**
+ * The non-veg options a guest meal may use for a given day and slot, derived
+ * from the menu the prefect scheduled for that weekday.
+ *
+ * The weekday is taken in India time - on a UTC server the picked date would
+ * otherwise resolve to the previous day and read the wrong menu.
+ */
+export async function getAllowedGuestMealOptions(
+  date: Date,
+  mealTime: MealTimeType
+): Promise<{ offering: NonVegType | null; allowed: NonVegType[] }> {
+  await requireUser()
+
+  const dayOfWeek = formatIST(date, "EEEE").toUpperCase() as DayOfWeek
+
+  const entry = await prisma.mealScheduleEntry.findUnique({
+    where: { dayOfWeek_mealTime: { dayOfWeek, mealTime } },
+    include: { menuItems: { include: { menuItem: true } } },
+  })
+
+  const offering = entry
+    ? resolveOffering(entry.menuItems.map((mi) => mi.menuItem.name))
+    : null
+
+  return { offering, allowed: getAllowedNonVegTypes(offering) }
+}
 
 export const deleteGuestMealRequest = async (
   id: string
@@ -55,6 +84,29 @@ export async function createGuestMeal(values: GuestMeal): Promise<ApiResponse> {
         message: "Unauthorized",
       }
     }
+    // Re-check server-side: the form filters the dropdown, but a crafted
+    // request could still ask for an item the kitchen is not cooking.
+    if (values.type === "NON_VEG") {
+      const { offering, allowed } = await getAllowedGuestMealOptions(
+        values.date,
+        values.mealTime
+      )
+      const requested = values.nonVegType ?? NonVegType.NONE
+
+      if (!allowed.includes(requested)) {
+        const offeringLabel = offering
+          ? offering.toLowerCase()
+          : "the scheduled menu"
+        return {
+          status: "error",
+          message: `${requested.toLowerCase()} is not available for that meal. ${offeringLabel} is scheduled, so you can pick ${allowed
+            .filter((type) => type !== NonVegType.NONE)
+            .map((type) => type.toLowerCase())
+            .join(", ")} or veg.`,
+        }
+      }
+    }
+
     const searchName =
       values.type === "VEG"
         ? "Veg"

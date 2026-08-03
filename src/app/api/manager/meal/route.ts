@@ -14,6 +14,7 @@ import {
   UserStatusType,
 } from "@/lib/generated/prisma"
 import getSession from "@/lib/get-session"
+import { resolveOffering } from "@/lib/meal-priority"
 import prisma from "@/lib/prisma"
 import { getCurrentMealSlot } from "@/lib/utils"
 
@@ -101,13 +102,9 @@ export async function POST() {
     let hostelDailyOffering: NonVegType | null = null
 
     if (hasSchedule && todayScheduleEntry.menuItems.length > 0) {
-      for (const mi of todayScheduleEntry.menuItems) {
-        const nvType = getNonVegTypeFromItemName(mi.menuItem.name)
-        if (nvType !== NonVegType.NONE) {
-          hostelDailyOffering = nvType
-          break
-        }
-      }
+      hostelDailyOffering = resolveOffering(
+        todayScheduleEntry.menuItems.map((mi) => mi.menuItem.name)
+      )
     }
 
     const [allRegularMeals, allActiveGuestMeals] = await Promise.all([

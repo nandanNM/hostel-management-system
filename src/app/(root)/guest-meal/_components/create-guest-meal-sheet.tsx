@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+import { useEffect, useState } from "react"
 import {
   MEAL_TIME_OPTIONS,
   MEAL_TYPE_OPTIONS,
@@ -18,6 +19,7 @@ import { Calendar } from "@/components/ui/calendar"
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -48,6 +50,7 @@ import {
 } from "@/components/ui/sheet"
 import LoadingButton from "@/components/LoadingButton"
 
+import { getAllowedGuestMealOptions } from "../_lib/action"
 import { useCreateGuestMeal } from "../_lib/mutations"
 
 type createGuestMealSheetProps = React.ComponentPropsWithRef<typeof Sheet>
@@ -55,6 +58,12 @@ type createGuestMealSheetProps = React.ComponentPropsWithRef<typeof Sheet>
 export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
   const { mutate: createGuestMeal, isPending: isCreatePending } =
     useCreateGuestMeal(props.onOpenChange)
+  // What the kitchen is cooking for the chosen day and slot decides which
+  // non-veg options are bookable; booking above the scheduled item would make
+  // the mess buy something for a single guest.
+  const [allowedNonVeg, setAllowedNonVeg] = useState<string[] | null>(null)
+  const [offering, setOffering] = useState<string | null>(null)
+
   const form = useForm<GuestMeal>({
     resolver: zodResolver(guestMealSchema),
     defaultValues: {
@@ -67,6 +76,39 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
       date: new Date(),
     },
   })
+
+  const watchedDate = form.watch("date")
+  const watchedMealTime = form.watch("mealTime")
+  const watchedType = form.watch("type")
+
+  useEffect(() => {
+    if (watchedType !== "NON_VEG" || !watchedDate) return
+    let cancelled = false
+
+    getAllowedGuestMealOptions(watchedDate, watchedMealTime)
+      .then(({ offering: scheduled, allowed }) => {
+        if (cancelled) return
+        setOffering(scheduled)
+        setAllowedNonVeg(allowed.filter((type) => type !== "NONE"))
+
+        // Leaving a now-invalid choice selected would only fail on submit.
+        const current = form.getValues("nonVegType")
+        if (current && current !== "NONE" && !allowed.includes(current)) {
+          form.setValue("nonVegType", "NONE", { shouldValidate: false })
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setAllowedNonVeg(null)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [watchedDate, watchedMealTime, watchedType, form])
+
+  const nonVegChoices = (
+    allowedNonVeg ?? NON_VEG_OPTIONS.filter((type) => type !== "NONE")
+  ).filter((type) => type !== "NONE")
 
   function onSubmit(values: GuestMeal) {
     createGuestMeal(values)
@@ -150,15 +192,21 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {NON_VEG_OPTIONS.filter(
-                              (type) => type !== "NONE"
-                            ).map((type) => (
+                            {nonVegChoices.map((type) => (
                               <SelectItem key={type} value={type}>
                                 {type.charAt(0) + type.slice(1).toLowerCase()}
                               </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
+                        {offering && (
+                          <FormDescription>
+                            {offering.charAt(0) +
+                              offering.slice(1).toLowerCase()}{" "}
+                            is scheduled for this meal, so richer options are
+                            not available.
+                          </FormDescription>
+                        )}
                         <FormMessage />
                       </FormItem>
                     )}
