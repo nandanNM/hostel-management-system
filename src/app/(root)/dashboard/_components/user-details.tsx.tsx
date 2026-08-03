@@ -43,7 +43,7 @@ export default async function UserDetails({ userId }: UserDetailsProps) {
   return (
     <div className="space-y-8 lg:col-span-2">
       <Suspense
-        fallback={<Loader variant="comet" size={20} className="mx-auto" />}
+        fallback={<Loader variant="spinner" size={20} className="mx-auto" />}
       >
         <OverviewCards />
         <RecentTransactions userId={userId} />

@@ -139,7 +139,7 @@ export function ApprovalsTable({ users }: { users: PendingUser[] }) {
                         <div className="flex items-center justify-end gap-2">
                           {rowBusy && (
                             <Loader
-                              variant="comet"
+                              variant="spinner"
                               size={16}
                               className="text-muted-foreground"
                             />

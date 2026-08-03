@@ -259,7 +259,7 @@ export function AlumniTable({
               }}
             >
               {isPending && (
-                <Loader variant="comet" size={16} className="mr-2" />
+                <Loader variant="spinner" size={16} className="mr-2" />
               )}
               Remove
             </AlertDialogAction>
@@ -375,7 +375,7 @@ function AlumniFormDialog({
           <DialogFooter>
             <Button type="submit" disabled={isPending}>
               {isPending && (
-                <Loader variant="comet" size={16} className="mr-2" />
+                <Loader variant="spinner" size={16} className="mr-2" />
               )}
               {isEdit ? "Save changes" : "Add alumni"}
             </Button>

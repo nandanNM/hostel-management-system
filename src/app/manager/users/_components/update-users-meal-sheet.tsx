@@ -258,7 +258,7 @@ export function UpdateMealSheet({ meal, ...props }: UpdateMealSheetProps) {
               </SheetClose>
               <Button disabled={isUpdatePending}>
                 {isUpdatePending && (
-                  <Loader variant="comet" size={16} className="mr-2" />
+                  <Loader variant="spinner" size={16} className="mr-2" />
                 )}
                 Save
               </Button>

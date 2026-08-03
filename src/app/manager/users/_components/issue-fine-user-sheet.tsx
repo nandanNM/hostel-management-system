@@ -191,7 +191,7 @@ export function CreateFineSheet({
               </SheetClose>
               <Button disabled={isPending}>
                 {isPending && (
-                  <Loader variant="comet" size={16} className="mr-2" />
+                  <Loader variant="spinner" size={16} className="mr-2" />
                 )}
                 Issue Fine
               </Button>

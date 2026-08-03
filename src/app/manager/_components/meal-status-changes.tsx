@@ -46,7 +46,7 @@ export function MealStatusChangesList() {
           </CardDescription>
         </CardHeader>
         <CardContent className="flex justify-center">
-          <Loader variant="comet" size={24} />
+          <Loader variant="spinner" size={24} />
         </CardContent>
       </Card>
     )

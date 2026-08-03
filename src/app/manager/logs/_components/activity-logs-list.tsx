@@ -162,7 +162,7 @@ export function ActivityLogsList() {
 
         {isLoading && (
           <div className="flex justify-center py-8">
-            <Loader variant="comet" size={24} />
+            <Loader variant="spinner" size={24} />
           </div>
         )}
 

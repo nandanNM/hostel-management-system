@@ -276,7 +276,7 @@ export function BillingWorkflow({ data }: { data: BillingData }) {
                 </Button>
                 <Button onClick={handleSaveDraft} disabled={isPending}>
                   {isSaving && (
-                    <Loader variant="comet" size={16} className="mr-2" />
+                    <Loader variant="spinner" size={16} className="mr-2" />
                   )}
                   Save draft & continue
                 </Button>
@@ -327,7 +327,7 @@ export function BillingWorkflow({ data }: { data: BillingData }) {
                     </Button>
                     <Button onClick={handleFinalize} disabled={isPending}>
                       {isFinalizing && (
-                        <Loader variant="comet" size={16} className="mr-2" />
+                        <Loader variant="spinner" size={16} className="mr-2" />
                       )}
                       Finalize & distribute bills
                     </Button>

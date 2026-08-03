@@ -124,7 +124,7 @@ export default function MealToggleButton() {
           className="ml-2"
         >
           {isPending ? (
-            <Loader variant="comet" size={16} className="mr-2" />
+            <Loader variant="spinner" size={16} className="mr-2" />
           ) : currentStatus === "SUSPENDED" ? (
             "Meal status: Suspended"
           ) : (

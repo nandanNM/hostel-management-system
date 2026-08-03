@@ -1,7 +1,7 @@
 "use client"
 
-import type React from "react"
-import { useEffect, useState } from "react"
+import * as React from "react"
+import { useEffect, useMemo, useState } from "react"
 import {
   MEAL_TIME_OPTIONS,
   MEAL_TYPE_OPTIONS,
@@ -31,7 +31,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import {
   Select,
   SelectContent,
@@ -123,6 +122,22 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
     }
   }, [watchedDate, watchedMealTime, watchedType, form])
 
+  // Today plus the next few days, never past the configured horizon.
+  const datePresets = useMemo(() => {
+    const today = startOfDay(new Date())
+    const labels = ["Today", "Tomorrow"]
+    return Array.from(
+      { length: Math.min(maxDaysAhead, 3) + 1 },
+      (_, offset) => {
+        const date = startOfDay(addDays(today, offset))
+        return {
+          label: labels[offset] ?? format(date, "EEE d MMM"),
+          date,
+        }
+      }
+    )
+  }, [maxDaysAhead])
+
   const nonVegChoices = (
     allowedNonVeg ?? NON_VEG_OPTIONS.filter((type) => type !== "NONE")
   ).filter((type) => type !== "NONE")
@@ -133,19 +148,21 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
 
   return (
     <Sheet {...props}>
-      <SheetContent className="flex flex-col gap-6 sm:max-w-md">
-        <SheetHeader className="text-left">
+      <SheetContent className="flex h-full flex-col gap-0 p-0 sm:max-w-md">
+        <SheetHeader className="border-b p-4 text-left">
           <SheetTitle>Create Guest Meal Request</SheetTitle>
           <SheetDescription>
             Fill out the form to create a new guest meal request
           </SheetDescription>
         </SheetHeader>
         <Form {...form}>
-          <ScrollArea className="flex-grow">
-            <form
-              onSubmit={form.handleSubmit(onSubmit)}
-              className="mx-auto max-w-xl space-y-4 p-4"
-            >
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex min-h-0 flex-1 flex-col"
+          >
+            {/* min-h-0 is what lets this shrink inside the flex column - without
+                it the fields push the footer past the bottom of the screen. */}
+            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4">
               <FormField
                 control={form.control}
                 name="name"
@@ -235,6 +252,27 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
                       <FormLabel>Meal Date</FormLabel>
+                      {/* Most bookings are for today or tomorrow, so offer
+                          those before making anyone open a calendar. */}
+                      <div className="flex flex-wrap gap-2">
+                        {datePresets.map((preset) => {
+                          const selected =
+                            field.value &&
+                            startOfDay(field.value).getTime() ===
+                              preset.date.getTime()
+                          return (
+                            <Button
+                              key={preset.label}
+                              type="button"
+                              size="sm"
+                              variant={selected ? "default" : "outline"}
+                              onClick={() => field.onChange(preset.date)}
+                            >
+                              {preset.label}
+                            </Button>
+                          )
+                        })}
+                      </div>
                       <Popover>
                         <PopoverTrigger asChild>
                           <FormControl>
@@ -284,23 +322,21 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Meal Time</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select meal time" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {MEAL_TIME_OPTIONS.map((time) => (
-                            <SelectItem key={time} value={time}>
-                              {time.charAt(0) + time.slice(1).toLowerCase()}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      {/* Two options: a dropdown costs two taps for no gain. */}
+                      <div className="grid grid-cols-2 gap-2">
+                        {MEAL_TIME_OPTIONS.map((time) => (
+                          <Button
+                            key={time}
+                            type="button"
+                            variant={
+                              field.value === time ? "default" : "outline"
+                            }
+                            onClick={() => field.onChange(time)}
+                          >
+                            {time.charAt(0) + time.slice(1).toLowerCase()}
+                          </Button>
+                        ))}
+                      </div>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -366,19 +402,18 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
                   </FormItem>
                 )}
               /> */}
-              <SheetFooter className="gap-2 p-0 sm:space-x-0">
-                <SheetClose asChild>
-                  <Button type="button" variant="outline">
-                    Cancel
-                  </Button>
-                </SheetClose>
-                <LoadingButton loading={isCreatePending} type="submit">
-                  Submit
-                </LoadingButton>
-              </SheetFooter>
-            </form>
-            <ScrollBar orientation="vertical" />
-          </ScrollArea>
+            </div>
+            <SheetFooter className="bg-background gap-2 border-t p-4 sm:space-x-0">
+              <SheetClose asChild>
+                <Button type="button" variant="outline">
+                  Cancel
+                </Button>
+              </SheetClose>
+              <LoadingButton loading={isCreatePending} type="submit">
+                Submit
+              </LoadingButton>
+            </SheetFooter>
+          </form>
         </Form>
       </SheetContent>
     </Sheet>

@@ -30,7 +30,7 @@ export default function NotificationsList() {
   })
 
   if (isPending) {
-    return <Loader variant="comet" size={24} className="mx-auto my-6" />
+    return <Loader variant="spinner" size={24} className="mx-auto my-6" />
   }
   if (isError && error) {
     toast.error(error.message)
@@ -58,7 +58,7 @@ export default function NotificationsList() {
             disabled={isMarking}
           >
             {isMarking ? (
-              <Loader variant="comet" size={14} className="mr-1" />
+              <Loader variant="spinner" size={14} className="mr-1" />
             ) : (
               <Check className="mr-1 size-4" />
             )}
