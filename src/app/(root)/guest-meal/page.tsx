@@ -8,7 +8,6 @@ import {
   ForkKnife as UtensilsCrossedIcon,
 } from "@phosphor-icons/react"
 import { useQuery } from "@tanstack/react-query"
-import { format } from "date-fns"
 
 import { formatIST } from "@/lib/date"
 import { GuestMeal } from "@/lib/generated/prisma"

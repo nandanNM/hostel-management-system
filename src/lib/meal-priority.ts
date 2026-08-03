@@ -35,13 +35,17 @@ export function getNonVegTypeFromItemName(itemName: string): NonVegType {
  * When an entry lists several non-veg items, the highest-priority one wins —
  * that is what the kitchen leads with.
  */
-export function resolveOffering(menuItemNames: string[]): NonVegType | null {
+export function resolveOffering(
+  menuItemNames: string[],
+  priority: NonVegType[] = NON_VEG_PRIORITY
+): NonVegType | null {
+  const chain = priority.length > 0 ? priority : NON_VEG_PRIORITY
   const offered = new Set(menuItemNames.map(getNonVegTypeFromItemName))
   offered.delete(NonVegType.NONE)
 
   if (offered.size === 0) return null
 
-  return NON_VEG_PRIORITY.find((type) => offered.has(type)) ?? null
+  return chain.find((type) => offered.has(type)) ?? null
 }
 
 /**
@@ -54,14 +58,20 @@ export function resolveOffering(menuItemNames: string[]): NonVegType | null {
  * option stays open rather than blocking bookings.
  */
 export function getAllowedNonVegTypes(
-  offering: NonVegType | null
+  offering: NonVegType | null,
+  priority: NonVegType[] = NON_VEG_PRIORITY
 ): NonVegType[] {
-  if (!offering || offering === NonVegType.NONE) return [...NON_VEG_PRIORITY]
+  const chain = priority.length > 0 ? priority : NON_VEG_PRIORITY
+  if (!offering || offering === NonVegType.NONE) return [...chain]
 
-  const startIndex = NON_VEG_PRIORITY.indexOf(offering)
-  if (startIndex === -1) return [...NON_VEG_PRIORITY]
+  const startIndex = chain.indexOf(offering)
+  if (startIndex === -1) return [...chain]
 
-  return NON_VEG_PRIORITY.slice(startIndex)
+  const allowed = chain.slice(startIndex)
+  // Veg is always bookable, even if the prefect reorders it out of the tail.
+  return allowed.includes(NonVegType.NONE)
+    ? allowed
+    : [...allowed, NonVegType.NONE]
 }
 
 /**
@@ -71,19 +81,23 @@ export function getAllowedNonVegTypes(
 export function calculateActualNonVegMeal(
   userPrimaryPreference: NonVegType,
   userDislikedNonVegs: NonVegType[],
-  hostelDailyOffering?: NonVegType | null
+  hostelDailyOffering?: NonVegType | null,
+  priority: NonVegType[] = NON_VEG_PRIORITY
 ): NonVegType {
+  const chain = priority.length > 0 ? priority : NON_VEG_PRIORITY
+
   if (userPrimaryPreference === NonVegType.NONE) return NonVegType.NONE
 
   if (!hostelDailyOffering || hostelDailyOffering === NonVegType.NONE)
     return NonVegType.NONE
 
-  const startIndex = NON_VEG_PRIORITY.indexOf(hostelDailyOffering)
+  const startIndex = chain.indexOf(hostelDailyOffering)
   if (startIndex === -1) return NonVegType.NONE
 
   return (
-    NON_VEG_PRIORITY.slice(startIndex).find(
-      (option) => !userDislikedNonVegs.includes(option)
-    ) ?? NonVegType.NONE
+    chain
+      .slice(startIndex)
+      .find((option) => !userDislikedNonVegs.includes(option)) ??
+    NonVegType.NONE
   )
 }

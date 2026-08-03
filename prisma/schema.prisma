@@ -53,6 +53,7 @@ model User {
   UserPayment           UserPayment[]    @relation("PaymentProcessor")
   GuestMeal             GuestMeal[]      @relation("GuestMealApprover")
   UserFine              UserFine[]       @relation("FineWaiver")
+  messConfigUpdates     MessConfig[]     @relation("MessConfigEditor")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -525,4 +526,55 @@ enum DayOfWeek {
   FRIDAY
   SATURDAY
   SUNDAY
+}
+
+/// Mess-wide settings the prefect can change without a deploy. Exactly one row,
+/// pinned to id "singleton"; reads fall back to code defaults when absent.
+model MessConfig {
+  id String @id @default("singleton")
+
+  /// Non-veg options richest first. A guest may book the scheduled item or
+  /// anything later in this list.
+  nonVegPriority NonVegType[] @map("non_veg_priority")
+
+  /// How many days ahead a guest meal may be booked (0 = today only).
+  guestBookingMaxDaysAhead Int @default(7) @map("guest_booking_max_days_ahead")
+
+  /// Minutes before a slot starts after which today's bookings close.
+  guestBookingCutoffMinutes Int @default(120) @map("guest_booking_cutoff_minutes")
+
+  /// Slot start times as minutes after midnight IST (750 = 12:30, 1230 = 20:30).
+  lunchStartMinute  Int @default(750) @map("lunch_start_minute")
+  dinnerStartMinute Int @default(1230) @map("dinner_start_minute")
+
+  /// Charged when no rate and no menu item cost is configured.
+  guestMealFallbackCharge Float @default(60) @map("guest_meal_fallback_charge")
+
+  /// 0 disables the cap.
+  maxGuestsPerBooking          Int @default(5) @map("max_guests_per_booking")
+  maxGuestMealsPerUserPerMonth Int @default(20) @map("max_guest_meals_per_user_per_month")
+
+  /// How long meal preferences stay locked after a count is generated.
+  mealPreferenceLockMinutes Int @default(120) @map("meal_preference_lock_minutes")
+
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  updatedById String?  @map("updated_by_id")
+  updatedBy   User?    @relation("MessConfigEditor", fields: [updatedById], references: [id], onDelete: SetNull)
+
+  @@map("mess_config")
+}
+
+/// Prefect-editable guest meal price per slot and non-veg type. Takes
+/// precedence over MenuItem.costPerUnit.
+model GuestMealRate {
+  id         String       @id @default(cuid())
+  mealTime   MealTimeType @map("meal_time")
+  type       MealType
+  nonVegType NonVegType   @map("non_veg_type")
+  amount     Float
+
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([mealTime, type, nonVegType])
+  @@map("guest_meal_rates")
 }

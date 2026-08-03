@@ -2,9 +2,27 @@
 
 import { ApiResponse } from "@/types"
 
-import { formatIST, istCalendarDay } from "@/lib/date"
-import { DayOfWeek, MealTimeType, NonVegType } from "@/lib/generated/prisma"
+import {
+  formatIST,
+  istCalendarDay,
+  istEndOfMonth,
+  istParts,
+  istStartOfMonth,
+} from "@/lib/date"
+import {
+  DayOfWeek,
+  GuestMealStatusType,
+  MealTimeType,
+  NonVegType,
+} from "@/lib/generated/prisma"
+import {
+  checkBookingWindow,
+  checkGuestsPerBooking,
+  checkMonthlyGuestQuota,
+  resolveGuestMealCharge,
+} from "@/lib/guest-meal-rules"
 import { getAllowedNonVegTypes, resolveOffering } from "@/lib/meal-priority"
+import { getMessConfig } from "@/lib/mess-config"
 import prisma from "@/lib/prisma"
 import { requireUser } from "@/lib/require-user"
 import { GuestMeal, guestMealSchema } from "@/lib/validations"
@@ -22,6 +40,7 @@ export async function getAllowedGuestMealOptions(
 ): Promise<{ offering: NonVegType | null; allowed: NonVegType[] }> {
   await requireUser()
 
+  const { nonVegPriority } = await getMessConfig()
   const dayOfWeek = formatIST(date, "EEEE").toUpperCase() as DayOfWeek
 
   const entry = await prisma.mealScheduleEntry.findUnique({
@@ -30,10 +49,25 @@ export async function getAllowedGuestMealOptions(
   })
 
   const offering = entry
-    ? resolveOffering(entry.menuItems.map((mi) => mi.menuItem.name))
+    ? resolveOffering(
+        entry.menuItems.map((mi) => mi.menuItem.name),
+        nonVegPriority
+      )
     : null
 
-  return { offering, allowed: getAllowedNonVegTypes(offering) }
+  return {
+    offering,
+    allowed: getAllowedNonVegTypes(offering, nonVegPriority),
+  }
+}
+
+/** The booking horizon the prefect configured, for the date picker. */
+export async function getGuestBookingWindow(): Promise<{
+  maxDaysAhead: number
+}> {
+  await requireUser()
+  const { guestBookingMaxDaysAhead } = await getMessConfig()
+  return { maxDaysAhead: guestBookingMaxDaysAhead }
 }
 
 export const deleteGuestMealRequest = async (
@@ -84,6 +118,46 @@ export async function createGuestMeal(values: GuestMeal): Promise<ApiResponse> {
         message: "Unauthorized",
       }
     }
+    const config = await getMessConfig()
+
+    // Every rule is enforced here, not only in the form: the UI narrows the
+    // choices for convenience, but a crafted request must not get past them.
+    const bookingWindow = checkBookingWindow(
+      values.date,
+      values.mealTime,
+      config
+    )
+    if (!bookingWindow.ok)
+      return { status: "error", message: bookingWindow.reason }
+
+    const perBooking = checkGuestsPerBooking(
+      values.numberOfMeals,
+      config.maxGuestsPerBooking
+    )
+    if (!perBooking.ok) return { status: "error", message: perBooking.reason }
+
+    if (config.maxGuestMealsPerUserPerMonth > 0) {
+      const { year, month } = istParts(values.date)
+      const used = await prisma.guestMeal.aggregate({
+        _sum: { numberOfMeals: true },
+        where: {
+          userId: session.user.id,
+          date: {
+            gte: istStartOfMonth(year, month),
+            lte: istEndOfMonth(year, month),
+          },
+          status: { not: GuestMealStatusType.REJECTED },
+        },
+      })
+
+      const quota = checkMonthlyGuestQuota(
+        used._sum.numberOfMeals ?? 0,
+        values.numberOfMeals,
+        config.maxGuestMealsPerUserPerMonth
+      )
+      if (!quota.ok) return { status: "error", message: quota.reason }
+    }
+
     // Re-check server-side: the form filters the dropdown, but a crafted
     // request could still ask for an item the kitchen is not cooking.
     if (values.type === "NON_VEG") {
@@ -136,6 +210,22 @@ export async function createGuestMeal(values: GuestMeal): Promise<ApiResponse> {
       })
     }
 
+    const rate = await prisma.guestMealRate.findUnique({
+      where: {
+        mealTime_type_nonVegType: {
+          mealTime: values.mealTime,
+          type: values.type,
+          nonVegType: values.nonVegType ?? NonVegType.NONE,
+        },
+      },
+    })
+
+    const chargePerMeal = resolveGuestMealCharge({
+      rate: rate?.amount,
+      menuItemCost: MenuItemData?.costPerUnit,
+      fallback: config.guestMealFallbackCharge,
+    })
+
     const meal = await prisma.guestMeal.create({
       data: {
         ...values,
@@ -145,7 +235,7 @@ export async function createGuestMeal(values: GuestMeal): Promise<ApiResponse> {
         date: istCalendarDay(values.date),
         nonVegType: values.nonVegType ?? "NONE",
         userId: session.user.id,
-        mealCharge: (MenuItemData?.costPerUnit ?? 60) * values.numberOfMeals,
+        mealCharge: chargePerMeal * values.numberOfMeals,
       },
     })
     prisma.activityLog

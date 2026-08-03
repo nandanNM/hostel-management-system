@@ -15,13 +15,11 @@ import {
 } from "@/lib/generated/prisma"
 import getSession from "@/lib/get-session"
 import { resolveOffering } from "@/lib/meal-priority"
+import { getMessConfig } from "@/lib/mess-config"
 import prisma from "@/lib/prisma"
 import { getCurrentMealSlot } from "@/lib/utils"
 
-import {
-  calculateActualNonVegMeal,
-  getNonVegTypeFromItemName,
-} from "./_lib/utils"
+import { calculateActualNonVegMeal } from "./_lib/utils"
 
 export async function GET() {
   try {
@@ -100,9 +98,14 @@ export async function POST() {
     const hasSchedule = !!todayScheduleEntry
     let hostelDailyOffering: NonVegType | null = null
 
+    // Same configured chain the booking form uses, so the count and the
+    // bookings can never disagree about what is on offer.
+    const { nonVegPriority } = await getMessConfig()
+
     if (hasSchedule && todayScheduleEntry.menuItems.length > 0) {
       hostelDailyOffering = resolveOffering(
-        todayScheduleEntry.menuItems.map((mi) => mi.menuItem.name)
+        todayScheduleEntry.menuItems.map((mi) => mi.menuItem.name),
+        nonVegPriority
       )
     }
 
@@ -161,7 +164,8 @@ export async function POST() {
             ? meal.nonVegType
             : NonVegType.CHICKEN,
           meal.dislikedNonVegTypes,
-          hostelDailyOffering
+          hostelDailyOffering,
+          nonVegPriority
         )
         if (actualType === NonVegType.CHICKEN) chickenCount++
         else if (actualType === NonVegType.FISH) fishCount++

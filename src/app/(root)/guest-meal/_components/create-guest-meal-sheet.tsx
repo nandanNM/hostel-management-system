@@ -50,7 +50,10 @@ import {
 } from "@/components/ui/sheet"
 import LoadingButton from "@/components/LoadingButton"
 
-import { getAllowedGuestMealOptions } from "../_lib/action"
+import {
+  getAllowedGuestMealOptions,
+  getGuestBookingWindow,
+} from "../_lib/action"
 import { useCreateGuestMeal } from "../_lib/mutations"
 
 type createGuestMealSheetProps = React.ComponentPropsWithRef<typeof Sheet>
@@ -63,6 +66,8 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
   // the mess buy something for a single guest.
   const [allowedNonVeg, setAllowedNonVeg] = useState<string[] | null>(null)
   const [offering, setOffering] = useState<string | null>(null)
+  // The prefect sets the horizon; 3 days was hardcoded here before.
+  const [maxDaysAhead, setMaxDaysAhead] = useState(3)
 
   const form = useForm<GuestMeal>({
     resolver: zodResolver(guestMealSchema),
@@ -76,6 +81,18 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
       date: new Date(),
     },
   })
+
+  useEffect(() => {
+    let cancelled = false
+    getGuestBookingWindow()
+      .then(({ maxDaysAhead: horizon }) => {
+        if (!cancelled) setMaxDaysAhead(horizon)
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const watchedDate = form.watch("date")
   const watchedMealTime = form.watch("mealTime")
@@ -244,7 +261,9 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
                             onSelect={field.onChange}
                             disabled={(date: Date) => {
                               const today = startOfDay(new Date())
-                              const maxDate = startOfDay(addDays(today, 3))
+                              const maxDate = startOfDay(
+                                addDays(today, maxDaysAhead)
+                              )
                               const targetDate = startOfDay(date)
                               return (
                                 isBefore(targetDate, today) ||
