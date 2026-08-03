@@ -28,7 +28,7 @@ export default async function MonthlyMealsPage({
   const reportPromise = getMonthlyMealsForManager(search)
 
   return (
-    <PageContainer>
+    <PageContainer className="flex-1 p-4 sm:p-6">
       <PageHeader
         icon={ChartBar}
         title="Monthly Meals"
