@@ -1,8 +1,9 @@
 "use server"
 
 import { ApiResponse } from "@/types"
-import { endOfMonth, startOfMonth } from "date-fns"
+import { endOfMonth, format, startOfMonth, subMonths } from "date-fns"
 
+import { cached, cacheKeys } from "@/lib/cache"
 import { BillEntryType, MealStatusType } from "@/lib/generated/prisma"
 import {
   getMealPreferenceLock,
@@ -141,25 +142,35 @@ export async function getUserDeshboardStats() {
   }
 }
 
-export async function getUserFinanceOverview() {
-  const session = await requireUser()
-  if (!session?.user.id || session.user.status !== "ACTIVE") {
-    return null
-  }
+async function computeUserFinance(userId: string) {
+  const now = new Date()
 
-  const bills = await prisma.userBill.findMany({
-    where: { userId: session.user.id },
-    orderBy: { issueDate: "desc" },
-    select: { type: true, amount: true, balanceRemaining: true },
-  })
-
-  const pendingDues = bills[0]?.balanceRemaining ?? 0
+  const [bills, attendance] = await Promise.all([
+    prisma.userBill.findMany({
+      where: { userId },
+      orderBy: { issueDate: "desc" },
+      select: { type: true, amount: true, issueDate: true },
+    }),
+    prisma.mealAttendance.count({
+      where: {
+        userId,
+        date: { gte: startOfMonth(now), lte: endOfMonth(now) },
+      },
+    }),
+  ])
 
   let meal = 0
   let guest = 0
   let fine = 0
   let other = 0
   let paid = 0
+
+  const base = startOfMonth(now)
+  const monthKeys = Array.from({ length: 12 }, (_, i) => {
+    const date = subMonths(base, 11 - i)
+    return { key: format(date, "yyyy-MM"), label: format(date, "MMM") }
+  })
+  const monthTotals = new Map(monthKeys.map((m) => [m.key, 0]))
 
   for (const bill of bills) {
     switch (bill.type) {
@@ -182,9 +193,16 @@ export async function getUserFinanceOverview() {
         paid += Math.abs(bill.amount)
         break
     }
+    if (bill.amount > 0) {
+      const key = format(bill.issueDate, "yyyy-MM")
+      if (monthTotals.has(key)) {
+        monthTotals.set(key, monthTotals.get(key)! + bill.amount)
+      }
+    }
   }
 
   const totalCharges = meal + guest + fine + other
+  const pendingDues = Math.max(0, totalCharges - paid)
 
   const breakdown = [
     { category: "meal", label: "Meal charges", amount: meal },
@@ -193,13 +211,31 @@ export async function getUserFinanceOverview() {
     { category: "other", label: "Other", amount: other },
   ].filter((slice) => slice.amount > 0)
 
+  const monthly = monthKeys.map((m) => ({
+    month: m.label,
+    total: Math.round(monthTotals.get(m.key)!),
+  }))
+
   return {
     totalCharges,
     totalPaid: paid,
     pendingDues,
     totalFines: fine,
+    attendanceThisMonth: attendance,
     breakdown,
+    monthly,
   }
+}
+
+export async function getUserFinanceOverview() {
+  const session = await requireUser()
+  if (!session?.user.id || session.user.status !== "ACTIVE") {
+    return null
+  }
+  const userId = session.user.id
+  return cached(cacheKeys.userFinance(userId), 5 * 60, () =>
+    computeUserFinance(userId)
+  )
 }
 
 export async function sendMealMessage(

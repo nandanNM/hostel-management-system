@@ -1,33 +1,19 @@
-import React, { cache, Suspense } from "react"
+import { cache, Suspense } from "react"
 import { notFound } from "next/navigation"
 import { MealPreference } from "@/types"
-import type { Icon } from "@phosphor-icons/react"
 import {
-  Gavel,
   MapPin,
-  TrendUp as TrendingUp,
   User as UserIcon,
   ForkKnife as Utensils,
-  Wallet,
 } from "@phosphor-icons/react/ssr"
 
 import { formatIST } from "@/lib/date"
 import { User } from "@/lib/generated/prisma"
 import prisma from "@/lib/prisma"
-import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Loader } from "@/components/ui/loader"
 
-import { getUserDeshboardStats } from "../_lib/action"
 import RecentTransactions from "./recent-transactions"
 
 const getUserById = cache(async (userId: string) => {
@@ -41,88 +27,14 @@ interface UserDetailsProps {
 export default async function UserDetails({ userId }: UserDetailsProps) {
   const user = await getUserById(userId)
   return (
-    <div className="space-y-8 lg:col-span-2">
+    <div className="space-y-6">
       <Suspense
         fallback={<Loader variant="spinner" size={20} className="mx-auto" />}
       >
-        <OverviewCards />
         <RecentTransactions userId={userId} />
         <UserDataCard user={user} />
       </Suspense>
     </div>
-  )
-}
-
-async function OverviewCards() {
-  const { totalBalanceRemaining, totalPayments, totalAttendance } =
-    await getUserDeshboardStats()
-
-  const cards: StatsCardProps[] = [
-    {
-      title: "Outstanding Dues",
-      icon: Gavel,
-      value: `₹${totalBalanceRemaining}`,
-      color: "red",
-      subtitle: "Balance remaining",
-    },
-    {
-      title: "Total Paid Amount",
-      icon: Wallet,
-      value: `₹${totalPayments}`,
-      color: "green",
-      subtitle: "Till date",
-    },
-    {
-      title: "Meal Attendances",
-      icon: Utensils,
-      value: totalAttendance ?? 0,
-      color: "blue",
-      subtitle: "this month",
-    },
-  ]
-
-  return (
-    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-      {cards.map((card, idx) => (
-        <StatsCard key={idx} {...card} />
-      ))}
-    </div>
-  )
-}
-
-interface StatsCardProps {
-  title: string
-  icon: Icon
-  value: number | string
-  color: string
-  subtitle?: string
-}
-
-export function StatsCard({
-  title,
-  icon: Icon,
-  value,
-  subtitle,
-}: StatsCardProps) {
-  return (
-    <Card className="@container/card">
-      <CardHeader>
-        <CardDescription>{title}</CardDescription>
-        <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-          {value}
-        </CardTitle>
-        <CardAction>
-          <Badge variant="outline" className="h-full w-full rounded-full p-1">
-            <Icon className={cn("size-5")} />
-          </Badge>
-        </CardAction>
-      </CardHeader>
-      <CardFooter className="flex-col items-start gap-1.5 text-sm">
-        <div className="line-clamp-1 flex gap-2 font-medium">
-          {subtitle} <TrendingUp className="size-4" />
-        </div>
-      </CardFooter>
-    </Card>
   )
 }
 

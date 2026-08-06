@@ -156,23 +156,23 @@ export default async function TransactionsPage() {
         ))}
       </div>
 
-      <Card className="gap-0 py-0">
-        <CardContent className="p-0">
+      <Card className="min-w-0 gap-0 overflow-hidden py-0">
+        <CardContent className="min-w-0 overflow-hidden p-0">
           <MonthlyBillChart data={monthly} />
         </CardContent>
       </Card>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card className="gap-3">
+        <Card className="min-w-0 gap-3">
           <CardHeader>
             <CardTitle className="text-base">Charges breakdown</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="min-w-0 overflow-hidden">
             <SpendBreakdownChart data={breakdown} />
           </CardContent>
         </Card>
 
-        <Card className="gap-3">
+        <Card className="min-w-0 gap-3">
           <CardHeader>
             <CardTitle className="text-base">Collection progress</CardTitle>
           </CardHeader>

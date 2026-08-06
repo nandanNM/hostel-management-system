@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import type { Icon } from "@phosphor-icons/react"
 import {
   Gavel,
@@ -8,9 +9,13 @@ import {
 
 import { cn } from "@/lib/utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Loader } from "@/components/ui/loader"
 
 import { getUserFinanceOverview } from "../_lib/action"
 import { SpendBreakdownChart } from "./finance-charts"
+import { FinanceRadarChart } from "./finance-radar-chart"
+import UserActivity from "./user-activity"
+import UserDetails from "./user-details.tsx"
 
 function formatMoney(value: number) {
   return `₹${value.toLocaleString("en-IN", { maximumFractionDigits: 2 })}`
@@ -25,15 +30,21 @@ type Kpi = {
   bgClass: string
 }
 
-export async function FinanceOverview() {
+export async function FinanceOverview({ userId }: { userId: string }) {
   const data = await getUserFinanceOverview()
   if (!data) return null
 
   const { totalCharges, totalPaid, pendingDues, totalFines, breakdown } = data
-  const paidPct =
-    totalCharges > 0
-      ? Math.min(100, Math.round((totalPaid / totalCharges) * 100))
-      : 0
+
+  const amountOf = (category: string) =>
+    breakdown.find((slice) => slice.category === category)?.amount ?? 0
+  const radarData = [
+    { metric: "Meal", amount: amountOf("meal") },
+    { metric: "Guest", amount: amountOf("guest") },
+    { metric: "Fine", amount: totalFines },
+    { metric: "Paid", amount: totalPaid },
+    { metric: "Pending", amount: pendingDues },
+  ]
 
   const kpis: Kpi[] = [
     {
@@ -97,65 +108,42 @@ export async function FinanceOverview() {
         ))}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card className="gap-3">
-          <CardHeader>
-            <CardTitle className="text-base">Where your money goes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <SpendBreakdownChart data={breakdown} />
-          </CardContent>
-        </Card>
+      <div className="grid gap-6 lg:grid-cols-10">
+        <div className="min-w-0 space-y-6 lg:col-span-7">
+          <div className="grid gap-6 sm:grid-cols-2">
+            <Card className="min-w-0 gap-3">
+              <CardHeader>
+                <CardTitle className="text-base">
+                  Where your money goes
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="min-w-0 overflow-hidden">
+                <SpendBreakdownChart data={breakdown} />
+              </CardContent>
+            </Card>
 
-        <Card className="gap-3">
-          <CardHeader>
-            <CardTitle className="text-base">Payment progress</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <div className="mb-1.5 flex items-baseline justify-between">
-                <span className="text-muted-foreground text-sm">
-                  Paid of total
-                </span>
-                <span className="text-sm font-semibold tabular-nums">
-                  {paidPct}%
-                </span>
-              </div>
-              <div className="bg-muted h-2.5 w-full overflow-hidden rounded-full">
-                <div
-                  className="bg-primary h-full rounded-full transition-all"
-                  style={{ width: `${paidPct}%` }}
-                />
-              </div>
-            </div>
+            <Card className="min-w-0 gap-3">
+              <CardHeader>
+                <CardTitle className="text-base">Account breakdown</CardTitle>
+              </CardHeader>
+              <CardContent className="min-w-0 overflow-hidden">
+                <FinanceRadarChart data={radarData} />
+              </CardContent>
+            </Card>
+          </div>
 
-            <dl className="space-y-2 text-sm">
-              <div className="flex items-center justify-between">
-                <dt className="text-muted-foreground">Total costing</dt>
-                <dd className="font-medium tabular-nums">
-                  {formatMoney(totalCharges)}
-                </dd>
-              </div>
-              <div className="flex items-center justify-between">
-                <dt className="text-muted-foreground">Total paid</dt>
-                <dd className="font-medium text-green-600 tabular-nums dark:text-green-400">
-                  {formatMoney(totalPaid)}
-                </dd>
-              </div>
-              <div className="flex items-center justify-between border-t pt-2">
-                <dt className="font-medium">Pending dues</dt>
-                <dd
-                  className={cn(
-                    "font-bold tabular-nums",
-                    pendingDues > 0 ? "text-red-600 dark:text-red-400" : ""
-                  )}
-                >
-                  {formatMoney(pendingDues)}
-                </dd>
-              </div>
-            </dl>
-          </CardContent>
-        </Card>
+          <UserDetails userId={userId} />
+        </div>
+
+        <div className="min-w-0 lg:col-span-3">
+          <Suspense
+            fallback={
+              <Loader variant="spinner" size={20} className="mx-auto my-8" />
+            }
+          >
+            <UserActivity userId={userId} />
+          </Suspense>
+        </div>
       </div>
     </div>
   )

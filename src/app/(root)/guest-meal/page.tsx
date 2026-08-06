@@ -64,7 +64,11 @@ export default function GuestMealsPage() {
   }
 
   if (isPending) {
-    return <Loader variant="spinner" size={24} className="mx-auto my-6" />
+    return (
+      <div className="flex min-h-[70vh] w-full items-center justify-center">
+        <Loader variant="spinner" size={28} />
+      </div>
+    )
   }
   return (
     <PageContainer>

@@ -17,6 +17,8 @@ export const cacheKeys = {
   birthdays: (day: string = istYmd()) => `${V}:birthdays:${day}`,
   /** One row, read on every booking interaction and every count generation. */
   messConfig: () => `${V}:mess-config`,
+  /** A single boarder's finance summary, invalidated when their ledger changes. */
+  userFinance: (userId: string) => `${V}:user-finance:${userId}`,
   /** 14 rows total, read whenever the booking form or the count needs a menu. */
   mealSchedule: (dayOfWeek: string, mealTime: string) =>
     `${V}:meal-schedule:${dayOfWeek}:${mealTime}`,
