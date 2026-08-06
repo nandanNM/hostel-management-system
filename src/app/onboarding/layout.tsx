@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation"
 import { auth } from "@/auth"
 
+import { PageContainer } from "@/components/page-container"
+
 export default async function Layout({
   children,
 }: {
@@ -8,16 +10,16 @@ export default async function Layout({
 }) {
   const session = await auth()
   if (!session) redirect("/login")
-  if (session) {
-    if (session.user.onboardingCompleted) redirect("/")
-  }
+  if (session.user.onboardingCompleted) redirect("/")
 
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-4 py-4">
+    // Same container every other page uses. The old layout had py-4 but no
+    // horizontal padding, so the forms ran into the edge of a phone screen.
+    <PageContainer className="mx-auto max-w-3xl p-4 sm:p-6">
       <div className="text-center">
-        <h2 className="text-neutral-600">Onboarding</h2>
+        <h2 className="text-muted-foreground">Onboarding</h2>
       </div>
-      <div>{children}</div>
-    </div>
+      {children}
+    </PageContainer>
   )
 }

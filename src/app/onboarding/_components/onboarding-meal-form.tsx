@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useTransition } from "react"
-import { redirect, useRouter } from "next/navigation"
+import { useRouter } from "next/navigation"
 import {
   DISLIKED_NON_VEG_TYPES,
   MEAL_TYPE_OPTIONS,
@@ -106,7 +106,10 @@ export default function OnboardingMealForm() {
           useOnboardingStore.persist.clearStorage()
           form.reset()
           toast.success(result.message)
-          redirect("/not-user/inactive")
+          // router.push, not redirect(): redirect() throws a control-flow error
+          // that a client transition swallows, which left the user on a blank
+          // screen after finishing onboarding.
+          router.push("/not-user/inactive")
         } else if (result.status === "error") {
           toast.error(result.message)
         }

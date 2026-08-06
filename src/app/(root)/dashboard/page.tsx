@@ -11,6 +11,7 @@ import { Loader } from "@/components/ui/loader"
 import { Separator } from "@/components/ui/separator"
 import { PageContainer } from "@/components/page-container"
 
+import { FinanceOverview } from "./_components/finance-overview"
 import { MealMessageDialog } from "./_components/meal-message-dialog"
 import MealTogleButton from "./_components/meal-togle-button"
 import UserActivity from "./_components/user-activity"
@@ -63,7 +64,15 @@ export default async function Page() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <Suspense
+          fallback={
+            <Loader variant="spinner" size={20} className="mx-auto my-8" />
+          }
+        >
+          <FinanceOverview />
+        </Suspense>
+
+        <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
           <UserDetails userId={user.id} />
           <Suspense
             fallback={

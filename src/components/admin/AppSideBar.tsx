@@ -231,7 +231,7 @@ export default function AppSideBar({ state, user }: AppSideBarProps) {
                     </SidebarMenuItem>
                     <SidebarMenuItem>
                       <SidebarMenuButton asChild>
-                        <Link href="/mess-prefect/users">
+                        <Link href="/mess-prefect/transactions">
                           <Wallet />
                           <span>Transactions</span>
                         </Link>
