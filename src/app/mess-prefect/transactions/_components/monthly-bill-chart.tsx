@@ -73,7 +73,7 @@ export function MonthlyBillChart({ data }: { data: MonthlyPoint[] }) {
         </div>
       </div>
       <hr className="my-4 border-t border-dashed" />
-      <ChartContainer config={chartConfig}>
+      <ChartContainer config={chartConfig} className="aspect-auto! h-56 w-full">
         <BarChart accessibilityLayer data={data}>
           <XAxis
             dataKey="month"
