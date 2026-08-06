@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 
 import { GuestMeal } from "@/lib/generated/prisma"
+import { haptic } from "@/lib/haptic"
 import { toast } from "@/lib/toast"
 import { GuestMeal as GuestMealValidation } from "@/lib/validations"
 
@@ -59,6 +60,7 @@ export function useCreateGuestMeal(onOpenChange?: (open: boolean) => void) {
     mutationFn: (data: GuestMealValidation) => createGuestMeal(data),
     onSuccess: (result) => {
       if (result.status === "success") {
+        haptic()
         onOpenChange?.(false)
         toast.success("Guest meal request created successfully.")
         queryClient.invalidateQueries({

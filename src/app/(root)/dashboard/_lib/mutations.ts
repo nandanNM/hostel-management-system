@@ -1,6 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 
+import { fireConfetti } from "@/lib/confetti"
 import { MealStatusType } from "@/lib/generated/prisma"
+import { haptic } from "@/lib/haptic"
 import { toast } from "@/lib/toast"
 
 import { toggleMealStatus } from "./action"
@@ -10,6 +12,7 @@ export function useToggleMealStatus() {
   return useMutation({
     mutationFn: (newStatus: MealStatusType) => toggleMealStatus(newStatus),
     onMutate: async (newStatus) => {
+      haptic()
       await queryClient.cancelQueries({ queryKey: ["meal", "status"] })
       const previousData = queryClient.getQueryData(["meal", "status"])
       queryClient.setQueryData(["meal", "status"], { status: newStatus })
@@ -25,6 +28,7 @@ export function useToggleMealStatus() {
 
     onSuccess: (result, newStatus) => {
       if (result.status === "success") {
+        if (newStatus === "ACTIVE") fireConfetti()
         toast.success(
           `Meal status turned ${newStatus === "ACTIVE" ? "ON" : "OFF"}.`
         )

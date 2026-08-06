@@ -1,6 +1,7 @@
 import { useRouter } from "next/navigation"
 import { useMutation } from "@tanstack/react-query"
 
+import { haptic } from "@/lib/haptic"
 import { toast } from "@/lib/toast"
 
 import {
@@ -20,6 +21,7 @@ export function useRecordPayment() {
     mutationFn: (input: RecordPaymentInput) => recordPayment(input),
     onSuccess: (res) => {
       if (res.status === "success") {
+        haptic()
         toast.success(res.message)
         router.refresh()
       } else {
@@ -36,6 +38,7 @@ export function useAddUserAdvance() {
     mutationFn: (input: AddAdvanceInput) => addUserAdvance(input),
     onSuccess: (res) => {
       if (res.status === "success") {
+        haptic()
         toast.success(res.message)
         router.refresh()
       } else {
@@ -68,6 +71,7 @@ export function useTransferUserToAlumni() {
     mutationFn: (input: TransferToAlumniInput) => transferUserToAlumni(input),
     onSuccess: (res) => {
       if (res.status === "success") {
+        haptic()
         toast.success(res.message)
         router.push("/mess-prefect/users")
         router.refresh()
