@@ -8,6 +8,7 @@ import {
 } from "@/constants/form.constants"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Check as CheckIcon } from "@phosphor-icons/react"
+import { useQueryClient } from "@tanstack/react-query"
 import { Controller, useForm } from "react-hook-form"
 import z from "zod"
 
@@ -63,6 +64,7 @@ interface UpdateMealSheetProps extends React.ComponentPropsWithRef<
 type UpdateMealSchema = z.infer<typeof mealSchema>
 export function UpdateMealSheet({ meal, ...props }: UpdateMealSheetProps) {
   const [isUpdatePending, startUpdateTransition] = React.useTransition()
+  const queryClient = useQueryClient()
 
   const form = useForm<UpdateMealSchema>({
     resolver: zodResolver(mealSchema),
@@ -96,6 +98,9 @@ export function UpdateMealSheet({ meal, ...props }: UpdateMealSheetProps) {
         return
       }
       if (result.status === "success") {
+        // The calendar keeps residents in a client cache, which revalidatePath
+        // cannot reach.
+        await queryClient.invalidateQueries({ queryKey: ["residents"] })
         form.reset()
         props.onOpenChange?.(false)
         toast.success("Meal updated successfully.")

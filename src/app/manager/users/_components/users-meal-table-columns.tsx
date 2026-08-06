@@ -13,6 +13,7 @@ import {
   ArrowsClockwise as RefreshCcw,
   XCircle,
 } from "@phosphor-icons/react"
+import { useQueryClient } from "@tanstack/react-query"
 import { ColumnDef } from "@tanstack/react-table"
 
 import { GetMealWithUser } from "@/types/prisma.type"
@@ -158,13 +159,21 @@ export function getColumns(): ColumnDef<GetMealWithUser>[] {
 
         const router = useRouter()
         const pathname = usePathname()
+        const queryClient = useQueryClient()
 
         const meal = row.original
+        // Status changes move a boarder in and out of the count, so the
+        // calendar's cached residents list has to be dropped too.
+        const invalidateResidents = () =>
+          queryClient.invalidateQueries({ queryKey: ["residents"] })
+
         const handleAction = async (action: string) => {
           switch (action) {
             case "activate-meal":
               toast.promise(
-                updateUserMealStatus(meal.id, MealStatusType.ACTIVE),
+                updateUserMealStatus(meal.id, MealStatusType.ACTIVE).finally(
+                  invalidateResidents
+                ),
                 {
                   loading: "Activating user meal...",
                   success: "User meal activated successfully",
@@ -174,7 +183,9 @@ export function getColumns(): ColumnDef<GetMealWithUser>[] {
               break
             case "deactivate-meal":
               toast.promise(
-                updateUserMealStatus(meal.id, MealStatusType.INACTIVE),
+                updateUserMealStatus(meal.id, MealStatusType.INACTIVE).finally(
+                  invalidateResidents
+                ),
                 {
                   loading: "Deactivating user meal...",
                   success: "User meal deactivated successfully",
@@ -184,7 +195,9 @@ export function getColumns(): ColumnDef<GetMealWithUser>[] {
               break
             case "suspend-meal":
               toast.promise(
-                updateUserMealStatus(meal.id, MealStatusType.SUSPENDED),
+                updateUserMealStatus(meal.id, MealStatusType.SUSPENDED).finally(
+                  invalidateResidents
+                ),
                 {
                   loading: "Suspending user meal...",
                   success: "User meal suspended successfully",
@@ -194,7 +207,9 @@ export function getColumns(): ColumnDef<GetMealWithUser>[] {
               break
             case "unsuspend-meal":
               toast.promise(
-                updateUserMealStatus(meal.id, MealStatusType.ACTIVE),
+                updateUserMealStatus(meal.id, MealStatusType.ACTIVE).finally(
+                  invalidateResidents
+                ),
                 {
                   loading: "Unsuspending user meal...",
                   success: "User meal unsuspended successfully",

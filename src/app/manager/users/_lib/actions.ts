@@ -21,6 +21,14 @@ import { mealSchema } from "@/lib/validations"
 
 import { CreateUserFineSchema, GetMealsSchema } from "./validations"
 
+function revalidateMealSurfaces(userId?: string) {
+  for (const base of ["/manager", "/mess-prefect"]) {
+    revalidatePath(`${base}/users`)
+    revalidatePath(`${base}/calander`)
+    if (userId) revalidatePath(`${base}/users/${userId}`, "layout")
+  }
+}
+
 interface MealsResponse {
   data: GetMealWithUser[]
   totalRows: number
@@ -127,19 +135,31 @@ export async function updateMeal(
       status: "error",
       message: "Unauthorized",
     }
+  const parsed = mealSchema.safeParse(values)
+  if (!parsed.success) {
+    return {
+      status: "error",
+      message: `Invalid meal data - ${parsed.error.issues[0]?.message ?? "check the values"}`,
+    }
+  }
+
   try {
-    await prisma.meal.update({
-      where: {
-        id: values.id,
-      },
+    // Explicit fields: spreading `values` would also push `id` into the update
+    // payload, and anything else a caller happened to include.
+    const meal = await prisma.meal.update({
+      where: { id: values.id },
       data: {
-        ...values,
+        type: parsed.data.type,
+        nonVegType: parsed.data.nonVegType ?? NonVegType.NONE,
+        dislikedNonVegTypes: parsed.data.dislikedNonVegTypes ?? [],
       },
+      select: { userId: true },
     })
-    revalidatePath("/manager/users")
+
+    revalidateMealSurfaces(meal.userId)
     return {
       status: "success",
-      message: "Guest meal request approved successfully",
+      message: "Meal preference updated successfully",
     }
   } catch (error) {
     return {
@@ -175,7 +195,7 @@ export async function updateUserMealStatus(
         user: { select: { email: true, name: true } },
       },
     })
-    revalidatePath("/manager/users")
+    revalidateMealSurfaces(meal.userId)
 
     if (meal.user?.email) {
       await sendMealStatusEmail({

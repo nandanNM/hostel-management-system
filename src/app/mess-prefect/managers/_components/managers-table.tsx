@@ -66,14 +66,15 @@ export interface ManagerUser {
 
 type BadgeVariant = React.ComponentProps<typeof Badge>["variant"]
 
-const ROLE_VARIANT: Partial<Record<UserRoleType, BadgeVariant>> = {
-  STUDENT: "secondary",
-  STAFF: "info-light",
-  MANAGER: "primary-light",
-  MESS_PREFECT: "warning-light",
-  AUDITOR: "info-light",
-  ADMIN: "destructive-light",
-  SUPER_ADMIN: "destructive-light",
+const ROLE_STYLES: Partial<Record<UserRoleType, string>> = {
+  STUDENT: "bg-secondary text-secondary-foreground",
+  TEMPORARY_BOARDER: "bg-muted text-muted-foreground",
+  STAFF: "bg-blue-100 text-blue-700",
+  MANAGER: "bg-primary/15 text-primary",
+  MESS_PREFECT: "bg-amber-100 text-amber-700",
+  AUDITOR: "bg-purple-100 text-purple-700",
+  ADMIN: "bg-red-100 text-red-700",
+  SUPER_ADMIN: "bg-red-200 text-red-800",
 }
 
 const STATUS_VARIANT: Partial<Record<UserStatusType, BadgeVariant>> = {
