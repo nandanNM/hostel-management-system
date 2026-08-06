@@ -49,16 +49,6 @@ export default async function InvitePage({
 
   const { email, stayUntil } = verdict.payload
 
-  // Short-lived, so the token cannot linger in the browser after sign-up.
-  const jar = await cookies()
-  jar.set(INVITE_COOKIE, token, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    maxAge: 30 * 60,
-    path: "/",
-  })
-
   return (
     <main className="flex min-h-svh items-center justify-center p-4">
       <Card className="w-full max-w-sm">
@@ -73,7 +63,19 @@ export default async function InvitePage({
           <form
             action={async () => {
               "use server"
-              await signIn("google", { callbackUrl: "/onboarding/identity" })
+              // Set here, not during render: Next only allows cookie writes in
+              // a Server Action or Route Handler, and doing it in the page body
+              // threw at runtime so the invite was never recorded.
+              const jar = await cookies()
+              jar.set(INVITE_COOKIE, token, {
+                httpOnly: true,
+                sameSite: "lax",
+                secure: process.env.NODE_ENV === "production",
+                maxAge: 30 * 60,
+                path: "/",
+              })
+
+              await signIn("google", { redirectTo: "/onboarding/identity" })
             }}
           >
             <Button className="w-full bg-[#DB4437] text-white after:flex-1 hover:bg-[#DB4437]/90">

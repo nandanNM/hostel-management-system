@@ -130,3 +130,24 @@ export function inviteMatchesAccount(
 export function inviteUrl(baseUrl: string, token: string): string {
   return `${baseUrl.replace(/\/$/, "")}/invite/${token}`
 }
+
+/**
+ * Where invite links should point.
+ *
+ * NEXT_PUBLIC_APP_URL wins, so each environment states its own address rather
+ * than inferring it from NODE_ENV - that inference is what sent a production
+ * invite to a localhost link. VERCEL_PROJECT_PRODUCTION_URL is the fallback on
+ * Vercel, and localhost is the last resort for a plain `next dev`.
+ */
+export function resolveAppBaseUrl(
+  env: Record<string, string | undefined> = process.env
+): string {
+  const explicit = env.NEXT_PUBLIC_APP_URL?.trim()
+  if (explicit) return explicit.replace(/\/$/, "")
+
+  const vercel = env.VERCEL_PROJECT_PRODUCTION_URL?.trim()
+  if (vercel)
+    return `https://${vercel.replace(/^https?:\/\//, "").replace(/\/$/, "")}`
+
+  return "http://localhost:3000"
+}

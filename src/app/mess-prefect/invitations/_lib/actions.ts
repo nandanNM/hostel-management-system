@@ -4,13 +4,13 @@ import requireMessPrefect from "@/data/mess-prefect/require-mess-prefect"
 import { ApiResponse } from "@/types"
 import { z } from "zod"
 
-import { siteConfig } from "@/config/site"
 import { sendBoarderInviteEmail } from "@/lib/email"
 import {
   createInviteToken,
   DEFAULT_INVITE_TTL_DAYS,
   inviteUrl,
   normaliseEmail,
+  resolveAppBaseUrl,
 } from "@/lib/invitations"
 import prisma from "@/lib/prisma"
 
@@ -65,7 +65,7 @@ export async function sendTemporaryBoarderInvite(
       { email, temporary: true, stayUntil: parsed.data.stayUntil || null },
       secret
     )
-    const link = inviteUrl(siteConfig.url, token)
+    const link = inviteUrl(resolveAppBaseUrl(), token)
 
     const sent = await sendBoarderInviteEmail({
       to: email,

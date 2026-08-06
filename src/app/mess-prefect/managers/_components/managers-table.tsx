@@ -66,17 +66,17 @@ export interface ManagerUser {
 
 type BadgeVariant = React.ComponentProps<typeof Badge>["variant"]
 
-// Badge variants, matching STATUS_VARIANT below. Partial on purpose: a new
-// role should render a neutral badge, not break the build.
-const ROLE_VARIANT: Partial<Record<UserRoleType, BadgeVariant>> = {
-  STUDENT: "secondary",
-  TEMPORARY_BOARDER: "info-light",
-  STAFF: "info-light",
-  MANAGER: "primary-light",
-  MESS_PREFECT: "warning-light",
-  AUDITOR: "invert-light",
-  ADMIN: "destructive-light",
-  SUPER_ADMIN: "destructive-light",
+// Partial on purpose: a role with no entry falls back to a neutral badge
+// rather than failing the build.
+const ROLE_STYLES: Partial<Record<UserRoleType, string>> = {
+  STUDENT: "bg-secondary text-secondary-foreground",
+  TEMPORARY_BOARDER: "bg-muted text-muted-foreground",
+  STAFF: "bg-blue-100 text-blue-700",
+  MANAGER: "bg-primary/15 text-primary",
+  MESS_PREFECT: "bg-amber-100 text-amber-700",
+  AUDITOR: "bg-purple-100 text-purple-700",
+  ADMIN: "bg-red-100 text-red-700",
+  SUPER_ADMIN: "bg-red-200 text-red-800",
 }
 
 const STATUS_VARIANT: Partial<Record<UserStatusType, BadgeVariant>> = {
@@ -223,8 +223,12 @@ export function ManagersTable({
                     </TableCell>
                     <TableCell>
                       <Badge
-                        variant={ROLE_VARIANT[user.role] ?? "secondary"}
                         size="sm"
+                        className={cn(
+                          "font-semibold",
+                          ROLE_STYLES[user.role] ??
+                            "bg-muted text-muted-foreground"
+                        )}
                       >
                         {prettify(user.role)}
                       </Badge>
