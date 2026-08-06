@@ -80,9 +80,14 @@ export default function AppSideBar({ state, user }: AppSideBarProps) {
     { title: "Fines", href: `${userBase}/fines`, icon: Gavel },
   ]
 
-  // Home is a Manager/Admin entry only. MessPrefect gets an Approvals entry
-  // right after Users instead.
-  const appItems = [
+  // Grouped by what the work actually is, not by when the item was added:
+  // Overview (who's here / what needs action) → Meals (day-to-day ops) →
+  // Finance (money, MessPrefect only) → Administration (staff, MessPrefect
+  // only) → Activity (audit trail) → Settings.
+  //
+  // Home is a Manager/Admin entry only. MessPrefect gets Approvals +
+  // Invitations in Overview instead.
+  const overviewItems = [
     ...(isMessPrefect ? [] : [{ title: "Home", url: "/", icon: Home }]),
     { title: "Users", url: "users", icon: Users },
     ...(isMessPrefect
@@ -91,7 +96,28 @@ export default function AppSideBar({ state, user }: AppSideBarProps) {
           { title: "Invitations", url: "invitations", icon: EnvelopeSimple },
         ]
       : []),
+  ]
+
+  const mealItems = [
     { title: "Calendar", url: "calander", icon: Calendar },
+    { title: "Guest Meal Logs", url: "guest-meal-logs", icon: UtensilsCrossed },
+    { title: "Monthly Meals", url: "reports/monthly-meals", icon: ChartBar },
+  ]
+
+  const financeItems = [
+    { title: "Billing", url: "billing", icon: Receipt },
+    { title: "Transactions", url: "transactions", icon: Wallet },
+  ]
+
+  const administrationItems = [
+    { title: "Change Roles", url: "roles", icon: UserCog },
+  ]
+
+  const activityItems = [
+    { title: "Activity Logs", url: "logs", icon: ClipboardList },
+  ]
+
+  const settingsItems = [
     { title: "Settings", url: "settings", icon: Settings2 },
   ]
 
@@ -152,95 +178,42 @@ export default function AppSideBar({ state, user }: AppSideBarProps) {
         )}
         {!onUserDetail && (
           <>
-            <SidebarGroup>
-              <SidebarGroupLabel>Application</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {appItems.map((item) => (
-                    <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton asChild>
-                        <Link
-                          href={
-                            item.url === "/"
-                              ? basePath
-                              : `${basePath}/${item.url}`
-                          }
-                        >
-                          <item.icon />
-                          <span>{item.title}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
+            <SidebarNavGroup
+              label="Overview"
+              items={overviewItems}
+              basePath={basePath}
+            />
+            <SidebarNavGroup
+              label="Meals"
+              items={mealItems}
+              basePath={basePath}
+            />
+            {isMessPrefect && (
+              <SidebarNavGroup
+                label="Finance"
+                items={financeItems}
+                basePath={basePath}
+              />
+            )}
+            {isMessPrefect && (
+              <SidebarNavGroup
+                label="Administration"
+                items={administrationItems}
+                basePath={basePath}
+              />
+            )}
             {showReports && (
-              <SidebarGroup>
-                <SidebarGroupLabel>Reports</SidebarGroupLabel>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    <SidebarMenuItem>
-                      <SidebarMenuButton asChild>
-                        <Link href={`${basePath}/logs`}>
-                          <ClipboardList />
-                          <span>Activity Logs</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                      <SidebarMenuButton asChild>
-                        <Link href={`${basePath}/guest-meal-logs`}>
-                          <UtensilsCrossed />
-                          <span>Guest Meal Logs</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                      <SidebarMenuButton asChild>
-                        <Link href={`${basePath}/reports/monthly-meals`}>
-                          <ChartBar />
-                          <span>Monthly Meals</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
+              <SidebarNavGroup
+                label="Activity"
+                items={activityItems}
+                basePath={basePath}
+              />
             )}
-            {state === "MESS_PREFECT" && (
-              <SidebarGroup>
-                <SidebarGroupLabel>Administration</SidebarGroupLabel>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    <SidebarMenuItem>
-                      <SidebarMenuButton asChild>
-                        <Link href="/mess-prefect/managers">
-                          <UserCog />
-                          <span>Managers</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                      <SidebarMenuButton asChild>
-                        <Link href="/mess-prefect/billing">
-                          <Receipt />
-                          <span>Billing</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                      <SidebarMenuButton asChild>
-                        <Link href="/mess-prefect/transactions">
-                          <Wallet />
-                          <span>Transactions</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
-            )}
+            <SidebarNavGroup
+              label="Preferences"
+              items={settingsItems}
+              basePath={basePath}
+            />
             {state === "ADMIN" && (
               <>
                 {/* users */}
@@ -354,5 +327,42 @@ export default function AppSideBar({ state, user }: AppSideBarProps) {
         <SidebarRail />
       </SidebarFooter>
     </Sidebar>
+  )
+}
+
+type NavItem = { title: string; url: string; icon: React.ElementType }
+
+function SidebarNavGroup({
+  label,
+  items,
+  basePath,
+}: {
+  label: string
+  items: NavItem[]
+  basePath: string
+}) {
+  const pathname = usePathname()
+
+  return (
+    <SidebarGroup>
+      <SidebarGroupLabel>{label}</SidebarGroupLabel>
+      <SidebarGroupContent>
+        <SidebarMenu>
+          {items.map((item) => {
+            const href = item.url === "/" ? basePath : `${basePath}/${item.url}`
+            return (
+              <SidebarMenuItem key={item.title}>
+                <SidebarMenuButton asChild isActive={pathname === href}>
+                  <Link href={href}>
+                    <item.icon />
+                    <span>{item.title}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )
+          })}
+        </SidebarMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
   )
 }

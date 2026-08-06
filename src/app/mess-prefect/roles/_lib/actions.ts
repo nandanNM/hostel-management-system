@@ -1,12 +1,110 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
+import { unstable_noStore as noStore, revalidatePath } from "next/cache"
 import requireMessPrefect from "@/data/mess-prefect/require-mess-prefect"
 import { ApiResponse } from "@/types"
 import { z } from "zod"
 
-import { UserRoleType } from "@/lib/generated/prisma"
+import { Prisma, UserRoleType, UserStatusType } from "@/lib/generated/prisma"
 import prisma from "@/lib/prisma"
+import { parseEnumList } from "@/lib/utils"
+
+import { GetRolesSchema } from "./validations"
+
+export interface RoleUser {
+  id: string
+  name: string | null
+  email: string
+  image: string | null
+  role: UserRoleType
+  status: UserStatusType
+  selfPhNo: string | null
+  roomNo: string | null
+}
+
+interface RolesResponse {
+  data: RoleUser[]
+  totalRows: number
+  pageCount: number
+}
+
+export async function getUsersForRoles(
+  input: GetRolesSchema
+): Promise<RolesResponse> {
+  noStore()
+  await requireMessPrefect()
+
+  const { page, per_page, sort, name, role, status, operator = "and" } = input
+  const offset = (page - 1) * per_page
+  const [sortField, sortOrder] = (sort?.split(".") ?? ["role", "asc"]) as [
+    keyof Prisma.UserOrderByWithRelationInput,
+    "asc" | "desc",
+  ]
+
+  const roleList = parseEnumList(role, UserRoleType)
+  const statusList = parseEnumList(status, UserStatusType)
+
+  const roleCondition =
+    roleList.length > 0 ? { role: { in: roleList } } : undefined
+  const statusCondition =
+    statusList.length > 0 ? { status: { in: statusList } } : undefined
+
+  const filters = [roleCondition, statusCondition].filter(
+    Boolean
+  ) as Prisma.UserWhereInput[]
+
+  if (name) {
+    filters.push({
+      OR: [
+        { name: { contains: name, mode: "insensitive" } },
+        { email: { contains: name, mode: "insensitive" } },
+        { roomNo: { contains: name, mode: "insensitive" } },
+      ],
+    })
+  }
+
+  const baseScope: Prisma.UserWhereInput = {
+    deletedAt: null,
+    NOT: { status: { in: [UserStatusType.INACTIVE, UserStatusType.FORMA] } },
+  }
+
+  const whereClause: Prisma.UserWhereInput =
+    filters.length > 0
+      ? operator === "or"
+        ? { AND: [baseScope, { OR: filters }] }
+        : { AND: [baseScope, ...filters] }
+      : baseScope
+
+  try {
+    const [data, totalRows] = await Promise.all([
+      prisma.user.findMany({
+        where: whereClause,
+        skip: offset,
+        take: per_page,
+        orderBy: [{ [sortField]: sortOrder }, { name: "asc" }],
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          image: true,
+          role: true,
+          status: true,
+          selfPhNo: true,
+          roomNo: true,
+        },
+      }),
+      prisma.user.count({ where: whereClause }),
+    ])
+
+    return {
+      data,
+      totalRows,
+      pageCount: Math.ceil(totalRows / per_page),
+    }
+  } catch {
+    throw new Error("Failed to retrieve users.")
+  }
+}
 
 const assignRoleSchema = z.object({
   userId: z.string().min(1),
@@ -64,7 +162,7 @@ export async function assignRole(input: AssignRoleInput): Promise<ApiResponse> {
       }),
     ])
 
-    revalidatePath("/mess-prefect/managers")
+    revalidatePath("/mess-prefect/roles")
     return {
       status: "success",
       message:
@@ -132,7 +230,7 @@ export async function updateManagerDetails(
       }),
     ])
 
-    revalidatePath("/mess-prefect/managers")
+    revalidatePath("/mess-prefect/roles")
     return { status: "success", message: "Details updated successfully. ✨" }
   } catch (error) {
     return {

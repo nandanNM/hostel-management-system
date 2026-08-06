@@ -1,6 +1,6 @@
 import { UserRoleType } from "@/lib/generated/prisma"
 
-// Roles the Mess Prefect may assign from the Managers screen. Includes STUDENT
+// Roles the Mess Prefect may assign from the Change Roles screen. Includes STUDENT
 // so a manager can be stepped back down, and MESS_PREFECT so a prefect can
 // appoint another.
 export const ASSIGNABLE_ROLES = [
