@@ -4,6 +4,8 @@ import { useState } from "react"
 import { PushPermissionDeniedError } from "@/helpers/pushService"
 import { Bell } from "@phosphor-icons/react"
 
+import { fireConfetti } from "@/lib/confetti"
+import { haptic } from "@/lib/haptic"
 import { toast } from "@/lib/toast"
 import {
   usePushPromptState,
@@ -39,6 +41,10 @@ export default function PushNotificationsCard() {
   function handleChange(next: boolean) {
     toggle(next, {
       onSuccess: () => {
+        if (next) {
+          fireConfetti()
+          haptic()
+        }
         toast.success(
           next
             ? "Push notifications enabled on this device."
