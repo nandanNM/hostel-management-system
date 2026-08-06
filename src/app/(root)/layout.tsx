@@ -1,5 +1,6 @@
 import { requireUser } from "@/lib/require-user"
 import NavBar from "@/components/NavBar"
+import PushPromptDialog from "@/components/PushPromptDialog"
 import SideNav from "@/components/SideNav"
 
 export default async function Layout({
@@ -10,6 +11,7 @@ export default async function Layout({
   await requireUser()
   return (
     <>
+      <PushPromptDialog />
       <NavBar />
       <div className="flex">
         <SideNav />

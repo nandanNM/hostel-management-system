@@ -5,6 +5,7 @@ import prisma from "@/lib/prisma"
 import { requireUser } from "@/lib/require-user"
 import { PageContainer } from "@/components/page-container"
 
+import PushNotificationsCard from "./_components/push-notifications-card"
 import SettingsForm from "./_components/settings-form"
 
 export const metadata: Metadata = {
@@ -40,6 +41,7 @@ export default async function SettingsPage() {
       <hr className="border-muted-foreground/10" />
       <div className="flex w-full flex-col gap-10">
         <SettingsForm user={user} />
+        <PushNotificationsCard />
       </div>
     </PageContainer>
   )

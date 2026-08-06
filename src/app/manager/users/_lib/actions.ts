@@ -1,6 +1,7 @@
 "use server"
 
 import { unstable_noStore as noStore, revalidatePath } from "next/cache"
+import { after } from "next/server"
 import requireManager from "@/data/manager/require-manager"
 import { ApiResponse } from "@/types"
 import z from "zod"
@@ -16,6 +17,7 @@ import {
   UserStatusType,
 } from "@/lib/generated/prisma"
 import prisma from "@/lib/prisma"
+import { sendPushToUser } from "@/lib/push"
 import { parseEnumList } from "@/lib/utils"
 import { mealSchema } from "@/lib/validations"
 
@@ -157,6 +159,17 @@ export async function updateMeal(
     })
 
     revalidateMealSurfaces(meal.userId)
+
+    after(() =>
+      sendPushToUser(meal.userId, {
+        title: "Meal preference updated",
+        body: "Your meal preference was updated by the manager. Check your profile if this wasn't expected.",
+        icon: "/app-icon-192.png",
+        url: "/dashboard",
+        tag: `meal-preference-${values.id}`,
+      }).catch((err) => console.error("Push notification failed:", err))
+    )
+
     return {
       status: "success",
       message: "Meal preference updated successfully",

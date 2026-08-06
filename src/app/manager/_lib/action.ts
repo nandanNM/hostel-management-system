@@ -1,5 +1,6 @@
 "use server"
 
+import { after } from "next/server"
 import requireManager from "@/data/manager/require-manager"
 import { ApiResponse } from "@/types"
 
@@ -10,6 +11,7 @@ import {
   NotificationType,
 } from "@/lib/generated/prisma"
 import prisma from "@/lib/prisma"
+import { sendPushToUser } from "@/lib/push"
 
 export async function updateGuestMealStatus({
   requestId,
@@ -143,6 +145,20 @@ export async function updateGuestMealStatus({
       .catch((err) => {
         console.error("Notification creation failed:", err)
       })
+
+    after(() =>
+      sendPushToUser(requestedUserId, {
+        title:
+          status === "APPROVED" ? "Guest meal approved" : "Guest meal update",
+        body:
+          status === "APPROVED"
+            ? `Your guest meal request was approved by ${session.user.name}. Your guest will be served during the selected meal time.`
+            : `Your guest meal request was ${status.toLowerCase()} by ${session.user.name}.`,
+        icon: "/app-icon-192.png",
+        url: "/guest-meal",
+        tag: `guest-meal-${requestId}`,
+      }).catch((err) => console.error("Push notification failed:", err))
+    )
 
     return {
       status: "success",

@@ -1,6 +1,7 @@
 "use server"
 
 import { unstable_noStore as noStore, revalidatePath } from "next/cache"
+import { after } from "next/server"
 import requireMessPrefect from "@/data/mess-prefect/require-mess-prefect"
 import { ApiResponse } from "@/types"
 import { addDays } from "date-fns"
@@ -20,6 +21,7 @@ import {
   UserStatusType,
 } from "@/lib/generated/prisma"
 import prisma from "@/lib/prisma"
+import { sendPushToUsers } from "@/lib/push"
 
 function resolveMonth(input?: { year: number; month: number }) {
   const today = istParts()
@@ -411,6 +413,22 @@ export async function finalizeAndDistributeBills(
     )
 
     revalidatePath("/mess-prefect/billing")
+
+    after(() =>
+      sendPushToUsers(
+        activeUsers.map((u) => u.id),
+        {
+          title: "Monthly mess bill generated",
+          body: `Your mess bill for ${monthLabel} (₹${audit.mealCharge.toFixed(
+            2
+          )}) has been added. Due by ${formatIST(dueDate, "d MMM yyyy")}.`,
+          icon: "/app-icon-192.png",
+          url: "/dashboard",
+          tag: `monthly-bill-${audit.id}`,
+        }
+      ).catch((err) => console.error("Push notification failed:", err))
+    )
+
     return {
       status: "success",
       message: `Distributed ₹${audit.mealCharge.toFixed(2)} to ${
