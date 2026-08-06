@@ -283,3 +283,43 @@ export async function sendFineIssuedEmail({
     idempotencyKey: fineId ? `fine-issued/${fineId}` : undefined,
   })
 }
+
+export async function sendBoarderInviteEmail({
+  to,
+  inviteUrl,
+  invitedBy,
+  stayUntil,
+  expiresInDays,
+}: {
+  to: string
+  inviteUrl: string
+  invitedBy: string | null
+  stayUntil: string | null
+  expiresInDays: number
+}): Promise<boolean> {
+  const body = `
+    <p style="font-size: 14px; line-height: 1.6;">Hi there,</p>
+    <p style="font-size: 14px; line-height: 1.6;">
+      ${invitedBy ? `${invitedBy} has` : "The mess prefect has"} invited you to
+      join the mess as a temporary boarder${stayUntil ? ` until <strong>${stayUntil}</strong>` : ""}.
+    </p>
+    <p style="font-size: 14px; line-height: 1.6;">
+      Use the button below and sign in with <strong>this same email address</strong>
+      - the invitation only works for ${to}.
+    </p>
+    <p style="margin: 24px 0;">
+      <a href="${inviteUrl}" style="background:#d97706;color:#ffffff;padding:12px 20px;border-radius:6px;text-decoration:none;font-size:14px;font-weight:600;">
+        Accept invitation
+      </a>
+    </p>
+    <p style="font-size: 12px; line-height: 1.6; color: #6b7280;">
+      This link expires in ${expiresInDays} day(s). If you were not expecting it,
+      you can ignore this email.
+    </p>`
+
+  return sendEmail({
+    to,
+    subject: "You have been invited to the mess",
+    html: emailLayout("Mess invitation", body),
+  })
+}

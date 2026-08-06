@@ -441,6 +441,9 @@ enum UserRoleType {
   ADMIN
   SUPER_ADMIN
   MESS_PREFECT
+  /// A guest staying for a short period. Billed and counted exactly like a
+  /// STUDENT, but sees only the home and dashboard screens.
+  TEMPORARY_BOARDER
 }
 
 enum UserStatusType {

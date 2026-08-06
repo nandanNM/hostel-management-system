@@ -1,0 +1,3 @@
+-- AlterEnum
+ALTER TYPE "UserRoleType" ADD VALUE 'TEMPORARY_BOARDER';
+

@@ -8,6 +8,7 @@ import {
   ChartBar,
   CaretUp as ChevronUp,
   ClipboardText as ClipboardList,
+  EnvelopeSimple,
   FileText as FileCheck,
   Gavel,
   House as Home,
@@ -85,7 +86,10 @@ export default function AppSideBar({ state, user }: AppSideBarProps) {
     ...(isMessPrefect ? [] : [{ title: "Home", url: "/", icon: Home }]),
     { title: "Users", url: "users", icon: Users },
     ...(isMessPrefect
-      ? [{ title: "Approvals", url: "approvals", icon: UserCheck }]
+      ? [
+          { title: "Approvals", url: "approvals", icon: UserCheck },
+          { title: "Invitations", url: "invitations", icon: EnvelopeSimple },
+        ]
       : []),
     { title: "Calendar", url: "calander", icon: Calendar },
     { title: "Settings", url: "settings", icon: Settings2 },
