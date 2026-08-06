@@ -83,6 +83,7 @@ export default async function TransactionsPage() {
     {
       title: "Total Costing",
       value: formatMoney(totalCharges),
+      subtitle: "All charges to date",
       icon: Receipt,
       iconClass: "text-amber-600",
       bgClass: "bg-amber-600/10",
@@ -90,6 +91,7 @@ export default async function TransactionsPage() {
     {
       title: "Total Collected",
       value: formatMoney(totalCollected),
+      subtitle: "Payments received",
       icon: Wallet,
       iconClass: "text-green-600",
       bgClass: "bg-green-600/10",
@@ -97,6 +99,7 @@ export default async function TransactionsPage() {
     {
       title: "Pending Dues",
       value: formatMoney(totalOutstanding),
+      subtitle: "Outstanding balance",
       icon: WarningCircle,
       iconClass: "text-red-600",
       bgClass: "bg-red-600/10",

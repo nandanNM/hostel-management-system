@@ -1,13 +1,18 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useMemo, useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
-import { PencilSimple as Pencil } from "@phosphor-icons/react"
+import {
+  CaretDoubleLeft,
+  CaretDoubleRight,
+  CaretLeft,
+  CaretRight,
+  PencilSimple as Pencil,
+} from "@phosphor-icons/react"
 
 import { UserRoleType, UserStatusType } from "@/lib/generated/prisma"
 import { toast } from "@/lib/toast"
 import { cn } from "@/lib/utils"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -42,6 +47,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { Badge } from "@/components/reui/badge"
 import UserAvatar from "@/components/UserAvatar"
 
 import { assignRole, updateManagerDetails } from "../_lib/actions"
@@ -58,24 +64,26 @@ export interface ManagerUser {
   roomNo: string | null
 }
 
-const FALLBACK_STYLE = "bg-muted text-muted-foreground"
+type BadgeVariant = React.ComponentProps<typeof Badge>["variant"]
 
-const ROLE_STYLES: Partial<Record<UserRoleType, string>> = {
-  STUDENT: "bg-secondary text-secondary-foreground",
-  STAFF: "bg-blue-100 text-blue-700",
-  MANAGER: "bg-primary/15 text-primary",
-  MESS_PREFECT: "bg-amber-100 text-amber-700",
-  AUDITOR: "bg-purple-100 text-purple-700",
-  ADMIN: "bg-red-100 text-red-700",
-  SUPER_ADMIN: "bg-red-200 text-red-800",
+const ROLE_VARIANT: Partial<Record<UserRoleType, BadgeVariant>> = {
+  STUDENT: "secondary",
+  STAFF: "info-light",
+  MANAGER: "primary-light",
+  MESS_PREFECT: "warning-light",
+  AUDITOR: "info-light",
+  ADMIN: "destructive-light",
+  SUPER_ADMIN: "destructive-light",
 }
 
-const STATUS_STYLES: Partial<Record<UserStatusType, string>> = {
-  ACTIVE: "bg-green-100 text-green-700",
-  INACTIVE: "bg-muted text-muted-foreground",
-  SUSPENDED: "bg-red-100 text-red-600",
-  FORMA: "bg-muted text-muted-foreground",
+const STATUS_VARIANT: Partial<Record<UserStatusType, BadgeVariant>> = {
+  ACTIVE: "success-light",
+  INACTIVE: "secondary",
+  SUSPENDED: "destructive-light",
+  FORMA: "secondary",
 }
+
+const PAGE_SIZES = [10, 20, 50]
 
 function prettify(value: string) {
   return value
@@ -98,6 +106,27 @@ export function ManagersTable({
     null
   )
   const [editing, setEditing] = useState<ManagerUser | null>(null)
+  const [query, setQuery] = useState("")
+  const [pageSize, setPageSize] = useState(10)
+  const [page, setPage] = useState(0)
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) return users
+    return users.filter(
+      (user) =>
+        (user.name ?? "").toLowerCase().includes(q) ||
+        user.email.toLowerCase().includes(q) ||
+        (user.roomNo ?? "").toLowerCase().includes(q)
+    )
+  }, [users, query])
+
+  const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize))
+  const currentPage = Math.min(page, pageCount - 1)
+  const paged = filtered.slice(
+    currentPage * pageSize,
+    currentPage * pageSize + pageSize
+  )
 
   function handleRoleChange(user: ManagerUser, role: string) {
     setPendingRoleUserId(user.id)
@@ -125,7 +154,18 @@ export function ManagersTable({
           profile details up to date.
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-4">
+        <Input
+          type="search"
+          autoComplete="off"
+          placeholder="Search by name, email or room…"
+          value={query}
+          onChange={(event) => {
+            setQuery(event.target.value)
+            setPage(0)
+          }}
+          className="max-w-xs"
+        />
         <div className="overflow-x-auto rounded-md border">
           <Table>
             <TableHeader>
@@ -140,7 +180,7 @@ export function ManagersTable({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {users.map((user) => {
+              {paged.map((user) => {
                 const isSelf = user.id === currentUserId
                 const locked = isSelf
                 const rowPending = isPending && pendingRoleUserId === user.id
@@ -171,22 +211,17 @@ export function ManagersTable({
                       {user.selfPhNo ?? "—"}
                     </TableCell>
                     <TableCell>
-                      <span
-                        className={cn(
-                          "rounded-full px-2 py-0.5 text-[10px] font-bold",
-                          STATUS_STYLES[user.status] ?? FALLBACK_STYLE
-                        )}
+                      <Badge
+                        variant={STATUS_VARIANT[user.status] ?? "secondary"}
+                        size="sm"
                       >
                         {prettify(user.status)}
-                      </span>
+                      </Badge>
                     </TableCell>
                     <TableCell>
                       <Badge
-                        variant="outline"
-                        className={cn(
-                          "font-semibold",
-                          ROLE_STYLES[user.role] ?? FALLBACK_STYLE
-                        )}
+                        variant={ROLE_VARIANT[user.role] ?? "secondary"}
+                        size="sm"
                       >
                         {prettify(user.role)}
                       </Badge>
@@ -242,8 +277,90 @@ export function ManagersTable({
                   </TableRow>
                 )
               })}
+              {paged.length === 0 && (
+                <TableRow>
+                  <TableCell
+                    colSpan={7}
+                    className="text-muted-foreground py-8 text-center text-sm"
+                  >
+                    No users found.
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
+        </div>
+
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-muted-foreground text-sm">
+            {filtered.length} user{filtered.length === 1 ? "" : "s"}
+          </p>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground text-sm">
+                Rows per page
+              </span>
+              <Select
+                value={String(pageSize)}
+                onValueChange={(value) => {
+                  setPageSize(Number(value))
+                  setPage(0)
+                }}
+              >
+                <SelectTrigger className="w-18">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PAGE_SIZES.map((size) => (
+                    <SelectItem key={size} value={String(size)}>
+                      {size}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <span className="text-sm font-medium">
+              Page {currentPage + 1} of {pageCount}
+            </span>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setPage(0)}
+                disabled={currentPage === 0}
+              >
+                <CaretDoubleLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setPage((p) => Math.max(0, p - 1))}
+                disabled={currentPage === 0}
+              >
+                <CaretLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
+                disabled={currentPage >= pageCount - 1}
+              >
+                <CaretRight className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setPage(pageCount - 1)}
+                disabled={currentPage >= pageCount - 1}
+              >
+                <CaretDoubleRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
         </div>
       </CardContent>
 

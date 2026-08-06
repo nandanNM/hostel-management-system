@@ -78,7 +78,7 @@ export function MonthlyBillChart({ data }: { data: MonthlyPoint[] }) {
           config={chartConfig}
           className="aspect-auto! h-full w-full"
         >
-          <BarChart accessibilityLayer data={data}>
+          <BarChart accessibilityLayer data={data} margin={{ top: 24 }}>
             <XAxis
               dataKey="month"
               tickLine={false}
