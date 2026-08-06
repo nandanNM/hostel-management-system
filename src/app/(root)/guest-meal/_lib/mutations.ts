@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 
+import { fireConfetti } from "@/lib/confetti"
 import { GuestMeal } from "@/lib/generated/prisma"
 import { toast } from "@/lib/toast"
 import { GuestMeal as GuestMealValidation } from "@/lib/validations"
@@ -60,6 +61,7 @@ export function useCreateGuestMeal(onOpenChange?: (open: boolean) => void) {
     onSuccess: (result) => {
       if (result.status === "success") {
         onOpenChange?.(false)
+        fireConfetti()
         toast.success("Guest meal request created successfully.")
         queryClient.invalidateQueries({
           queryKey: ["guest-meals", "self", "pending"],
