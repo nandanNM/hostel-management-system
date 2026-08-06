@@ -34,7 +34,7 @@ export function FinanceRadarChart({ data }: { data: RadarPoint[] }) {
     <EvilRadarChart
       data={data}
       config={CHART_CONFIG}
-      className="mx-auto h-56 w-full"
+      className="mx-auto aspect-auto! h-56 w-full"
     >
       <EvilRadarChart.PolarGrid />
       <EvilRadarChart.PolarAngleAxis dataKey="metric" />

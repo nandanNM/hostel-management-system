@@ -21,7 +21,7 @@ export default async function Layout({
   return (
     <SidebarProvider defaultOpen={defaultOpen}>
       <AppSideBar state="MESS_PREFECT" user={user} />
-      <main className="w-full min-w-0">
+      <main className="w-full">
         <Navbar />
         {children}
       </main>
