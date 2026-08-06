@@ -47,9 +47,9 @@ export function SpendBreakdownChart({ data }: { data: Slice[] }) {
       nameKey="category"
       config={CHART_CONFIG}
     >
-      <EvilPieChart.Legend />
+      <EvilPieChart.Legend isClickable />
       <EvilPieChart.Tooltip />
-      <EvilPieChart.Pie innerRadius={55} paddingAngle={3} cornerRadius={6} />
+      <EvilPieChart.Pie isClickable />
     </EvilPieChart>
   )
 }

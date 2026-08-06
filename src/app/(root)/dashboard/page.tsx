@@ -14,8 +14,6 @@ import { PageContainer } from "@/components/page-container"
 import { FinanceOverview } from "./_components/finance-overview"
 import { MealMessageDialog } from "./_components/meal-message-dialog"
 import MealTogleButton from "./_components/meal-togle-button"
-import UserActivity from "./_components/user-activity"
-import UserDetails from "./_components/user-details.tsx"
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -57,7 +55,17 @@ export default async function Page() {
       <div className="mx-auto max-w-7xl px-2 py-8 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h2 className="text-foreground text-2xl font-bold">
-            Welcome back, {user.name}! 👋
+            Welcome back, {user.name}!{" "}
+            <span
+              aria-hidden="true"
+              style={{
+                display: "inline-block",
+                transformOrigin: "70% 70%",
+                animation: "wave 2.5s ease-in-out infinite",
+              }}
+            >
+              👋
+            </span>
           </h2>
           <p className="text-muted-foreground">
             Here&apos;s your mess account overview
@@ -69,19 +77,8 @@ export default async function Page() {
             <Loader variant="spinner" size={20} className="mx-auto my-8" />
           }
         >
-          <FinanceOverview />
+          <FinanceOverview userId={user.id} />
         </Suspense>
-
-        <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <UserDetails userId={user.id} />
-          <Suspense
-            fallback={
-              <Loader variant="spinner" size={20} className="mx-auto" />
-            }
-          >
-            <UserActivity userId={user.id} />
-          </Suspense>
-        </div>
       </div>
     </PageContainer>
   )

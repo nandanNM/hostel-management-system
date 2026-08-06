@@ -6,6 +6,7 @@ import requireManager from "@/data/manager/require-manager"
 import { ApiResponse } from "@/types"
 import { z } from "zod"
 
+import { cacheKeys, invalidate } from "@/lib/cache"
 import { sendDueAddedEmail, sendPaymentReceivedEmail } from "@/lib/email"
 import {
   BillEntryType,
@@ -253,6 +254,7 @@ export async function recordPayment(
     revalidatePath("/manager/users")
     revalidatePath("/mess-prefect/users")
     revalidatePath("/dashboard")
+    await invalidate(cacheKeys.userFinance(userId))
     return {
       status: "success",
       message: `Payment of ₹${amount.toFixed(2)} recorded. New balance: ₹${result.newBalance.toFixed(2)}.`,
@@ -375,6 +377,7 @@ export async function addUserDue(input: AddDueInput): Promise<ApiResponse> {
     revalidatePath("/manager/users")
     revalidatePath("/mess-prefect/users")
     revalidatePath("/dashboard")
+    await invalidate(cacheKeys.userFinance(userId))
     return {
       status: "success",
       message: `Due of ₹${amount.toFixed(2)} added. New balance: ₹${result.newBalance.toFixed(2)}.`,
@@ -487,6 +490,7 @@ export async function addUserAdvance(
     revalidatePath("/manager/users")
     revalidatePath("/mess-prefect/users")
     revalidatePath("/dashboard")
+    await invalidate(cacheKeys.userFinance(userId))
     return {
       status: "success",
       message: `Advance of ₹${amount.toFixed(2)} recorded. New balance: ₹${result.newBalance.toFixed(2)}.`,
@@ -643,6 +647,7 @@ export async function transferUserToAlumni(
     revalidatePath("/mess-prefect/users")
     revalidatePath("/alumni")
     revalidatePath("/dashboard")
+    await invalidate(cacheKeys.userFinance(userId))
     return {
       status: "success",
       message: `${alumniName} transferred to alumni. Their financial records were preserved.`,
