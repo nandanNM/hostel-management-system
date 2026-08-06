@@ -60,6 +60,14 @@
   --shadow-2xl: 0px 1px 0px 0px hsl(0 0% 0% / 0);
   --tracking-normal: 0em;
   --spacing: 0.25rem;
+  --success: var(--color-emerald-500);
+  --success-foreground: var(--color-emerald-900);
+  --info: var(--color-violet-500);
+  --info-foreground: var(--color-violet-900);
+  --warning: var(--color-yellow-500);
+  --warning-foreground: var(--color-yellow-900);
+  --invert: var(--color-zinc-900);
+  --invert-foreground: var(--color-zinc-50);
 }
 
 .dark {
@@ -117,6 +125,14 @@
   --shadow-xl:
     0px 1px 0px 0px hsl(0 0% 0% / 0), 0px 8px 10px -1px hsl(0 0% 0% / 0);
   --shadow-2xl: 0px 1px 0px 0px hsl(0 0% 0% / 0);
+  --success: var(--color-emerald-500);
+  --success-foreground: var(--color-emerald-600);
+  --info: var(--color-violet-500);
+  --info-foreground: var(--color-violet-600);
+  --warning: var(--color-yellow-500);
+  --warning-foreground: var(--color-yellow-600);
+  --invert: var(--color-zinc-700);
+  --invert-foreground: var(--color-zinc-50);
 }
 
 @theme inline {
@@ -170,6 +186,14 @@
   --shadow-lg: var(--shadow-lg);
   --shadow-xl: var(--shadow-xl);
   --shadow-2xl: var(--shadow-2xl);
+  --color-invert-foreground: var(--invert-foreground);
+  --color-invert: var(--invert);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning: var(--warning);
+  --color-info-foreground: var(--info-foreground);
+  --color-info: var(--info);
+  --color-success-foreground: var(--success-foreground);
+  --color-success: var(--success);
 }
 
 body {

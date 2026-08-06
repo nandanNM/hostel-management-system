@@ -9,7 +9,7 @@ import { format } from "date-fns"
 
 import { BillEntryType } from "@/lib/generated/prisma"
 import { cn } from "@/lib/utils"
-import { Badge } from "@/components/ui/badge"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Table,
@@ -19,26 +19,43 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { Badge } from "@/components/reui/badge"
 
+import { MonthlyBillChart } from "./_components/monthly-bill-chart"
 import { SpendBreakdownChart } from "./_components/spend-breakdown-chart"
 import { getTransactionsOverview } from "./_lib/actions"
+
+type BadgeVariant = React.ComponentProps<typeof Badge>["variant"]
 
 function formatMoney(value: number) {
   return `₹${value.toLocaleString("en-IN", { maximumFractionDigits: 2 })}`
 }
 
-const BADGE_CLASS: Partial<Record<BillEntryType, string>> = {
-  PAYMENT: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100",
-  GUEST_MEAL_CHARGE:
-    "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100",
-  FINE_CHARGE: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100",
-  MEAL_CHARGE:
-    "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-100",
+function initials(name: string | null) {
+  if (!name) return "B"
+  return name
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase()
+}
+
+const TYPE_VARIANT: Partial<Record<BillEntryType, BadgeVariant>> = {
+  PAYMENT: "success-light",
+  REFUND: "success-light",
+  ADJUSTMENT_CREDIT: "success-light",
+  MEAL_CHARGE: "primary-light",
+  GUEST_MEAL_CHARGE: "info-light",
+  FINE_CHARGE: "destructive-light",
+  SECURITY_DEPOSIT: "warning-light",
+  ADJUSTMENT_DEBIT: "warning-light",
 }
 
 type Kpi = {
   title: string
   value: string
+  subtitle?: string
   icon: Icon
   iconClass: string
   bgClass: string
@@ -51,7 +68,9 @@ export default async function TransactionsPage() {
     totalCollected,
     totalOutstanding,
     totalFines,
+    finesCollected,
     breakdown,
+    monthly,
     recent,
   } = data
 
@@ -85,6 +104,7 @@ export default async function TransactionsPage() {
     {
       title: "Total Fines",
       value: formatMoney(totalFines),
+      subtitle: `${formatMoney(finesCollected)} collected`,
       icon: Gavel,
       iconClass: "text-blue-600",
       bgClass: "bg-blue-600/10",
@@ -122,11 +142,22 @@ export default async function TransactionsPage() {
                 <p className="text-muted-foreground truncate text-xs font-medium">
                   {kpi.title}
                 </p>
+                {kpi.subtitle && (
+                  <p className="text-muted-foreground truncate text-[11px]">
+                    {kpi.subtitle}
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>
         ))}
       </div>
+
+      <Card className="gap-0 py-0">
+        <CardContent className="p-0">
+          <MonthlyBillChart data={monthly} />
+        </CardContent>
+      </Card>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card className="gap-3">
@@ -203,33 +234,45 @@ export default async function TransactionsPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Date</TableHead>
                     <TableHead>Boarder</TableHead>
                     <TableHead>Type</TableHead>
+                    <TableHead>Date</TableHead>
                     <TableHead className="text-right">Amount</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {recent.map((tx) => (
                     <TableRow key={tx.id}>
-                      <TableCell className="whitespace-nowrap">
-                        {format(new Date(tx.issueDate), "dd MMM yyyy")}
-                      </TableCell>
-                      <TableCell className="font-medium">
-                        {tx.userName ?? "Boarder"}
+                      <TableCell>
+                        <div className="flex items-center gap-2.5">
+                          <Avatar size="sm">
+                            <AvatarImage
+                              src={tx.userImage ?? undefined}
+                              alt={tx.userName ?? "Boarder"}
+                            />
+                            <AvatarFallback>
+                              {initials(tx.userName)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="text-sm font-medium">
+                            {tx.userName ?? "Boarder"}
+                          </span>
+                        </div>
                       </TableCell>
                       <TableCell>
                         <Badge
-                          className={cn(
-                            BADGE_CLASS[tx.type] ?? "bg-muted text-foreground"
-                          )}
+                          variant={TYPE_VARIANT[tx.type] ?? "secondary"}
+                          size="sm"
                         >
                           {tx.type.replace(/_/g, " ")}
                         </Badge>
                       </TableCell>
+                      <TableCell className="text-muted-foreground text-sm whitespace-nowrap">
+                        {format(new Date(tx.issueDate), "dd MMM yyyy")}
+                      </TableCell>
                       <TableCell
                         className={cn(
-                          "text-right font-bold tabular-nums",
+                          "text-right font-mono font-semibold tabular-nums",
                           tx.amount > 0
                             ? "text-destructive"
                             : "text-green-600 dark:text-green-400"

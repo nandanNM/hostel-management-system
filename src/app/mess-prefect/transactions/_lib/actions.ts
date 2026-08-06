@@ -1,6 +1,7 @@
 "use server"
 
 import requireMessPrefect from "@/data/mess-prefect/require-mess-prefect"
+import { format, startOfMonth, subMonths } from "date-fns"
 
 import { BillEntryType } from "@/lib/generated/prisma"
 import prisma from "@/lib/prisma"
@@ -10,7 +11,7 @@ export async function getTransactionsOverview() {
 
   const [bills, recent] = await Promise.all([
     prisma.userBill.findMany({
-      select: { type: true, amount: true, isPaid: true },
+      select: { type: true, amount: true, isPaid: true, issueDate: true },
     }),
     prisma.userBill.findMany({
       orderBy: { issueDate: "desc" },
@@ -21,7 +22,7 @@ export async function getTransactionsOverview() {
         amount: true,
         description: true,
         issueDate: true,
-        user: { select: { name: true } },
+        user: { select: { name: true, image: true } },
       },
     }),
   ])
@@ -29,9 +30,17 @@ export async function getTransactionsOverview() {
   let meal = 0
   let guest = 0
   let fine = 0
+  let finesCollected = 0
   let other = 0
   let collected = 0
   let outstanding = 0
+
+  const base = startOfMonth(new Date())
+  const monthKeys = Array.from({ length: 12 }, (_, i) => {
+    const date = subMonths(base, 11 - i)
+    return { key: format(date, "yyyy-MM"), label: format(date, "MMM") }
+  })
+  const monthTotals = new Map(monthKeys.map((m) => [m.key, 0]))
 
   for (const bill of bills) {
     switch (bill.type) {
@@ -43,6 +52,7 @@ export async function getTransactionsOverview() {
         break
       case BillEntryType.FINE_CHARGE:
         fine += bill.amount
+        if (bill.isPaid) finesCollected += bill.amount
         break
       case BillEntryType.SECURITY_DEPOSIT:
       case BillEntryType.ADJUSTMENT_DEBIT:
@@ -54,7 +64,13 @@ export async function getTransactionsOverview() {
         collected += Math.abs(bill.amount)
         break
     }
-    if (bill.amount > 0 && !bill.isPaid) outstanding += bill.amount
+    if (bill.amount > 0) {
+      if (!bill.isPaid) outstanding += bill.amount
+      const key = format(bill.issueDate, "yyyy-MM")
+      if (monthTotals.has(key)) {
+        monthTotals.set(key, monthTotals.get(key)! + bill.amount)
+      }
+    }
   }
 
   const totalCharges = meal + guest + fine + other
@@ -66,12 +82,19 @@ export async function getTransactionsOverview() {
     { category: "other", label: "Other", amount: other },
   ].filter((slice) => slice.amount > 0)
 
+  const monthly = monthKeys.map((m) => ({
+    month: m.label,
+    total: Math.round(monthTotals.get(m.key)!),
+  }))
+
   return {
     totalCharges,
     totalCollected: collected,
     totalOutstanding: outstanding,
     totalFines: fine,
+    finesCollected,
     breakdown,
+    monthly,
     recent: recent.map((bill) => ({
       id: bill.id,
       type: bill.type,
@@ -79,6 +102,7 @@ export async function getTransactionsOverview() {
       description: bill.description,
       issueDate: bill.issueDate,
       userName: bill.user.name,
+      userImage: bill.user.image,
     })),
   }
 }
