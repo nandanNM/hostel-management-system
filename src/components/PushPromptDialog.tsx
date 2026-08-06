@@ -5,6 +5,8 @@ import { PushPermissionDeniedError } from "@/helpers/pushService"
 import { registerServiceWorker } from "@/helpers/serviceWorker"
 import { BellRinging } from "@phosphor-icons/react"
 
+import { fireConfetti } from "@/lib/confetti"
+import { haptic } from "@/lib/haptic"
 import { toast } from "@/lib/toast"
 import {
   useDismissPushPrompt,
@@ -61,6 +63,8 @@ export default function PushPromptDialog() {
     explicitActionRef.current = true
     enablePush(true, {
       onSuccess: () => {
+        fireConfetti()
+        haptic()
         toast.success("Push notifications enabled.")
         setOpen(false)
       },
