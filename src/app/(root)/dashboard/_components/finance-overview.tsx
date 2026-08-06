@@ -109,9 +109,9 @@ export async function FinanceOverview({ userId }: { userId: string }) {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-10">
-        <div className="space-y-6 lg:col-span-7">
+        <div className="min-w-0 space-y-6 lg:col-span-7">
           <div className="grid gap-6 sm:grid-cols-2">
-            <Card className="gap-3">
+            <Card className="min-w-0 gap-3">
               <CardHeader>
                 <CardTitle className="text-base">
                   Where your money goes
@@ -122,7 +122,7 @@ export async function FinanceOverview({ userId }: { userId: string }) {
               </CardContent>
             </Card>
 
-            <Card className="gap-3">
+            <Card className="min-w-0 gap-3">
               <CardHeader>
                 <CardTitle className="text-base">Account breakdown</CardTitle>
               </CardHeader>
@@ -135,7 +135,7 @@ export async function FinanceOverview({ userId }: { userId: string }) {
           <UserDetails userId={userId} />
         </div>
 
-        <div className="lg:col-span-3">
+        <div className="min-w-0 lg:col-span-3">
           <Suspense
             fallback={
               <Loader variant="spinner" size={20} className="mx-auto my-8" />
