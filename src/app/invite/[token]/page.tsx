@@ -1,6 +1,6 @@
 import { Metadata } from "next"
 import { cookies } from "next/headers"
-import { signIn } from "@/auth"
+import { INVITE_COOKIE, signIn } from "@/auth"
 import { RiGoogleFill } from "@remixicon/react"
 
 import { verifyInviteToken } from "@/lib/invitations"
@@ -16,9 +16,6 @@ import {
 export const metadata: Metadata = {
   title: "Mess invitation",
 }
-
-/** Read by the sign-in flow so it knows this account arrived via an invite. */
-export const INVITE_COOKIE = "mess_invite"
 
 const INVALID_COPY: Record<string, string> = {
   expired: "This invitation has expired. Ask the mess prefect for a new one.",

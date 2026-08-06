@@ -1,10 +1,17 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { Copy, PaperPlaneTilt } from "@phosphor-icons/react"
+import {
+  Calendar as CalendarIcon,
+  Copy,
+  PaperPlaneTilt,
+} from "@phosphor-icons/react"
+import { addDays, format, startOfDay } from "date-fns"
 
 import { toast } from "@/lib/toast"
+import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { Calendar } from "@/components/ui/calendar"
 import {
   Card,
   CardContent,
@@ -14,25 +21,34 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import LoadingButton from "@/components/LoadingButton"
 
 import { sendTemporaryBoarderInvite } from "../_lib/actions"
 
 export function InviteForm() {
   const [email, setEmail] = useState("")
-  const [stayUntil, setStayUntil] = useState("")
+  const [stayUntil, setStayUntil] = useState<Date | undefined>()
   const [link, setLink] = useState<string | null>(null)
   const [isSending, startSending] = useTransition()
 
   const submit = () =>
     startSending(async () => {
-      const result = await sendTemporaryBoarderInvite({ email, stayUntil })
+      const result = await sendTemporaryBoarderInvite({
+        email,
+        // The action takes yyyy-MM-dd; the picker works in Date.
+        stayUntil: stayUntil ? format(stayUntil, "yyyy-MM-dd") : undefined,
+      })
 
       if (result.status === "success") {
         toast.success(result.message)
         setLink(result.link ?? null)
         setEmail("")
-        setStayUntil("")
+        setStayUntil(undefined)
       } else {
         toast.error(result.message)
       }
@@ -61,12 +77,34 @@ export function InviteForm() {
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="invite-stay-until">Stay until (optional)</Label>
-            <Input
-              id="invite-stay-until"
-              type="date"
-              value={stayUntil}
-              onChange={(event) => setStayUntil(event.target.value)}
-            />
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  id="invite-stay-until"
+                  type="button"
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !stayUntil && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4 opacity-50" />
+                  {stayUntil ? format(stayUntil, "PPP") : "Pick a date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={stayUntil}
+                  onSelect={setStayUntil}
+                  disabled={(date) =>
+                    startOfDay(date) < startOfDay(new Date()) ||
+                    startOfDay(date) > startOfDay(addDays(new Date(), 365))
+                  }
+                  captionLayout="dropdown"
+                />
+              </PopoverContent>
+            </Popover>
             <p className="text-muted-foreground text-xs">
               Shown in the invitation email so the guest knows the arrangement.
             </p>

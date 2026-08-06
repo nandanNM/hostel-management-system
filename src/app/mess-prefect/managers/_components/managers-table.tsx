@@ -60,6 +60,7 @@ export interface ManagerUser {
 
 const ROLE_STYLES: Record<UserRoleType, string> = {
   STUDENT: "bg-secondary text-secondary-foreground",
+  TEMPORARY_BOARDER: "bg-muted text-muted-foreground",
   STAFF: "bg-blue-100 text-blue-700",
   MANAGER: "bg-primary/15 text-primary",
   MESS_PREFECT: "bg-amber-100 text-amber-700",
