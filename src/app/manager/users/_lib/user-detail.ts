@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { notFound } from "next/navigation"
+import { after } from "next/server"
 import requireManager from "@/data/manager/require-manager"
 import { ApiResponse } from "@/types"
 import { z } from "zod"
@@ -18,6 +19,7 @@ import {
 } from "@/lib/generated/prisma"
 import getSession from "@/lib/get-session"
 import prisma from "@/lib/prisma"
+import { sendPushToUser } from "@/lib/push"
 
 const CHARGE_TYPES = [
   BillEntryType.MEAL_CHARGE,
@@ -240,6 +242,16 @@ export async function recordPayment(
       },
     })
 
+    after(() =>
+      sendPushToUser(userId, {
+        title: "Payment recorded",
+        body: `A payment of ₹${amount.toFixed(2)} was recorded to your account. Outstanding due: ₹${result.newBalance.toFixed(2)}.`,
+        icon: "/app-icon-192.png",
+        url: "/dashboard",
+        tag: `payment-${result.billId}`,
+      }).catch((err) => console.error("Push notification failed:", err))
+    )
+
     if (target.email) {
       await sendPaymentReceivedEmail({
         to: target.email,
@@ -363,6 +375,16 @@ export async function addUserDue(input: AddDueInput): Promise<ApiResponse> {
       },
     })
 
+    after(() =>
+      sendPushToUser(userId, {
+        title: "Due added to your account",
+        body: `A due of ₹${amount.toFixed(2)} was added (${description}). Outstanding due: ₹${result.newBalance.toFixed(2)}.`,
+        icon: "/app-icon-192.png",
+        url: "/dashboard",
+        tag: `due-${result.billId}`,
+      }).catch((err) => console.error("Push notification failed:", err))
+    )
+
     if (target.email) {
       await sendDueAddedEmail({
         to: target.email,
@@ -474,6 +496,16 @@ export async function addUserAdvance(
         issuer: { connect: { id: actorId } },
       },
     })
+
+    after(() =>
+      sendPushToUser(userId, {
+        title: "Advance recorded",
+        body: `An advance of ₹${amount.toFixed(2)} was recorded to your account. Outstanding due: ₹${result.newBalance.toFixed(2)}.`,
+        icon: "/app-icon-192.png",
+        url: "/dashboard",
+        tag: `advance-${result.billId}`,
+      }).catch((err) => console.error("Push notification failed:", err))
+    )
 
     if (target.email) {
       await sendPaymentReceivedEmail({
@@ -648,6 +680,17 @@ export async function transferUserToAlumni(
     revalidatePath("/alumni")
     revalidatePath("/dashboard")
     await invalidate(cacheKeys.userFinance(userId))
+
+    after(() =>
+      sendPushToUser(userId, {
+        title: "Congratulations, graduate! 🎓",
+        body: "You've been transferred to alumni status. Thank you for being part of D.L Bhawan — wishing you the very best ahead!",
+        icon: "/app-icon-192.png",
+        url: "/alumni",
+        tag: `alumni-${userId}`,
+      }).catch((err) => console.error("Push notification failed:", err))
+    )
+
     return {
       status: "success",
       message: `${alumniName} transferred to alumni. Their financial records were preserved.`,

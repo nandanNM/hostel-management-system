@@ -1,3 +1,5 @@
+import { after } from "next/server"
+
 import { canManage, isManager } from "@/lib/authz"
 import { cacheKeys, invalidate } from "@/lib/cache"
 import {
@@ -19,6 +21,7 @@ import getSession from "@/lib/get-session"
 import { resolveOffering } from "@/lib/meal-priority"
 import { getMessConfig } from "@/lib/mess-config"
 import prisma from "@/lib/prisma"
+import { sendPushToUsers } from "@/lib/push"
 import { getCurrentMealSlot } from "@/lib/utils"
 
 import { calculateActualNonVegMeal } from "./_lib/utils"
@@ -256,6 +259,20 @@ export async function POST() {
     // invalidation only means the TTL decides instead.
     const { year, month } = istParts(now)
     await invalidate(cacheKeys.leaderboard(year, month))
+
+    const affectedUserIds = attendanceRecordsToCreate.map((r) => r.userId)
+    if (affectedUserIds.length > 0) {
+      const mealLabel = mealTime === "LUNCH" ? "Lunch" : "Dinner"
+      after(() =>
+        sendPushToUsers(affectedUserIds, {
+          title: `${mealLabel} count generated`,
+          body: `Today's ${mealLabel.toLowerCase()} count is in — ${totalMeals} meals recorded for D.L Bhawan.`,
+          icon: "/app-icon-192.png",
+          url: "/dashboard",
+          tag: `meal-count-${mealTime}-${todayStart.toISOString()}`,
+        }).catch((err) => console.error("Push notification failed:", err))
+      )
+    }
 
     return Response.json(result, { status: 200 })
   } catch (error) {

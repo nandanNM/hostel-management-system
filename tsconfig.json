@@ -31,5 +31,5 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],
-  "exclude": ["node_modules", "next-js-15-snapebook-socel-app"]
+  "exclude": ["node_modules"]
 }
