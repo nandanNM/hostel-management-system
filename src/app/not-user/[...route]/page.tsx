@@ -13,6 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { RestrictedAccessActions } from "@/components/restricted-access-actions"
 
 export default async function StatusPage({
   params,
@@ -85,6 +86,8 @@ export default async function StatusPage({
             <MessageCircle className="h-5 w-5" />
             Message the Admin
           </a>
+
+          <RestrictedAccessActions />
 
           <Link
             href="/"

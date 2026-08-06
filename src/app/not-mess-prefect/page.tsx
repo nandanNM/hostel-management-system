@@ -10,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { RestrictedAccessActions } from "@/components/restricted-access-actions"
 
 export default function NotMessPrefectRoute() {
   return (
@@ -25,7 +26,8 @@ export default function NotMessPrefectRoute() {
             permission to access these controls.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex flex-col gap-3">
+          <RestrictedAccessActions />
           <Link
             href="/"
             className={buttonVariants({

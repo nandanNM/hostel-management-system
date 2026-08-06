@@ -73,23 +73,28 @@ export function MonthlyBillChart({ data }: { data: MonthlyPoint[] }) {
         </div>
       </div>
       <hr className="my-4 border-t border-dashed" />
-      <ChartContainer config={chartConfig} className="aspect-auto! h-56 w-full">
-        <BarChart accessibilityLayer data={data}>
-          <XAxis
-            dataKey="month"
-            tickLine={false}
-            tickMargin={10}
-            axisLine={false}
-            tickFormatter={(value) => String(value).slice(0, 3)}
-          />
-          <Bar
-            dataKey="total"
-            fill="var(--color-total-0)"
-            shape={BarShape}
-            activeBar={BarShape}
-          />
-        </BarChart>
-      </ChartContainer>
+      <div className="h-64 w-full">
+        <ChartContainer
+          config={chartConfig}
+          className="aspect-auto! h-full w-full"
+        >
+          <BarChart accessibilityLayer data={data}>
+            <XAxis
+              dataKey="month"
+              tickLine={false}
+              tickMargin={10}
+              axisLine={false}
+              tickFormatter={(value) => String(value).slice(0, 3)}
+            />
+            <Bar
+              dataKey="total"
+              fill="var(--color-total-0)"
+              shape={BarShape}
+              activeBar={BarShape}
+            />
+          </BarChart>
+        </ChartContainer>
+      </div>
     </div>
   )
 }

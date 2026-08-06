@@ -10,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { RestrictedAccessActions } from "@/components/restricted-access-actions"
 
 export default function NotManagerRoute() {
   return (
@@ -25,7 +26,8 @@ export default function NotManagerRoute() {
             this type of action like that...
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex flex-col gap-3">
+          <RestrictedAccessActions />
           <Link
             href="/"
             className={buttonVariants({
