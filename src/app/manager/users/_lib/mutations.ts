@@ -2,6 +2,7 @@ import { useRouter } from "next/navigation"
 import { useMutation } from "@tanstack/react-query"
 
 import { fireConfetti } from "@/lib/confetti"
+import { haptic } from "@/lib/haptic"
 import { toast } from "@/lib/toast"
 
 import {
@@ -22,6 +23,7 @@ export function useRecordPayment() {
     onSuccess: (res) => {
       if (res.status === "success") {
         fireConfetti()
+        haptic()
         toast.success(res.message)
         router.refresh()
       } else {
@@ -39,6 +41,7 @@ export function useAddUserAdvance() {
     onSuccess: (res) => {
       if (res.status === "success") {
         fireConfetti()
+        haptic()
         toast.success(res.message)
         router.refresh()
       } else {
@@ -72,6 +75,7 @@ export function useTransferUserToAlumni() {
     onSuccess: (res) => {
       if (res.status === "success") {
         fireConfetti()
+        haptic()
         toast.success(res.message)
         router.push("/mess-prefect/users")
         router.refresh()

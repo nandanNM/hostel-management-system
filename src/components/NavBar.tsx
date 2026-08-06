@@ -8,7 +8,7 @@ import { List as Menu } from "@phosphor-icons/react"
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 
 import NavNotifications from "./NavNotifications"
-import { ThemeSwitcher } from "./ThemeSwitcher"
+import { ThemeSwitcher } from "./theme-switcher"
 import { Badge } from "./ui/badge"
 import UserButton from "./UserButton"
 

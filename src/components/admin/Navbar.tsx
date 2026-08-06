@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { Bell } from "@phosphor-icons/react"
 
-import { ThemeSwitcher } from "../ThemeSwitcher"
+import { ThemeSwitcher } from "../theme-switcher"
 import { SidebarTrigger } from "../ui/sidebar"
 
 const Navbar = () => {

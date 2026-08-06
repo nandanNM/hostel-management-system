@@ -19,7 +19,11 @@
     "hooks": "@/hooks"
   },
   "registries": {
+<<<<<<< HEAD
     "@evilcharts": "https://evilcharts.com/r/{name}.json",
     "@reui": "https://reui.io/r/{style}/{name}.json"
+=======
+    "@ncdai": "https://chanhdai.com/r/{name}.json"
+>>>>>>> feat/temporary-boarder-invites
   }
 }

@@ -2,6 +2,7 @@ import { useRouter } from "next/navigation"
 import { useMutation } from "@tanstack/react-query"
 
 import { fireConfetti } from "@/lib/confetti"
+import { haptic } from "@/lib/haptic"
 import { toast } from "@/lib/toast"
 
 import {
@@ -35,6 +36,7 @@ export function useFinalizeBills() {
     onSuccess: (res) => {
       if (res.status === "success") {
         fireConfetti()
+        haptic()
         toast.success(res.message)
         router.refresh()
       } else {
