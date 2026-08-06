@@ -35,6 +35,10 @@ model User {
 
   deletedAt DateTime? @map("deleted_at")
 
+  pushEnabled        Boolean   @default(false) @map("push_enabled")
+  pushPromptRemindAt DateTime? @map("push_prompt_remind_at")
+  pushPromptSkipped  Boolean   @default(false) @map("push_prompt_skipped")
+
   meals                 Meal[]
   guestMeals            GuestMeal[]
   payments              UserPayment[]
@@ -54,6 +58,7 @@ model User {
   GuestMeal             GuestMeal[]         @relation("GuestMealApprover")
   UserFine              UserFine[]          @relation("FineWaiver")
   generatedMealCounts   DailyMealActivity[] @relation("MealCountGenerator")
+  subscriptions         Subscription[]
   messConfigUpdates     MessConfig[]        @relation("MessConfigEditor")
 
   createdAt DateTime @default(now()) @map("created_at")
@@ -586,4 +591,18 @@ model GuestMealRate {
 
   @@unique([mealTime, type, nonVegType])
   @@map("guest_meal_rates")
+}
+
+model Subscription {
+  id       String @id @default(cuid())
+  endpoint String @unique
+  p256dh   String
+  auth     String
+  userId   String @map("user_id")
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@map("subscriptions")
 }

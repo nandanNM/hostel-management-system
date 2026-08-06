@@ -41,3 +41,6 @@ yarn-error.log*
 next-env.d.ts
 
 /src/lib/generated/prisma
+
+# local reference checkout, not part of this app
+/next-js-15-snapebook-socel-app
