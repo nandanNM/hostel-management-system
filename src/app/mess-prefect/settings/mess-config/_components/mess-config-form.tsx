@@ -15,6 +15,14 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Switch } from "@/components/ui/switch"
+import {
   Table,
   TableBody,
   TableCell,
@@ -37,77 +45,155 @@ type MessConfigFormProps = {
   rates: GuestMealRateRow[]
 }
 
-const NUMBER_FIELDS: {
-  key: Exclude<keyof MessConfigInput, "nonVegPriority">
-  label: string
-  hint: string
-  suffix?: string
-}[] = [
-  {
-    key: "guestBookingMaxDaysAhead",
-    label: "Booking horizon",
-    hint: "How many days ahead a guest meal can be booked. 0 means today only.",
-    suffix: "days",
-  },
-  {
-    key: "guestBookingCutoffMinutes",
-    label: "Booking cutoff",
-    hint: "Same-day bookings close this many minutes before the slot starts.",
-    suffix: "minutes",
-  },
-  {
-    key: "lunchStartMinute",
-    label: "Lunch starts",
-    hint: "Minutes after midnight IST. 750 is 12:30 PM.",
-  },
-  {
-    key: "dinnerStartMinute",
-    label: "Dinner starts",
-    hint: "Minutes after midnight IST. 1230 is 8:30 PM.",
-  },
-  {
-    key: "maxGuestsPerBooking",
-    label: "Guests per booking",
-    hint: "Largest number of guest meals in one request. 0 removes the cap.",
-    suffix: "meals",
-  },
-  {
-    key: "maxGuestMealsPerUserPerMonth",
-    label: "Monthly quota per boarder",
-    hint: "Total guest meals one boarder can book in a month. 0 removes the cap.",
-    suffix: "meals",
-  },
-  {
-    key: "mealPreferenceLockMinutes",
-    label: "Preference lock",
-    hint: "How long meal preferences stay locked after a count is generated.",
-    suffix: "minutes",
-  },
-  {
-    key: "guestMealFallbackCharge",
-    label: "Fallback charge",
-    hint: "Used when no rate and no menu item cost is configured.",
-    suffix: "₹",
-  },
+type Option = { value: number; label: string }
+
+const HORIZON_OPTIONS: Option[] = [
+  { value: 0, label: "Today only" },
+  { value: 1, label: "1 day ahead" },
+  { value: 2, label: "2 days ahead" },
+  { value: 3, label: "3 days ahead" },
+  { value: 7, label: "1 week ahead" },
+  { value: 14, label: "2 weeks ahead" },
+  { value: 30, label: "1 month ahead" },
 ]
 
-function minuteLabel(minute: number) {
-  const h24 = Math.floor(minute / 60) % 24
-  const mm = String(minute % 60).padStart(2, "0")
-  const suffix = h24 < 12 ? "AM" : "PM"
-  const h12 = h24 % 12 === 0 ? 12 : h24 % 12
-  return `${h12}:${mm} ${suffix}`
+const CUTOFF_OPTIONS: Option[] = [
+  { value: 0, label: "At slot start (no early cutoff)" },
+  { value: 15, label: "15 minutes before" },
+  { value: 30, label: "30 minutes before" },
+  { value: 60, label: "1 hour before" },
+  { value: 90, label: "1.5 hours before" },
+  { value: 120, label: "2 hours before" },
+  { value: 180, label: "3 hours before" },
+]
+
+const LOCK_OPTIONS: Option[] = [
+  { value: 0, label: "No lock" },
+  { value: 30, label: "30 minutes" },
+  { value: 60, label: "1 hour" },
+  { value: 120, label: "2 hours" },
+  { value: 180, label: "3 hours" },
+  { value: 360, label: "6 hours" },
+]
+
+function minuteToInputTime(minute: number) {
+  const h = Math.floor(minute / 60) % 24
+  const m = minute % 60
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`
+}
+
+function inputTimeToMinute(value: string) {
+  const [h, m] = value.split(":").map(Number)
+  return (h || 0) * 60 + (m || 0)
 }
 
 function prettify(value: string) {
   return value.charAt(0) + value.slice(1).toLowerCase()
 }
 
+function PresetSelect({
+  id,
+  value,
+  options,
+  onChange,
+}: {
+  id: string
+  value: number
+  options: Option[]
+  onChange: (value: number) => void
+}) {
+  const list = options.some((o) => o.value === value)
+    ? options
+    : [...options, { value, label: String(value) }].sort(
+        (a, b) => a.value - b.value
+      )
+
+  return (
+    <Select value={String(value)} onValueChange={(v) => onChange(Number(v))}>
+      <SelectTrigger id={id} className="w-full">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {list.map((option) => (
+          <SelectItem key={option.value} value={String(option.value)}>
+            {option.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  )
+}
+
+function CapField({
+  id,
+  label,
+  unit,
+  hint,
+  value,
+  defaultValue,
+  onChange,
+}: {
+  id: string
+  label: string
+  unit: string
+  hint: string
+  value: number
+  defaultValue: number
+  onChange: (value: number) => void
+}) {
+  const enabled = value > 0
+
+  return (
+    <div className="space-y-2 rounded-lg border p-4">
+      <div className="flex items-center justify-between gap-3">
+        <Label htmlFor={id} className="cursor-pointer">
+          {label}
+        </Label>
+        <Switch
+          checked={enabled}
+          onCheckedChange={(checked) =>
+            onChange(checked ? (value > 0 ? value : defaultValue) : 0)
+          }
+        />
+      </div>
+      {enabled ? (
+        <div className="flex items-center gap-2">
+          <Input
+            id={id}
+            type="number"
+            inputMode="numeric"
+            min={1}
+            value={value}
+            onChange={(event) =>
+              onChange(Math.max(1, Number(event.target.value) || 1))
+            }
+            className="w-28"
+          />
+          <span className="text-muted-foreground text-sm whitespace-nowrap">
+            {unit}
+          </span>
+        </div>
+      ) : (
+        <p className="text-muted-foreground text-sm">
+          No limit — guests can book any number.
+        </p>
+      )}
+      <p className="text-muted-foreground text-xs">{hint}</p>
+    </div>
+  )
+}
+
 export function MessConfigForm({ config, rates }: MessConfigFormProps) {
-  const [values, setValues] = useState<MessConfigInput>(config)
+  const [values, setValues] = useState<MessConfigInput>(() => ({
+    ...config,
+    guestBookingMaxDaysAhead: Math.max(0, config.guestBookingMaxDaysAhead),
+  }))
   const [rateRows, setRateRows] = useState(rates)
   const [isSaving, startSaving] = useTransition()
   const [isResetting, startResetting] = useTransition()
+
+  const set = (key: keyof MessConfigInput, value: number) =>
+    setValues((prev) => ({ ...prev, [key]: value }))
 
   const movePriority = (index: number, direction: -1 | 1) => {
     const target = index + direction
@@ -117,14 +203,6 @@ export function MessConfigForm({ config, rates }: MessConfigFormProps) {
     if (!moved) return
     next.splice(target, 0, moved)
     setValues({ ...values, nonVegPriority: next })
-  }
-
-  const setNumber = (key: keyof MessConfigInput, raw: string) => {
-    const parsed = Number(raw)
-    setValues({
-      ...values,
-      [key]: Number.isFinite(parsed) ? parsed : 0,
-    })
   }
 
   const save = () =>
@@ -208,50 +286,149 @@ export function MessConfigForm({ config, rates }: MessConfigFormProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Guest meal rules</CardTitle>
+          <CardTitle>When can guests book?</CardTitle>
           <CardDescription>
-            These are enforced when a booking is submitted, not only in the
-            form.
+            Control how far ahead and how late a guest meal can be booked.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
-          {NUMBER_FIELDS.map((field) => (
-            <div key={field.key} className="space-y-1.5">
-              <Label htmlFor={field.key}>{field.label}</Label>
-              <div className="flex items-center gap-2">
-                <Input
-                  id={field.key}
-                  type="number"
-                  inputMode="numeric"
-                  value={values[field.key]}
-                  onChange={(event) => setNumber(field.key, event.target.value)}
-                />
-                {field.suffix && (
-                  <span className="text-muted-foreground text-sm whitespace-nowrap">
-                    {field.suffix}
-                  </span>
-                )}
-              </div>
-              <p className="text-muted-foreground text-xs">
-                {field.hint}
-                {(field.key === "lunchStartMinute" ||
-                  field.key === "dinnerStartMinute") &&
-                  ` Currently ${minuteLabel(values[field.key])}.`}
-              </p>
-            </div>
-          ))}
+          <div className="space-y-1.5">
+            <Label htmlFor="horizon">How far ahead can guests book?</Label>
+            <PresetSelect
+              id="horizon"
+              value={values.guestBookingMaxDaysAhead}
+              options={HORIZON_OPTIONS}
+              onChange={(v) => set("guestBookingMaxDaysAhead", v)}
+            />
+            <p className="text-muted-foreground text-xs">
+              How early a guest meal can be reserved in advance.
+            </p>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="cutoff">Booking closes</Label>
+            <PresetSelect
+              id="cutoff"
+              value={values.guestBookingCutoffMinutes}
+              options={CUTOFF_OPTIONS}
+              onChange={(v) => set("guestBookingCutoffMinutes", v)}
+            />
+            <p className="text-muted-foreground text-xs">
+              Same-day bookings stop this long before the meal starts.
+            </p>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="lunch">Lunch starts at</Label>
+            <Input
+              id="lunch"
+              type="time"
+              value={minuteToInputTime(values.lunchStartMinute)}
+              onChange={(event) =>
+                set("lunchStartMinute", inputTimeToMinute(event.target.value))
+              }
+            />
+            <p className="text-muted-foreground text-xs">
+              The time the lunch slot opens.
+            </p>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="dinner">Dinner starts at</Label>
+            <Input
+              id="dinner"
+              type="time"
+              value={minuteToInputTime(values.dinnerStartMinute)}
+              onChange={(event) =>
+                set("dinnerStartMinute", inputTimeToMinute(event.target.value))
+              }
+            />
+            <p className="text-muted-foreground text-xs">
+              The time the dinner slot opens.
+            </p>
+          </div>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Guest meal rates</CardTitle>
+          <CardTitle>How many guest meals are allowed?</CardTitle>
           <CardDescription>
-            Overrides the menu item cost. Leave a row unset to keep using the
-            menu item price.
+            Turn a limit off to allow any number, or turn it on to set a cap.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="grid gap-4 sm:grid-cols-2">
+          <CapField
+            id="maxGuestsPerBooking"
+            label="Limit guests per booking"
+            unit="meals per booking"
+            hint="The most guest meals allowed in a single request."
+            value={values.maxGuestsPerBooking}
+            defaultValue={5}
+            onChange={(v) => set("maxGuestsPerBooking", v)}
+          />
+          <CapField
+            id="maxGuestMealsPerUserPerMonth"
+            label="Limit monthly quota per boarder"
+            unit="meals per month"
+            hint="The most guest meals one boarder can book in a month."
+            value={values.maxGuestMealsPerUserPerMonth}
+            defaultValue={20}
+            onChange={(v) => set("maxGuestMealsPerUserPerMonth", v)}
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Meal preference lock</CardTitle>
+          <CardDescription>
+            How long boarders are stopped from changing their meal preference
+            after a count is generated.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="sm:max-w-xs">
+          <PresetSelect
+            id="preferenceLock"
+            value={values.mealPreferenceLockMinutes}
+            options={LOCK_OPTIONS}
+            onChange={(v) => set("mealPreferenceLockMinutes", v)}
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Guest meal pricing</CardTitle>
+          <CardDescription>
+            Rates override the menu item cost. Leave a row unset to keep using
+            the menu item price.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="space-y-1.5 sm:max-w-xs">
+            <Label htmlFor="fallbackCharge">Fallback charge</Label>
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground text-sm">₹</span>
+              <Input
+                id="fallbackCharge"
+                type="number"
+                inputMode="numeric"
+                min={0}
+                value={values.guestMealFallbackCharge}
+                onChange={(event) =>
+                  set(
+                    "guestMealFallbackCharge",
+                    Math.max(0, Number(event.target.value) || 0)
+                  )
+                }
+              />
+            </div>
+            <p className="text-muted-foreground text-xs">
+              Charged when no rate below and no menu item cost is configured.
+            </p>
+          </div>
+
           <div className="overflow-x-auto rounded-md border">
             <Table>
               <TableHeader>
