@@ -41,15 +41,15 @@ export function SpendBreakdownChart({ data }: { data: Slice[] }) {
 
   return (
     <EvilPieChart
-      className="mx-auto h-64 w-full"
+      className="mx-auto aspect-auto! h-64 w-full"
       data={data}
       dataKey="amount"
       nameKey="category"
       config={CHART_CONFIG}
     >
-      <EvilPieChart.Legend />
+      <EvilPieChart.Legend isClickable />
       <EvilPieChart.Tooltip />
-      <EvilPieChart.Pie innerRadius={55} paddingAngle={3} cornerRadius={6} />
+      <EvilPieChart.Pie isClickable />
     </EvilPieChart>
   )
 }
