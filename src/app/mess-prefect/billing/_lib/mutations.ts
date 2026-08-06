@@ -1,6 +1,7 @@
 import { useRouter } from "next/navigation"
 import { useMutation } from "@tanstack/react-query"
 
+import { fireConfetti } from "@/lib/confetti"
 import { toast } from "@/lib/toast"
 
 import {
@@ -33,6 +34,7 @@ export function useFinalizeBills() {
     mutationFn: (auditId: string) => finalizeAndDistributeBills(auditId),
     onSuccess: (res) => {
       if (res.status === "success") {
+        fireConfetti()
         toast.success(res.message)
         router.refresh()
       } else {
