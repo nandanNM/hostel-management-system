@@ -1,7 +1,6 @@
 import { Suspense } from "react"
 import type { Icon } from "@phosphor-icons/react"
 import {
-  ForkKnife,
   Gavel,
   Receipt,
   Wallet,
@@ -35,14 +34,7 @@ export async function FinanceOverview({ userId }: { userId: string }) {
   const data = await getUserFinanceOverview()
   if (!data) return null
 
-  const {
-    totalCharges,
-    totalPaid,
-    pendingDues,
-    totalFines,
-    attendanceThisMonth,
-    breakdown,
-  } = data
+  const { totalCharges, totalPaid, pendingDues, totalFines, breakdown } = data
 
   const amountOf = (category: string) =>
     breakdown.find((slice) => slice.category === category)?.amount ?? 0
@@ -87,19 +79,11 @@ export async function FinanceOverview({ userId }: { userId: string }) {
       iconClass: "text-blue-600",
       bgClass: "bg-blue-600/10",
     },
-    {
-      title: "Meals This Month",
-      value: String(attendanceThisMonth),
-      subtitle: "Attendances",
-      icon: ForkKnife,
-      iconClass: "text-violet-600",
-      bgClass: "bg-violet-600/10",
-    },
   ]
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {kpis.map((kpi) => (
           <Card key={kpi.title} className="gap-0 py-0">
             <CardContent className="flex items-center gap-3 p-4">
@@ -133,7 +117,7 @@ export async function FinanceOverview({ userId }: { userId: string }) {
                   Where your money goes
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="min-w-0 overflow-hidden">
                 <SpendBreakdownChart data={breakdown} />
               </CardContent>
             </Card>
@@ -142,7 +126,7 @@ export async function FinanceOverview({ userId }: { userId: string }) {
               <CardHeader>
                 <CardTitle className="text-base">Account breakdown</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="min-w-0 overflow-hidden">
                 <FinanceRadarChart data={radarData} />
               </CardContent>
             </Card>
