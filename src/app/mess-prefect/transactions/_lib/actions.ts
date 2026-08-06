@@ -33,7 +33,6 @@ export async function getTransactionsOverview() {
   let finesCollected = 0
   let other = 0
   let collected = 0
-  let outstanding = 0
 
   const base = startOfMonth(new Date())
   const monthKeys = Array.from({ length: 12 }, (_, i) => {
@@ -65,7 +64,6 @@ export async function getTransactionsOverview() {
         break
     }
     if (bill.amount > 0) {
-      if (!bill.isPaid) outstanding += bill.amount
       const key = format(bill.issueDate, "yyyy-MM")
       if (monthTotals.has(key)) {
         monthTotals.set(key, monthTotals.get(key)! + bill.amount)
@@ -74,6 +72,7 @@ export async function getTransactionsOverview() {
   }
 
   const totalCharges = meal + guest + fine + other
+  const outstanding = Math.max(0, totalCharges - collected)
 
   const breakdown = [
     { category: "meal", label: "Meal charges", amount: meal },
