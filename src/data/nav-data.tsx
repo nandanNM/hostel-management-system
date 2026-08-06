@@ -4,7 +4,6 @@ import {
   Bell,
   GraduationCap,
   House as Home,
-  ClipboardText as Logs,
   ForkKnife as Utensils,
 } from "@phosphor-icons/react/ssr"
 import { RiDashboardLine, RiToolsFill } from "@remixicon/react"
@@ -49,13 +48,6 @@ export const NavItems = () => {
       href: "/alumni",
       icon: <GraduationCap size={20} />,
       active: isNavItemActive(pathname, "/alumni"),
-      position: "top",
-    },
-    {
-      name: "Activity",
-      href: "/activity",
-      icon: <Logs size={20} />,
-      active: isNavItemActive(pathname, "/activity"),
       position: "top",
     },
     {
