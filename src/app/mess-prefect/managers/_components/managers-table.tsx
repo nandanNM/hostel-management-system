@@ -58,7 +58,9 @@ export interface ManagerUser {
   roomNo: string | null
 }
 
-const ROLE_STYLES: Record<UserRoleType, string> = {
+const FALLBACK_STYLE = "bg-muted text-muted-foreground"
+
+const ROLE_STYLES: Partial<Record<UserRoleType, string>> = {
   STUDENT: "bg-secondary text-secondary-foreground",
   STAFF: "bg-blue-100 text-blue-700",
   MANAGER: "bg-primary/15 text-primary",
@@ -68,7 +70,7 @@ const ROLE_STYLES: Record<UserRoleType, string> = {
   SUPER_ADMIN: "bg-red-200 text-red-800",
 }
 
-const STATUS_STYLES: Record<UserStatusType, string> = {
+const STATUS_STYLES: Partial<Record<UserStatusType, string>> = {
   ACTIVE: "bg-green-100 text-green-700",
   INACTIVE: "bg-muted text-muted-foreground",
   SUSPENDED: "bg-red-100 text-red-600",
@@ -172,7 +174,7 @@ export function ManagersTable({
                       <span
                         className={cn(
                           "rounded-full px-2 py-0.5 text-[10px] font-bold",
-                          STATUS_STYLES[user.status]
+                          STATUS_STYLES[user.status] ?? FALLBACK_STYLE
                         )}
                       >
                         {prettify(user.status)}
@@ -181,7 +183,10 @@ export function ManagersTable({
                     <TableCell>
                       <Badge
                         variant="outline"
-                        className={cn("font-semibold", ROLE_STYLES[user.role])}
+                        className={cn(
+                          "font-semibold",
+                          ROLE_STYLES[user.role] ?? FALLBACK_STYLE
+                        )}
                       >
                         {prettify(user.role)}
                       </Badge>
