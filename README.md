@@ -30,9 +30,24 @@ A modern, production-ready **Hostel Management System** designed for efficiency,
 - **Onboarding Flow**: Smooth, multi-step onboarding process to capture student identity and preferences.
 - **Profile Management**: Update personal info, address, and contact details securely.
 
+### 🔔 Push Notifications
+
+- **Web Push**: Installable PWA with real browser/device push notifications (VAPID-signed, `web-push`).
+- **Smart Alerts**: Notifies boarders when today's meal count is generated, a guest meal request is approved, a monthly bill is issued, or a payment/due is recorded — all sent right after the triggering action, without blocking the response (via `after()`).
+- **First-Visit Prompt**: A one-time dialog asks new users to enable notifications, with a 3-day snooze if skipped and a permanent stop if dismissed outright.
+- **Settings Toggle**: A dedicated card on the Settings page to turn notifications on/off per device, with a plain-language explanation of what they're for.
+- **Guided Recovery**: If a browser has notifications blocked, an animated, platform-aware walkthrough (browser dropdown / Android app-info / iOS & desktop steps) shows the user exactly how to re-enable them.
+
+### 🎓 Alumni & Celebrations
+
+- **Alumni Directory**: Mess prefects can transfer boarders to a read-only alumni record, preserving their financial history.
+- **Graduation Moment**: Transferred alumni land on a dedicated congratulations page (instead of a generic "access restricted" screen) with confetti and haptic feedback.
+- **Delightful Feedback**: Successful actions across the app (payments, role changes, enabling notifications, etc.) are celebrated with confetti + haptics, not just a toast.
+
 ### 📱 Modern User Experience
 
 - **Responsive Design**: Full mobile support with a sleek, interactive sidebar and navigation.
+- **Grouped Admin Sidebar**: Manager/Mess Prefect navigation is grouped by function (Overview, Meals, Finance, Administration, Activity, Preferences) instead of by when a feature was added.
 - **Theme Support**: Seamless switching between Light and Dark modes.
 - **Real-time Updates**: Data stays fresh with TanStack Query integration.
 - **Custom Loading & Error States**: Polished feedback during data fetching and navigation.
@@ -49,7 +64,9 @@ A modern, production-ready **Hostel Management System** designed for efficiency,
 - **Data Fetching**: [TanStack Query v5](https://tanstack.com/query/latest)
 - **Forms**: [React Hook Form](https://react-hook-form.com/) + [Zod](https://zod.dev/)
 - **Authentication**: [NextAuth.js v5](https://authjs.dev/)
-- **Icons**: Lucide React, Remixicon
+- **Push Notifications**: [web-push](https://github.com/web-push-libs/web-push) (VAPID) + a custom Service Worker
+- **Animation/Feedback**: [Motion](https://motion.dev/), [canvas-confetti](https://github.com/catdad/canvas-confetti), Vibration API haptics
+- **Icons**: Lucide React, Remixicon, Phosphor Icons
 
 ---
 
@@ -75,7 +92,9 @@ A modern, production-ready **Hostel Management System** designed for efficiency,
    cp .env.example .env
    ```
 
-   _Fill in your DATABASE_URL and AUTH_SECRET._
+   _Fill in your `DATABASE_URL` and `AUTH_SECRET`. For push notifications, also set
+   `NEXT_PUBLIC_WEB_PUSH_KEY`, `WEB_PUSH_PRIVATE_KEY`, and `WEB_PUSH_SUBJECT` — generate a
+   VAPID key pair with `npx web-push generate-vapid-keys`._
 
 4. **Initialize Database:**
 

@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { ADMIN_WHATSAPP_NUMBER } from "@/constants"
 import {
+  GraduationCap,
   ChatCircle as MessageCircle,
   ShieldWarning as ShieldX,
 } from "@phosphor-icons/react/ssr"
@@ -13,6 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { AlumniCelebration } from "@/components/AlumniCelebration"
 import { RestrictedAccessActions } from "@/components/restricted-access-actions"
 
 export default async function StatusPage({
@@ -47,6 +49,11 @@ export default async function StatusPage({
         description:
           "Your access to the hostel management system has been restricted. Please contact support if you believe this is a mistake.",
       },
+      alumni: {
+        title: "Congratulations, graduate! 🎓",
+        description:
+          "You've been transferred to our alumni directory. Your account is now archived — thank you for being part of D.L Bhawan, and wishing you the very best ahead!",
+      },
     }
 
   const message = routeMessages[route] ?? {
@@ -55,16 +62,29 @@ export default async function StatusPage({
       "We couldn't determine your current access level. Please contact the hostel administrator for verification.",
   }
 
+  const isAlumni = route === "alumni"
+
   const whatsappUrl = `https://wa.me/${ADMIN_WHATSAPP_NUMBER}?text=${encodeURIComponent(
     `Hello Admin, I am a boarder and I have a query regarding my account status (${route}).`
   )}`
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
+      {isAlumni && <AlumniCelebration />}
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="text-center">
-          <div className="bg-destructive/10 mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full">
-            <ShieldX className="text-destructive h-10 w-10" />
+          <div
+            className={
+              isAlumni
+                ? "bg-primary/10 mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full"
+                : "bg-destructive/10 mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full"
+            }
+          >
+            {isAlumni ? (
+              <GraduationCap className="text-primary h-10 w-10" />
+            ) : (
+              <ShieldX className="text-destructive h-10 w-10" />
+            )}
           </div>
           <CardTitle className="text-2xl font-bold tracking-tight">
             {message.title}
@@ -74,18 +94,20 @@ export default async function StatusPage({
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
-          <a
-            href={whatsappUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={buttonVariants({
-              variant: "lift",
-              className: "w-full gap-2",
-            })}
-          >
-            <MessageCircle className="h-5 w-5" />
-            Message the Admin
-          </a>
+          {!isAlumni && (
+            <a
+              href={whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={buttonVariants({
+                variant: "lift",
+                className: "w-full gap-2",
+              })}
+            >
+              <MessageCircle className="h-5 w-5" />
+              Message the Admin
+            </a>
+          )}
 
           <RestrictedAccessActions />
 
