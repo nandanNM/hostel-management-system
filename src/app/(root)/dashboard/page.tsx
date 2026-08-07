@@ -14,6 +14,7 @@ import { PageContainer } from "@/components/page-container"
 import { FinanceOverview } from "./_components/finance-overview"
 import { MealMessageDialog } from "./_components/meal-message-dialog"
 import MealTogleButton from "./_components/meal-togle-button"
+import { getMealStatusForUser } from "./_lib/meal-status"
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -22,6 +23,8 @@ export const metadata: Metadata = {
 export default async function Page() {
   const { user } = await requireUser()
   if (!user?.id) return notFound()
+
+  const mealStatus = await getMealStatusForUser(user.id)
 
   return (
     <PageContainer className="space-y-0">
@@ -47,7 +50,7 @@ export default async function Page() {
         </p>
       </div>
       <div className="flex w-full flex-wrap items-center gap-4 py-4 md:gap-12">
-        <MealTogleButton />
+        <MealTogleButton initialStatus={mealStatus} />
         <MealMessageDialog />
       </div>
 

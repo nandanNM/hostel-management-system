@@ -25,6 +25,7 @@ import { Label } from "@/components/ui/label"
 import { Loader } from "@/components/ui/loader"
 import { Switch } from "@/components/ui/switch"
 
+import { type MealStatusResult } from "../_lib/meal-status"
 import { useToggleMealStatus } from "../_lib/mutations"
 
 const toggleMealStatusSchema = z.object({
@@ -32,7 +33,11 @@ const toggleMealStatusSchema = z.object({
 })
 type ToggleMealStatusForm = z.infer<typeof toggleMealStatusSchema>
 
-export default function MealToggleButton() {
+export default function MealToggleButton({
+  initialStatus,
+}: {
+  initialStatus?: MealStatusResult
+}) {
   const id = useId()
   const { mutate: updateStatus, isPending: isMutating } = useToggleMealStatus()
   const form = useForm<ToggleMealStatusForm>({
@@ -53,6 +58,7 @@ export default function MealToggleButton() {
         locked: boolean
         unlockAt: string | null
       }>(),
+    initialData: initialStatus,
     refetchOnWindowFocus: false,
   })
 

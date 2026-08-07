@@ -1,6 +1,5 @@
 import getSession from "@/lib/get-session"
-import { getMealPreferenceLock } from "@/lib/meal-lock"
-import prisma from "@/lib/prisma"
+import { getMealStatusForUser } from "@/app/(root)/dashboard/_lib/meal-status"
 
 export async function GET() {
   try {
@@ -9,19 +8,9 @@ export async function GET() {
     if (!session?.user.id)
       return Response.json({ error: "Unauthorized" }, { status: 401 })
 
-    const [data, lock] = await Promise.all([
-      prisma.meal.findUnique({
-        where: {
-          userId: session.user.id,
-        },
-        select: {
-          status: true,
-        },
-      }),
-      getMealPreferenceLock(),
-    ])
+    const result = await getMealStatusForUser(session.user.id)
 
-    return Response.json({ status: data?.status ?? null, ...lock })
+    return Response.json(result)
   } catch {
     return Response.json({ error: "Internal Server Error" }, { status: 500 })
   }
