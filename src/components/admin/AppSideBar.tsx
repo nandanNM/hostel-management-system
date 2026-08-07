@@ -13,6 +13,7 @@ import {
   Gavel,
   House as Home,
   SignOut as LogOut,
+  Megaphone,
   Plus,
   ProjectorScreen as Projector,
   Receipt,
@@ -92,6 +93,7 @@ export default function AppSideBar({ state, user }: AppSideBarProps) {
         ]
       : []),
     { title: "Calendar", url: "calander", icon: Calendar },
+    { title: "Send Notification", url: "notify", icon: Megaphone },
     { title: "Settings", url: "settings", icon: Settings2 },
   ]
 
