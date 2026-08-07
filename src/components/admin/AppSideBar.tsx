@@ -112,6 +112,10 @@ export default function AppSideBar({ state, user }: AppSideBarProps) {
 
   const administrationItems = [
     { title: "Change Roles", url: "roles", icon: UserCog },
+  ]
+
+  // Visible to Manager and MessPrefect alike — both roles can broadcast.
+  const communicationItems = [
     { title: "Send Notification", url: "notify", icon: Megaphone },
   ]
 
@@ -204,6 +208,11 @@ export default function AppSideBar({ state, user }: AppSideBarProps) {
                 basePath={basePath}
               />
             )}
+            <SidebarNavGroup
+              label="Communication"
+              items={communicationItems}
+              basePath={basePath}
+            />
             {showReports && (
               <SidebarNavGroup
                 label="Activity"
