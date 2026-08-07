@@ -101,7 +101,6 @@ export default function AppSideBar({ state, user }: AppSideBarProps) {
 
   const mealItems = [
     { title: "Calendar", url: "calander", icon: Calendar },
-    { title: "Send Notification", url: "notify", icon: Megaphone },
     { title: "Guest Meal Logs", url: "guest-meal-logs", icon: UtensilsCrossed },
     { title: "Monthly Meals", url: "reports/monthly-meals", icon: ChartBar },
   ]
@@ -113,6 +112,7 @@ export default function AppSideBar({ state, user }: AppSideBarProps) {
 
   const administrationItems = [
     { title: "Change Roles", url: "roles", icon: UserCog },
+    { title: "Send Notification", url: "notify", icon: Megaphone },
   ]
 
   const activityItems = [
