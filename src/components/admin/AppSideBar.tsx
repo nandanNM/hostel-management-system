@@ -13,6 +13,7 @@ import {
   Gavel,
   House as Home,
   SignOut as LogOut,
+  Megaphone,
   Plus,
   ProjectorScreen as Projector,
   Receipt,
@@ -100,6 +101,7 @@ export default function AppSideBar({ state, user }: AppSideBarProps) {
 
   const mealItems = [
     { title: "Calendar", url: "calander", icon: Calendar },
+    { title: "Send Notification", url: "notify", icon: Megaphone },
     { title: "Guest Meal Logs", url: "guest-meal-logs", icon: UtensilsCrossed },
     { title: "Monthly Meals", url: "reports/monthly-meals", icon: ChartBar },
   ]
