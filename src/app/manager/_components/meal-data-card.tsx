@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import {
   CookingPot as ChefHat,
   Egg,
@@ -138,7 +139,10 @@ export function MealDataCard() {
   )
 }
 
+type Bucket = "VEG" | "CHICKEN" | "FISH" | "EGG"
+
 type MealCardItem = {
+  bucket: Bucket
   label: string
   sublabel?: string
   count: number
@@ -156,6 +160,7 @@ function MealBreakdownCards({ mealData }: { mealData: DailyMealActivity }) {
     // Priority-based day: show each type with context labels
     if (serving === "CHICKEN") {
       cards.push({
+        bucket: "CHICKEN",
         label: "Chicken",
         count: mealData.totalNonvegChicken,
         icon: <Utensils className="h-5 w-5 text-orange-600" />,
@@ -163,6 +168,7 @@ function MealBreakdownCards({ mealData }: { mealData: DailyMealActivity }) {
         bgClass: "bg-orange-600/10",
       })
       cards.push({
+        bucket: "FISH",
         label: "Fish",
         sublabel: "dislikes Chicken",
         count: mealData.totalNonvegFish,
@@ -171,6 +177,7 @@ function MealBreakdownCards({ mealData }: { mealData: DailyMealActivity }) {
         bgClass: "bg-blue-500/10",
       })
       cards.push({
+        bucket: "EGG",
         label: "Egg",
         sublabel: "dislikes Chicken & Fish",
         count: mealData.totalNonvegEgg,
@@ -180,6 +187,7 @@ function MealBreakdownCards({ mealData }: { mealData: DailyMealActivity }) {
       })
     } else if (serving === "FISH") {
       cards.push({
+        bucket: "FISH",
         label: "Fish",
         count: mealData.totalNonvegFish,
         icon: <Fish className="h-5 w-5 text-blue-500" />,
@@ -187,6 +195,7 @@ function MealBreakdownCards({ mealData }: { mealData: DailyMealActivity }) {
         bgClass: "bg-blue-500/10",
       })
       cards.push({
+        bucket: "EGG",
         label: "Egg",
         sublabel: "dislikes Fish",
         count: mealData.totalNonvegEgg,
@@ -196,6 +205,7 @@ function MealBreakdownCards({ mealData }: { mealData: DailyMealActivity }) {
       })
     } else if (serving === "EGG") {
       cards.push({
+        bucket: "EGG",
         label: "Egg",
         count: mealData.totalNonvegEgg,
         icon: <Egg className="h-5 w-5 text-yellow-500" />,
@@ -205,6 +215,7 @@ function MealBreakdownCards({ mealData }: { mealData: DailyMealActivity }) {
     }
 
     cards.push({
+      bucket: "VEG",
       label: "Vegetarian",
       sublabel: serving !== "EGG" ? "incl. all fallbacks" : undefined,
       count: mealData.totalVeg,
@@ -215,6 +226,7 @@ function MealBreakdownCards({ mealData }: { mealData: DailyMealActivity }) {
   } else {
     // No schedule or veg day: show simple Veg / Non-Veg split
     cards.push({
+      bucket: "VEG",
       label: "Vegetarian",
       count: mealData.totalVeg,
       icon: <Leaf className="h-5 w-5 text-green-600" />,
@@ -223,6 +235,7 @@ function MealBreakdownCards({ mealData }: { mealData: DailyMealActivity }) {
     })
     if (mealData.totalNonvegChicken > 0) {
       cards.push({
+        bucket: "CHICKEN",
         label: "Non-Vegetarian",
         count: mealData.totalNonvegChicken,
         icon: <Utensils className="h-5 w-5 text-orange-600" />,
@@ -259,35 +272,37 @@ function MealBreakdownCards({ mealData }: { mealData: DailyMealActivity }) {
       )}
       <div className={cn("grid grid-cols-1 gap-4 sm:grid-cols-2", cols)}>
         {cards.map((card) => (
-          <Card
+          <Link
             key={card.label}
-            className="bg-card gap-0 py-0 shadow-none transition-shadow hover:shadow-sm"
+            href={`/manager/meal-breakdown?mealTime=${mealData.mealTime}&bucket=${card.bucket}`}
           >
-            <CardContent className="flex items-center gap-4 p-5">
-              <div
-                className={cn(
-                  "flex size-11 shrink-0 items-center justify-center rounded-xl",
-                  card.bgClass
-                )}
-              >
-                {card.icon}
-              </div>
-              <div className="min-w-0">
-                <p
+            <Card className="bg-card hover:border-primary/40 gap-0 py-0 shadow-none transition-shadow hover:shadow-sm">
+              <CardContent className="flex items-center gap-4 p-5">
+                <div
                   className={cn(
-                    "text-3xl leading-none font-bold tabular-nums",
-                    card.colorClass
+                    "flex size-11 shrink-0 items-center justify-center rounded-xl",
+                    card.bgClass
                   )}
                 >
-                  {card.count}
-                </p>
-                <p className="mt-1.5 text-sm font-medium">{card.label}</p>
-                <p className="text-muted-foreground truncate text-xs">
-                  {card.sublabel ?? "meals today"}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+                  {card.icon}
+                </div>
+                <div className="min-w-0">
+                  <p
+                    className={cn(
+                      "text-3xl leading-none font-bold tabular-nums",
+                      card.colorClass
+                    )}
+                  >
+                    {card.count}
+                  </p>
+                  <p className="mt-1.5 text-sm font-medium">{card.label}</p>
+                  <p className="text-muted-foreground truncate text-xs">
+                    {card.sublabel ?? "meals today"}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
         ))}
 
         {/* Total Meals Card */}
