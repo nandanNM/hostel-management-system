@@ -12,7 +12,7 @@ import {
   type MonthlyMealRow,
   type MonthlyMealTotals,
 } from "./aggregate"
-import { getMonthlyMealReport } from "./queries"
+import { getMonthlyMealReport, type DailyMealPoint } from "./queries"
 import { type MonthlyMealsSearch } from "./validations"
 
 export type MonthlyMealsResponse = {
@@ -21,6 +21,8 @@ export type MonthlyMealsResponse = {
   totalRows: number
   /** Totals for the whole month, not just the visible page. */
   totals: MonthlyMealTotals
+  /** One point per calendar day - what the KPI sparklines plot. */
+  dailySeries: DailyMealPoint[]
   period: { year: number; month: number }
 }
 
@@ -60,6 +62,7 @@ export async function getMonthlyMealsForManager(
     // Deliberately the unfiltered month totals: a manager filtering to one
     // boarder still needs the hostel's numbers for context.
     totals: report.totals,
+    dailySeries: report.dailySeries,
     period: report.period,
   }
 }

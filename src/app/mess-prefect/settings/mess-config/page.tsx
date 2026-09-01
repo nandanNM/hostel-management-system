@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 }
 
 export default async function MessConfigPage() {
-  const { config, rates } = await getMessConfigForEditing()
+  const { config, rates, defaults } = await getMessConfigForEditing()
 
   return (
     <PageContainer className="flex-1 p-4 sm:p-6">
@@ -21,7 +21,7 @@ export default async function MessConfigPage() {
         title="Mess Settings"
         description="Change how guest meals are booked and priced without a deploy."
       />
-      <MessConfigForm config={config} rates={rates} />
+      <MessConfigForm config={config} rates={rates} defaults={defaults} />
     </PageContainer>
   )
 }

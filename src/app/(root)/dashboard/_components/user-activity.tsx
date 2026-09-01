@@ -23,27 +23,36 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import {
+  Timeline,
+  TimelineContent,
+  TimelineDate,
+  TimelineHeader,
+  TimelineIndicator,
+  TimelineItem,
+  TimelineSeparator,
+} from "@/components/reui/timeline"
 
-type LogStyle = { icon: Icon; color: string }
+type LogStyle = { icon: Icon; dotColor: string }
 
 function getLogStyle(actionType: string): LogStyle {
   if (actionType.startsWith("MEAL"))
-    return { icon: UtensilsCrossed, color: "text-orange-500" }
+    return { icon: UtensilsCrossed, dotColor: "bg-orange-500" }
   if (actionType.startsWith("PAYMENT"))
-    return { icon: Wallet, color: "text-emerald-500" }
+    return { icon: Wallet, dotColor: "bg-emerald-500" }
   if (actionType.startsWith("ADVANCE"))
-    return { icon: PiggyBank, color: "text-emerald-500" }
+    return { icon: PiggyBank, dotColor: "bg-emerald-500" }
   if (actionType.startsWith("DUE"))
-    return { icon: MinusCircle, color: "text-red-500" }
+    return { icon: MinusCircle, dotColor: "bg-red-500" }
   if (actionType.startsWith("FINE"))
-    return { icon: Gavel, color: "text-red-500" }
+    return { icon: Gavel, dotColor: "bg-red-500" }
   if (actionType.includes("TRANSFER"))
-    return { icon: ArrowsLeftRight, color: "text-blue-500" }
+    return { icon: ArrowsLeftRight, dotColor: "bg-blue-500" }
   if (actionType.startsWith("ALUMNI"))
-    return { icon: GraduationCap, color: "text-violet-500" }
+    return { icon: GraduationCap, dotColor: "bg-violet-500" }
   if (actionType.includes("BILL") || actionType.includes("AUDIT"))
-    return { icon: Receipt, color: "text-amber-500" }
-  return { icon: Info, color: "text-muted-foreground" }
+    return { icon: Receipt, dotColor: "bg-amber-500" }
+  return { icon: Info, dotColor: "bg-muted-foreground" }
 }
 
 interface UserActivityProps {
@@ -85,21 +94,31 @@ export default async function UserActivity({ userId }: UserActivityProps) {
             No activity logs found.
           </p>
         ) : (
-          <ScrollArea className="bg-muted/40 min-h-72 flex-1 rounded-lg border p-2 font-mono">
-            <div className="divide-border/60 divide-y">
-              {activityLogs.map((log) => {
-                const { icon: LogIcon, color } = getLogStyle(log.actionType)
+          <ScrollArea className="bg-muted/40 min-h-72 flex-1 rounded-lg border p-4 font-mono">
+            <Timeline defaultValue={0} className="gap-4">
+              {activityLogs.map((log, index) => {
+                const { icon: LogIcon, dotColor } = getLogStyle(log.actionType)
                 return (
-                  <div
+                  <TimelineItem
                     key={log.id}
-                    className="hover:bg-muted/60 flex items-start gap-3 rounded px-2 py-2.5 transition-colors"
+                    step={index + 1}
+                    className="has-[+[data-completed]]:**:data-[slot=timeline-separator]:bg-foreground/20 group-data-[orientation=vertical]/timeline:not-last:pb-0"
                   >
-                    <LogIcon
-                      className={cn("mt-0.5 size-4 shrink-0", color)}
-                      weight="fill"
-                    />
-                    <div className="grid min-w-0 flex-1 gap-0.5">
-                      <p className="text-foreground text-sm break-words">
+                    <TimelineHeader className="flex items-center gap-2.5">
+                      <TimelineSeparator />
+                      <TimelineIndicator
+                        className={cn("size-2 border-none", dotColor)}
+                      />
+                      <TimelineDate className="text-muted-foreground/60 mb-0 text-[10px] font-semibold uppercase">
+                        {format(log.timestamp, "yyyy-MM-dd HH:mm")}
+                      </TimelineDate>
+                    </TimelineHeader>
+                    <TimelineContent className="text-foreground flex items-start gap-1.5 text-sm font-medium">
+                      <LogIcon
+                        className="text-muted-foreground mt-0.5 size-3.5 shrink-0"
+                        weight="fill"
+                      />
+                      <span className="wrap-break-word">
                         <span className="text-muted-foreground/70">
                           $&nbsp;
                         </span>
@@ -107,15 +126,12 @@ export default async function UserActivity({ userId }: UserActivityProps) {
                           `${log.actionType} on ${log.entityType || "System"}${
                             log.entityId ? ` (ID: ${log.entityId})` : ""
                           }`}
-                      </p>
-                      <p className="text-muted-foreground pl-4 text-xs">
-                        {format(log.timestamp, "yyyy-MM-dd HH:mm")}
-                      </p>
-                    </div>
-                  </div>
+                      </span>
+                    </TimelineContent>
+                  </TimelineItem>
                 )
               })}
-            </div>
+            </Timeline>
           </ScrollArea>
         )}
       </CardContent>

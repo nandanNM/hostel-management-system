@@ -111,3 +111,26 @@ export function istRangeLastDays(days: number) {
     to: addDays(istStartOfDay(now), 1),
   }
 }
+
+/**
+ * Resolves an optional `from`/`to` day-string pair (as picked on a calendar)
+ * into an instant range, clamped to at most `maxDays` so a wide-open range
+ * can't scan the whole table. Falls back to the last `fallbackDays` when no
+ * custom range is given.
+ */
+export function istResolveLogRange(
+  from: string | undefined,
+  to: string | undefined,
+  { fallbackDays = 7, maxDays = 90 } = {}
+) {
+  if (from && to) {
+    const end = istEndOfDay(to)
+    const earliest = istStartOfDaysAgo(maxDays - 1, end)
+    const start = istStartOfDay(from)
+    return { from: start < earliest ? earliest : start, to: end }
+  }
+  return {
+    from: istStartOfDaysAgo(fallbackDays - 1),
+    to: istEndOfDay(new Date()),
+  }
+}

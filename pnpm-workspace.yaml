@@ -5,3 +5,5 @@ allowBuilds:
   prisma: true
   sharp: true
   unrs-resolver: true
+minimumReleaseAgeExclude:
+  - '@internationalized/date@3.12.4'

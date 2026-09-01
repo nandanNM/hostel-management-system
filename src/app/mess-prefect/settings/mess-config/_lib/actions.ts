@@ -57,6 +57,10 @@ export type GuestMealRateRow = {
 export async function getMessConfigForEditing(): Promise<{
   config: MessConfigValues
   rates: GuestMealRateRow[]
+  defaults: Pick<
+    MessConfigValues,
+    "guestBookingMaxDaysAhead" | "guestBookingCutoffMinutes"
+  >
 }> {
   await requireMessPrefect()
 
@@ -68,7 +72,14 @@ export async function getMessConfigForEditing(): Promise<{
     }),
   ])
 
-  return { config, rates }
+  return {
+    config,
+    rates,
+    defaults: {
+      guestBookingMaxDaysAhead: MESS_CONFIG_DEFAULTS.guestBookingMaxDaysAhead,
+      guestBookingCutoffMinutes: MESS_CONFIG_DEFAULTS.guestBookingCutoffMinutes,
+    },
+  }
 }
 
 export async function updateMessConfig(
