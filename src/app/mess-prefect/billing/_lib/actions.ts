@@ -221,6 +221,8 @@ export async function saveAuditDraft(
 ): Promise<ApiResponse> {
   const session = await requireMessPrefect()
   if (!session) return { status: "error", message: "Unauthorized" }
+  const actorId = session.user.id
+  if (!actorId) return { status: "error", message: "Unauthorized" }
 
   const parsed = draftSchema.safeParse(input)
   if (!parsed.success) {
@@ -280,20 +282,38 @@ export async function saveAuditDraft(
       mealCharge,
     }
 
+    let auditId: string
     if (existing) {
-      await prisma.audit.update({
+      const updated = await prisma.audit.update({
         where: { id: existing.id },
         data: { ...payload, version: { increment: 1 } },
+        select: { id: true },
       })
+      auditId = updated.id
     } else {
-      await prisma.audit.create({
+      const created = await prisma.audit.create({
         data: {
           ...payload,
           date: period.start,
           auditor: { connect: { id: session.user.id } },
         },
+        select: { id: true },
       })
+      auditId = created.id
     }
+
+    prisma.activityLog
+      .create({
+        data: {
+          userId: actorId,
+          actionType: "BILLING_DRAFT_SAVED",
+          entityType: "AUDIT",
+          entityId: auditId,
+          newData: payload,
+          details: `Saved billing draft for ${period.label} — ₹${mealCharge.toFixed(2)}/boarder.`,
+        },
+      })
+      .catch((err) => console.error("Activity log creation failed:", err))
 
     revalidatePath("/mess-prefect/billing")
     return {
@@ -316,6 +336,8 @@ export async function finalizeAndDistributeBills(
 ): Promise<ApiResponse> {
   const session = await requireMessPrefect()
   if (!session) return { status: "error", message: "Unauthorized" }
+  const actorId = session.user.id
+  if (!actorId) return { status: "error", message: "Unauthorized" }
 
   try {
     const audit = await prisma.audit.findUnique({ where: { id: auditId } })
@@ -400,10 +422,28 @@ export async function finalizeAndDistributeBills(
         await tx.audit.update({
           where: { id: audit.id },
           data: {
-            approvedBy: session.user.id,
+            approvedBy: actorId,
             approvedAt: new Date(),
             version: { increment: 1 },
             totalBoarders: activeUsers.length,
+          },
+        })
+
+        // The single biggest money event in the app — logged inside the same
+        // transaction as the charges themselves, so it can never happen
+        // without a record (or the record without it actually happening).
+        await tx.activityLog.create({
+          data: {
+            userId: actorId,
+            actionType: "MONTHLY_BILL_FINALIZED",
+            entityType: "AUDIT",
+            entityId: audit.id,
+            newData: {
+              monthLabel,
+              mealCharge: audit.mealCharge,
+              billedCount: rows.length,
+            },
+            details: `Finalized and distributed ₹${audit.mealCharge.toFixed(2)} to ${rows.length} active users for ${monthLabel}.`,
           },
         })
 
@@ -459,6 +499,8 @@ export async function setBillingExclusions(
 ): Promise<ApiResponse> {
   const session = await requireMessPrefect()
   if (!session) return { status: "error", message: "Unauthorized" }
+  const actorId = session.user.id
+  if (!actorId) return { status: "error", message: "Unauthorized" }
 
   const parsed = exclusionsSchema.safeParse(input)
   if (!parsed.success) {
@@ -501,13 +543,14 @@ export async function setBillingExclusions(
       activeIds.length - cleanExcluded.length
     )
 
+    let auditId: string
     if (existing) {
       const mealCharge = computeMealCharge(
         existing.grandTotalExpenses,
         existing.adjustment,
         billableBoarders
       )
-      await prisma.audit.update({
+      const updated = await prisma.audit.update({
         where: { id: existing.id },
         data: {
           excludedUserIds: cleanExcluded,
@@ -515,9 +558,11 @@ export async function setBillingExclusions(
           mealCharge,
           version: { increment: 1 },
         },
+        select: { id: true },
       })
+      auditId = updated.id
     } else {
-      await prisma.audit.create({
+      const created = await prisma.audit.create({
         data: {
           date: period.start,
           riceExpenses: 0,
@@ -531,10 +576,25 @@ export async function setBillingExclusions(
           totalBoarders: billableBoarders,
           mealCharge: 0,
           excludedUserIds: cleanExcluded,
-          auditor: { connect: { id: session.user.id } },
+          auditor: { connect: { id: actorId } },
+        },
+        select: { id: true },
+      })
+      auditId = created.id
+    }
+
+    prisma.activityLog
+      .create({
+        data: {
+          userId: actorId,
+          actionType: "BILLING_EXCLUSIONS_UPDATED",
+          entityType: "AUDIT",
+          entityId: auditId,
+          newData: { excludedUserIds: cleanExcluded, billableBoarders },
+          details: `Set ${cleanExcluded.length} exclusion(s) for ${period.label}; ${billableBoarders} boarders billable.`,
         },
       })
-    }
+      .catch((err) => console.error("Activity log creation failed:", err))
 
     revalidatePath("/mess-prefect/billing")
     return {

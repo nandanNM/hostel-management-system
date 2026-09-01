@@ -1,19 +1,22 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { auth } from "@/auth"
 import { ApiResponse } from "@/types"
 
 import { cacheKeys, invalidate } from "@/lib/cache"
 import { istDateOnly } from "@/lib/date"
 import prisma from "@/lib/prisma"
+import { requireUser } from "@/lib/require-user"
 import { Settings, settingsSchema } from "@/lib/validations"
 
 export const updateUserSettings = async (
   values: Settings
 ): Promise<ApiResponse> => {
   try {
-    const session = await auth()
+    // requireUser() (not the raw auth() this used before) also rejects a
+    // suspended/inactive/alumni session — a Server Action is its own
+    // reachable endpoint, independent of the /settings layout's own guard.
+    const session = await requireUser()
     if (!session?.user?.id) {
       return {
         status: "error",
