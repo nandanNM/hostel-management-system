@@ -66,7 +66,11 @@ export default function MealToggleButton() {
   }
 
   const handleConfirm = () => {
-    if (!currentStatus) return
+    // Guards the same race a fast double-click on AlertDialogAction can hit:
+    // the dialog closes on click, but two clicks fired close together can
+    // both land before that happens, each calling this with the same stale
+    // `currentStatus` — without this check that fires the toggle twice.
+    if (!currentStatus || isMutating) return
     const newStatus = currentStatus === "ACTIVE" ? "INACTIVE" : "ACTIVE"
     updateStatus(newStatus)
   }
@@ -103,7 +107,7 @@ export default function MealToggleButton() {
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleConfirm}>
+              <AlertDialogAction onClick={handleConfirm} disabled={isMutating}>
                 Continue
               </AlertDialogAction>
             </AlertDialogFooter>
