@@ -137,6 +137,9 @@ export async function updateMeal(
       status: "error",
       message: "Unauthorized",
     }
+  const actorId = session.user.id
+  if (!actorId) return { status: "error", message: "Unauthorized" }
+
   const parsed = mealSchema.safeParse(values)
   if (!parsed.success) {
     return {
@@ -146,6 +149,12 @@ export async function updateMeal(
   }
 
   try {
+    // Captured before the write so the log shows what actually changed.
+    const before = await prisma.meal.findUnique({
+      where: { id: values.id },
+      select: { type: true, nonVegType: true, dislikedNonVegTypes: true },
+    })
+
     // Explicit fields: spreading `values` would also push `id` into the update
     // payload, and anything else a caller happened to include.
     const meal = await prisma.meal.update({
@@ -159,6 +168,24 @@ export async function updateMeal(
     })
 
     revalidateMealSurfaces(meal.userId)
+
+    prisma.activityLog
+      .create({
+        data: {
+          userId: actorId,
+          actionType: "MEAL_PREFERENCE_OVERRIDE",
+          entityType: "MEAL",
+          entityId: values.id,
+          oldData: before ?? undefined,
+          newData: {
+            type: parsed.data.type,
+            nonVegType: parsed.data.nonVegType ?? NonVegType.NONE,
+            dislikedNonVegTypes: parsed.data.dislikedNonVegTypes ?? [],
+          },
+          details: `Meal preference updated by manager for user ${meal.userId}.`,
+        },
+      })
+      .catch((err) => console.error("Activity log creation failed:", err))
 
     after(() =>
       sendPushToUser(meal.userId, {
@@ -196,6 +223,9 @@ export async function updateUserMealStatus(
       status: "error",
       message: "Unauthorized",
     }
+  const actorId = session.user.id
+  if (!actorId) return { status: "error", message: "Unauthorized" }
+
   try {
     const meal = await prisma.meal.update({
       where: {
@@ -209,6 +239,23 @@ export async function updateUserMealStatus(
       },
     })
     revalidateMealSurfaces(meal.userId)
+
+    // Distinct actionType from the boarder's own MEAL_STATUS_CHANGE: that one
+    // is read by the "Meal On/Off Activity" log assuming actor === subject,
+    // which isn't true here (the manager is the actor, the boarder is the
+    // subject) — reusing it would misattribute the change in that view.
+    prisma.activityLog
+      .create({
+        data: {
+          userId: actorId,
+          actionType: "MEAL_STATUS_OVERRIDE",
+          entityType: "MEAL",
+          entityId: mealId,
+          newData: { status, targetUserId: meal.userId },
+          details: `Meal status set to ${status} by manager for ${meal.user?.name ?? meal.userId}.`,
+        },
+      })
+      .catch((err) => console.error("Activity log creation failed:", err))
 
     if (meal.user?.email) {
       await sendMealStatusEmail({
@@ -324,6 +371,24 @@ export async function issueFineToUser({
     if (!result?.success) {
       throw new Error("Transaction completed but returned invalid result")
     }
+
+    prisma.activityLog
+      .create({
+        data: {
+          userId: issuerUserId,
+          actionType: "FINE_ISSUED",
+          entityType: "USER_FINE",
+          entityId: result.newFine.id,
+          newData: {
+            targetUserId,
+            amount: fineAmountNumber,
+            reason: fineReason,
+            dueDate: fineDueDate,
+          },
+          details: `Fine of ₹${fineAmountNumber} issued to ${targetUser.name ?? targetUserId}: ${fineReason}`,
+        },
+      })
+      .catch((err) => console.error("Activity log creation failed:", err))
 
     await prisma.notification.create({
       data: {

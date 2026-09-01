@@ -42,6 +42,11 @@ export async function updateGuestMealStatus({
     }
   }
 
+  const actorId = session.user.id
+  if (!actorId) {
+    return { status: "error", message: "Unauthorized" }
+  }
+
   try {
     await prisma.guestMeal.update({
       where: {
@@ -144,6 +149,21 @@ export async function updateGuestMealStatus({
       })
       .catch((err) => {
         console.error("Notification creation failed:", err)
+      })
+
+    prisma.activityLog
+      .create({
+        data: {
+          userId: actorId,
+          actionType: "GUEST_MEAL_STATUS_CHANGE",
+          entityType: "GUEST_MEAL",
+          entityId: requestId,
+          newData: { status, requestedUserId },
+          details: `Guest meal request ${status.toLowerCase()} by ${session.user.name}.`,
+        },
+      })
+      .catch((err) => {
+        console.error("Activity log creation failed:", err)
       })
 
     after(() =>

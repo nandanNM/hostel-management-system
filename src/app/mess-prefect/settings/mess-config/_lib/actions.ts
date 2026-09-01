@@ -143,6 +143,8 @@ export async function resetMessConfig(): Promise<ApiResponse> {
     const actorId = session.user.id
     if (!actorId) return { status: "error", message: "Unauthorized" }
 
+    const before = await getMessConfig()
+
     await prisma.messConfig.upsert({
       where: { id: MESS_CONFIG_ID },
       create: {
@@ -157,6 +159,20 @@ export async function resetMessConfig(): Promise<ApiResponse> {
         updatedById: actorId,
       },
     })
+
+    prisma.activityLog
+      .create({
+        data: {
+          userId: actorId,
+          actionType: "RESET",
+          entityType: "MESS_CONFIG",
+          entityId: MESS_CONFIG_ID,
+          oldData: before,
+          newData: MESS_CONFIG_DEFAULTS,
+          details: "Reset mess configuration to defaults.",
+        },
+      })
+      .catch((err) => console.error("Activity log creation failed:", err))
 
     await invalidate(cacheKeys.messConfig())
     revalidatePath("/mess-prefect/settings/mess-config")
@@ -173,13 +189,15 @@ export async function upsertGuestMealRate(
   row: GuestMealRateRow
 ): Promise<ApiResponse> {
   try {
-    await requireMessPrefect()
+    const session = await requireMessPrefect()
+    const actorId = session.user.id
+    if (!actorId) return { status: "error", message: "Unauthorized" }
 
     if (!Number.isFinite(row.amount) || row.amount < 0) {
       return { status: "error", message: "Enter a valid amount." }
     }
 
-    await prisma.guestMealRate.upsert({
+    const rate = await prisma.guestMealRate.upsert({
       where: {
         mealTime_type_nonVegType: {
           mealTime: row.mealTime,
@@ -190,6 +208,19 @@ export async function upsertGuestMealRate(
       create: row,
       update: { amount: row.amount },
     })
+
+    prisma.activityLog
+      .create({
+        data: {
+          userId: actorId,
+          actionType: "UPDATE",
+          entityType: "GUEST_MEAL_RATE",
+          entityId: rate.id,
+          newData: row,
+          details: `Set guest meal rate for ${row.mealTime} ${row.type}${row.nonVegType !== "NONE" ? ` (${row.nonVegType})` : ""} to ₹${row.amount}.`,
+        },
+      })
+      .catch((err) => console.error("Activity log creation failed:", err))
 
     await invalidate(cacheKeys.messConfig())
     revalidatePath("/mess-prefect/settings/mess-config")

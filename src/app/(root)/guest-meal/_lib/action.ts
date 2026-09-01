@@ -101,6 +101,19 @@ export const deleteGuestMealRequest = async (
         userId: session.user.id,
       },
     })
+
+    prisma.activityLog
+      .create({
+        data: {
+          userId: session.user.id,
+          actionType: "DELETE",
+          entityType: "GUEST_MEAL",
+          entityId: id,
+          details: "Guest meal request deleted by the requester.",
+        },
+      })
+      .catch((err) => console.error("Activity log creation failed:", err))
+
     return {
       status: "success",
       message: "Guest meal request deleted successfully",

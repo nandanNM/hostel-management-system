@@ -20,24 +20,39 @@ export async function upsertMenuItem(data: {
   name: string
   costPerUnit: number
 }): Promise<ApiResponse> {
-  await requireManager()
+  const session = await requireManager()
+  const actorId = session.user.id
+  if (!actorId) return { status: "error", message: "Unauthorized" }
+
   try {
-    if (data.id) {
-      await prisma.menuItem.update({
-        where: { id: data.id },
+    const item = data.id
+      ? await prisma.menuItem.update({
+          where: { id: data.id },
+          data: {
+            name: data.name,
+            costPerUnit: data.costPerUnit,
+          },
+        })
+      : await prisma.menuItem.create({
+          data: {
+            name: data.name,
+            costPerUnit: data.costPerUnit,
+          },
+        })
+
+    prisma.activityLog
+      .create({
         data: {
-          name: data.name,
-          costPerUnit: data.costPerUnit,
+          userId: actorId,
+          actionType: data.id ? "UPDATE" : "CREATE",
+          entityType: "MENU_ITEM",
+          entityId: item.id,
+          newData: { name: data.name, costPerUnit: data.costPerUnit },
+          details: `${data.id ? "Updated" : "Created"} menu item "${data.name}" (₹${data.costPerUnit}).`,
         },
       })
-    } else {
-      await prisma.menuItem.create({
-        data: {
-          name: data.name,
-          costPerUnit: data.costPerUnit,
-        },
-      })
-    }
+      .catch((err) => console.error("Activity log creation failed:", err))
+
     await invalidate(...mealScheduleKeys())
     revalidatePath("/manager/settings/meal-scheduling")
     return { status: "success", message: "Menu item saved successfully" }
@@ -51,11 +66,28 @@ export async function upsertMenuItem(data: {
 }
 
 export async function deleteMenuItem(id: string): Promise<ApiResponse> {
-  await requireManager()
+  const session = await requireManager()
+  const actorId = session.user.id
+  if (!actorId) return { status: "error", message: "Unauthorized" }
+
   try {
-    await prisma.menuItem.delete({
+    const deleted = await prisma.menuItem.delete({
       where: { id },
     })
+
+    prisma.activityLog
+      .create({
+        data: {
+          userId: actorId,
+          actionType: "DELETE",
+          entityType: "MENU_ITEM",
+          entityId: id,
+          oldData: { name: deleted.name, costPerUnit: deleted.costPerUnit },
+          details: `Deleted menu item "${deleted.name}".`,
+        },
+      })
+      .catch((err) => console.error("Activity log creation failed:", err))
+
     await invalidate(...mealScheduleKeys())
     revalidatePath("/manager/settings/meal-scheduling")
     return { status: "success", message: "Menu item deleted successfully" }
@@ -85,9 +117,12 @@ export async function upsertMealSchedule(data: {
   mealTime: MealTimeType
   menuItemIds: string[]
 }): Promise<ApiResponse> {
-  await requireManager()
+  const session = await requireManager()
+  const actorId = session.user.id
+  if (!actorId) return { status: "error", message: "Unauthorized" }
+
   try {
-    await prisma.$transaction(async (tx) => {
+    const entryId = await prisma.$transaction(async (tx) => {
       // Find or create the schedule entry
       const entry = await tx.mealScheduleEntry.upsert({
         where: {
@@ -117,7 +152,26 @@ export async function upsertMealSchedule(data: {
           })),
         })
       }
+
+      return entry.id
     })
+
+    prisma.activityLog
+      .create({
+        data: {
+          userId: actorId,
+          actionType: "UPDATE",
+          entityType: "MEAL_SCHEDULE_ENTRY",
+          entityId: entryId,
+          newData: {
+            dayOfWeek: data.dayOfWeek,
+            mealTime: data.mealTime,
+            menuItemIds: data.menuItemIds,
+          },
+          details: `Updated ${data.dayOfWeek} ${data.mealTime} schedule (${data.menuItemIds.length} item(s)).`,
+        },
+      })
+      .catch((err) => console.error("Activity log creation failed:", err))
 
     await invalidate(...mealScheduleKeys())
     revalidatePath("/manager/settings/meal-scheduling")
@@ -132,7 +186,10 @@ export async function upsertMealSchedule(data: {
 }
 
 export async function seedDefaultMenuItems(): Promise<ApiResponse> {
-  await requireManager()
+  const session = await requireManager()
+  const actorId = session.user.id
+  if (!actorId) return { status: "error", message: "Unauthorized" }
+
   const defaults = [
     { name: "Veg", costPerUnit: 45 },
     { name: "Egg", costPerUnit: 50 },
@@ -148,6 +205,20 @@ export async function seedDefaultMenuItems(): Promise<ApiResponse> {
         create: { name: item.name, costPerUnit: item.costPerUnit },
       })
     }
+
+    prisma.activityLog
+      .create({
+        data: {
+          userId: actorId,
+          actionType: "SEED",
+          entityType: "MENU_ITEM",
+          entityId: "default-menu-items",
+          newData: { items: defaults },
+          details: "Seeded standard menu items.",
+        },
+      })
+      .catch((err) => console.error("Activity log creation failed:", err))
+
     await invalidate(...mealScheduleKeys())
     revalidatePath("/manager/settings/meal-scheduling")
     return {
