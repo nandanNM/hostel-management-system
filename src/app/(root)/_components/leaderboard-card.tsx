@@ -73,7 +73,7 @@ export function LeaderboardCard() {
                     <span className="text-primary ml-1 text-xs">(you)</span>
                   )}
                 </span>
-                <span className="flex items-baseline gap-1">
+                <span className="flex shrink-0 items-baseline gap-1">
                   <span className="text-base font-bold tabular-nums">
                     {leader.count}
                   </span>
