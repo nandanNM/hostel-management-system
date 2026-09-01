@@ -88,13 +88,16 @@ export async function getGuestMealLogsForManager(
   if (statusList.length > 0) filters.push({ status: { in: statusList } })
   if (mealTimeList.length > 0) filters.push({ mealTime: { in: mealTimeList } })
   if (input.requestedBy) {
+    // One box, either name: the guest booked or the boarder who booked them.
     filters.push({
-      user: {
-        OR: [
-          { name: { contains: input.requestedBy, mode: "insensitive" } },
-          { email: { contains: input.requestedBy, mode: "insensitive" } },
-        ],
-      },
+      OR: [
+        { name: { contains: input.requestedBy, mode: "insensitive" } },
+        {
+          user: {
+            name: { contains: input.requestedBy, mode: "insensitive" },
+          },
+        },
+      ],
     })
   }
 

@@ -59,9 +59,9 @@ export function GuestMealLogsTable({ logsPromise }: GuestMealLogsTableProps) {
 
   const filterFields: DataTableFilterField<GuestMealLogRow>[] = [
     {
-      label: "Requested By",
+      label: "Search",
       value: "requestedBy",
-      placeholder: "Search boarder name or email...",
+      placeholder: "Search guest or boarder name...",
     },
     {
       label: "Meal Time",
