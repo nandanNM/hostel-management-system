@@ -274,7 +274,7 @@ function MealBreakdownCards({ mealData }: { mealData: DailyMealActivity }) {
         {cards.map((card) => (
           <Link
             key={card.label}
-            href={`/manager/meal-breakdown?mealTime=${mealData.mealTime}&bucket=${card.bucket}`}
+            href={`/manager/meal-breakdown?mealTime=${mealData.mealTime}&bucket=${card.bucket}&date=${encodeURIComponent(String(mealData.date))}`}
           >
             <Card className="bg-card hover:border-primary/40 gap-0 py-0 shadow-none transition-shadow hover:shadow-sm">
               <CardContent className="flex items-center gap-4 p-5">
