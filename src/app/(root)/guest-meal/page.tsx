@@ -1,7 +1,9 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import {
+  ClockCounterClockwise as HistoryIcon,
   Info as InfoIcon,
   Plus,
   Trash as Trash2Icon,
@@ -94,10 +96,18 @@ export default function GuestMealsPage() {
               Manage your pending guest meal requests.
             </CardDescription>
           </div>
-          <Button onClick={() => setShowCreateGuestMealSheet(true)}>
-            <Plus className="mr-2 size-4" />
-            Create New Request
-          </Button>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Button variant="outline" asChild>
+              <Link href="/guest-meal/history">
+                <HistoryIcon className="mr-2 size-4" />
+                History
+              </Link>
+            </Button>
+            <Button onClick={() => setShowCreateGuestMealSheet(true)}>
+              <Plus className="mr-2 size-4" />
+              Create New Request
+            </Button>
+          </div>
           <CreateGuestMealSheet
             open={showCreateGuestMealSheet}
             onOpenChange={setShowCreateGuestMealSheet}
