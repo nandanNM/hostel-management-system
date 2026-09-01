@@ -96,15 +96,24 @@ export default function GuestMealsPage() {
               Manage your pending guest meal requests.
             </CardDescription>
           </div>
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <Button variant="outline" asChild>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1 text-xs sm:flex-none sm:text-sm"
+              asChild
+            >
               <Link href="/guest-meal/history">
-                <HistoryIcon className="mr-2 size-4" />
+                <HistoryIcon className="mr-1.5 size-3.5 sm:mr-2 sm:size-4" />
                 History
               </Link>
             </Button>
-            <Button onClick={() => setShowCreateGuestMealSheet(true)}>
-              <Plus className="mr-2 size-4" />
+            <Button
+              size="sm"
+              className="flex-1 text-xs sm:flex-none sm:text-sm"
+              onClick={() => setShowCreateGuestMealSheet(true)}
+            >
+              <Plus className="mr-1.5 size-3.5 sm:mr-2 sm:size-4" />
               Create New Request
             </Button>
           </div>
