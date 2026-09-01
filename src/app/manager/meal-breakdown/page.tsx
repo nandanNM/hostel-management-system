@@ -1,3 +1,4 @@
+import React from "react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import requireManager from "@/data/manager/require-manager"
@@ -5,20 +6,30 @@ import { ArrowLeft, Users } from "@phosphor-icons/react/ssr"
 
 import { formatIST } from "@/lib/date"
 import { MealTimeType } from "@/lib/generated/prisma"
-import { Card, CardContent } from "@/components/ui/card"
-import UserAvatar from "@/components/UserAvatar"
+import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton"
 
 import {
   BUCKET_LABELS,
   getMealBreakdownUsers,
   type MealBucket,
 } from "../_lib/meal-breakdown"
+import { MealBreakdownTable } from "./_components/meal-breakdown-table"
+import { getPaginatedMealBreakdown } from "./_lib/actions"
+import { searchParamsSchema } from "./_lib/validations"
 
 const MEAL_TIMES: string[] = ["LUNCH", "DINNER"]
 const BUCKETS: string[] = Object.keys(BUCKET_LABELS)
 
 export interface MealBreakdownPageProps {
-  searchParams: Promise<{ mealTime?: string; bucket?: string; date?: string }>
+  searchParams: Promise<{
+    mealTime?: string
+    bucket?: string
+    date?: string
+    page?: string
+    per_page?: string
+    sort?: string
+    name?: string
+  }>
 }
 
 export default async function MealBreakdownPage({
@@ -26,7 +37,8 @@ export default async function MealBreakdownPage({
 }: MealBreakdownPageProps) {
   await requireManager()
 
-  const { mealTime, bucket, date: dateParam } = await searchParams
+  const resolvedSearchParams = await searchParams
+  const { mealTime, bucket, date: dateParam } = resolvedSearchParams
   const date = dateParam ? new Date(dateParam) : null
 
   if (
@@ -40,14 +52,25 @@ export default async function MealBreakdownPage({
     return notFound()
   }
 
+  const search = searchParamsSchema.parse(resolvedSearchParams)
+
   // The exact day of the record being viewed, not "today" re-derived here —
   // a click right around midnight IST (or a stale cached card) could
   // otherwise silently look up a different day than the one on screen.
-  const users = await getMealBreakdownUsers(
-    mealTime as MealTimeType,
-    date,
-    bucket as MealBucket
-  )
+  const [allUsers, breakdownPromise] = [
+    await getMealBreakdownUsers(
+      mealTime as MealTimeType,
+      date,
+      bucket as MealBucket
+    ),
+    getPaginatedMealBreakdown(
+      mealTime as MealTimeType,
+      date,
+      bucket as MealBucket,
+      search
+    ),
+  ]
+
   const label = BUCKET_LABELS[bucket as MealBucket]
   const mealLabel = mealTime === "LUNCH" ? "Lunch" : "Dinner"
   const dateLabel = formatIST(date, "EEEE, dd MMM yyyy")
@@ -69,37 +92,26 @@ export default async function MealBreakdownPage({
               {label} — {mealLabel}
             </h1>
             <p className="text-muted-foreground mt-1">
-              {users.length} boarder{users.length === 1 ? "" : "s"} having{" "}
+              {allUsers.length} boarder{allUsers.length === 1 ? "" : "s"} having{" "}
               {label.toLowerCase()} on {dateLabel}.
             </p>
           </div>
         </div>
       </div>
 
-      <Card>
-        <CardContent className="divide-y p-0">
-          {users.length === 0 && (
-            <p className="text-muted-foreground py-10 text-center text-sm">
-              No one in this category today.
-            </p>
-          )}
-          {users.map((user) => (
-            <div key={user.id} className="flex items-center gap-3 px-4 py-3">
-              <UserAvatar size={36} avatarUrl={user.image} />
-              <div className="min-w-0">
-                <p className="truncate text-sm font-medium">
-                  {user.name ?? "Unnamed"}
-                </p>
-                {user.roomNo && (
-                  <p className="text-muted-foreground text-xs">
-                    Room {user.roomNo}
-                  </p>
-                )}
-              </div>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
+      <React.Suspense
+        fallback={
+          <DataTableSkeleton
+            columnCount={2}
+            searchableColumnCount={1}
+            filterableColumnCount={0}
+            cellWidths={["20rem", "10rem"]}
+            shrinkZero
+          />
+        }
+      >
+        <MealBreakdownTable breakdownPromise={breakdownPromise} />
+      </React.Suspense>
     </div>
   )
 }
