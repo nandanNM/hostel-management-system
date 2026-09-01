@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 
+import { canManage } from "@/lib/authz"
 import { DayOfWeek, MealTimeType } from "@/lib/generated/prisma"
+import getSession from "@/lib/get-session"
 import prisma from "@/lib/prisma"
 
 const MENU_ITEM_COSTS: Record<string, number> = {
@@ -13,6 +15,17 @@ const MENU_ITEM_COSTS: Record<string, number> = {
 
 export async function POST(req: NextRequest) {
   try {
+    const session = await getSession()
+    if (!session?.user.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+    if (!canManage(session.user.role)) {
+      return NextResponse.json(
+        { error: "Unauthorized - Manager access only" },
+        { status: 403 }
+      )
+    }
+
     const body = await req.json()
     const { schedule } = body
 
