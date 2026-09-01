@@ -43,6 +43,10 @@ import {
 type MessConfigFormProps = {
   config: MessConfigInput
   rates: GuestMealRateRow[]
+  defaults: Pick<
+    MessConfigInput,
+    "guestBookingMaxDaysAhead" | "guestBookingCutoffMinutes"
+  >
 }
 
 type Option = { value: number; label: string }
@@ -96,11 +100,13 @@ function PresetSelect({
   value,
   options,
   onChange,
+  disabled,
 }: {
   id: string
   value: number
   options: Option[]
   onChange: (value: number) => void
+  disabled?: boolean
 }) {
   const list = options.some((o) => o.value === value)
     ? options
@@ -109,7 +115,11 @@ function PresetSelect({
       )
 
   return (
-    <Select value={String(value)} onValueChange={(v) => onChange(Number(v))}>
+    <Select
+      value={String(value)}
+      onValueChange={(v) => onChange(Number(v))}
+      disabled={disabled}
+    >
       <SelectTrigger id={id} className="w-full">
         <SelectValue />
       </SelectTrigger>
@@ -121,6 +131,56 @@ function PresetSelect({
         ))}
       </SelectContent>
     </Select>
+  )
+}
+
+function DefaultableSelectField({
+  id,
+  label,
+  hint,
+  value,
+  defaultValue,
+  options,
+  onChange,
+}: {
+  id: string
+  label: string
+  hint: string
+  value: number
+  defaultValue: number
+  options: Option[]
+  onChange: (value: number) => void
+}) {
+  const [isCustom, setIsCustom] = useState(value !== defaultValue)
+
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between gap-3">
+        <Label htmlFor={id} className="cursor-pointer">
+          {label}
+        </Label>
+        <div className="flex items-center gap-2">
+          <span className="text-muted-foreground text-xs">
+            {isCustom ? "Custom" : "Default"}
+          </span>
+          <Switch
+            checked={isCustom}
+            onCheckedChange={(checked) => {
+              setIsCustom(checked)
+              if (!checked) onChange(defaultValue)
+            }}
+          />
+        </div>
+      </div>
+      <PresetSelect
+        id={id}
+        value={value}
+        options={options}
+        onChange={onChange}
+        disabled={!isCustom}
+      />
+      <p className="text-muted-foreground text-xs">{hint}</p>
+    </div>
   )
 }
 
@@ -183,7 +243,11 @@ function CapField({
   )
 }
 
-export function MessConfigForm({ config, rates }: MessConfigFormProps) {
+export function MessConfigForm({
+  config,
+  rates,
+  defaults,
+}: MessConfigFormProps) {
   const [values, setValues] = useState<MessConfigInput>(() => ({
     ...config,
     guestBookingMaxDaysAhead: Math.max(0, config.guestBookingMaxDaysAhead),
@@ -292,31 +356,25 @@ export function MessConfigForm({ config, rates }: MessConfigFormProps) {
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-1.5">
-            <Label htmlFor="horizon">How far ahead can guests book?</Label>
-            <PresetSelect
-              id="horizon"
-              value={values.guestBookingMaxDaysAhead}
-              options={HORIZON_OPTIONS}
-              onChange={(v) => set("guestBookingMaxDaysAhead", v)}
-            />
-            <p className="text-muted-foreground text-xs">
-              How early a guest meal can be reserved in advance.
-            </p>
-          </div>
+          <DefaultableSelectField
+            id="horizon"
+            label="How far ahead can guests book?"
+            hint="How early a guest meal can be reserved in advance."
+            value={values.guestBookingMaxDaysAhead}
+            defaultValue={defaults.guestBookingMaxDaysAhead}
+            options={HORIZON_OPTIONS}
+            onChange={(v) => set("guestBookingMaxDaysAhead", v)}
+          />
 
-          <div className="space-y-1.5">
-            <Label htmlFor="cutoff">Booking closes</Label>
-            <PresetSelect
-              id="cutoff"
-              value={values.guestBookingCutoffMinutes}
-              options={CUTOFF_OPTIONS}
-              onChange={(v) => set("guestBookingCutoffMinutes", v)}
-            />
-            <p className="text-muted-foreground text-xs">
-              Same-day bookings stop this long before the meal starts.
-            </p>
-          </div>
+          <DefaultableSelectField
+            id="cutoff"
+            label="Booking closes"
+            hint="Same-day bookings stop this long before the meal starts."
+            value={values.guestBookingCutoffMinutes}
+            defaultValue={defaults.guestBookingCutoffMinutes}
+            options={CUTOFF_OPTIONS}
+            onChange={(v) => set("guestBookingCutoffMinutes", v)}
+          />
 
           <div className="space-y-1.5">
             <Label htmlFor="lunch">Lunch starts at</Label>
