@@ -3,6 +3,7 @@ import { notFound } from "next/navigation"
 import requireManager from "@/data/manager/require-manager"
 import { ArrowLeft, Users } from "@phosphor-icons/react/ssr"
 
+import { formatIST } from "@/lib/date"
 import { MealTimeType } from "@/lib/generated/prisma"
 import { Card, CardContent } from "@/components/ui/card"
 import UserAvatar from "@/components/UserAvatar"
@@ -17,7 +18,7 @@ const MEAL_TIMES: string[] = ["LUNCH", "DINNER"]
 const BUCKETS: string[] = Object.keys(BUCKET_LABELS)
 
 export interface MealBreakdownPageProps {
-  searchParams: Promise<{ mealTime?: string; bucket?: string }>
+  searchParams: Promise<{ mealTime?: string; bucket?: string; date?: string }>
 }
 
 export default async function MealBreakdownPage({
@@ -25,22 +26,31 @@ export default async function MealBreakdownPage({
 }: MealBreakdownPageProps) {
   await requireManager()
 
-  const { mealTime, bucket } = await searchParams
+  const { mealTime, bucket, date: dateParam } = await searchParams
+  const date = dateParam ? new Date(dateParam) : null
+
   if (
     !mealTime ||
     !bucket ||
+    !date ||
+    Number.isNaN(date.getTime()) ||
     !MEAL_TIMES.includes(mealTime) ||
     !BUCKETS.includes(bucket)
   ) {
     return notFound()
   }
 
+  // The exact day of the record being viewed, not "today" re-derived here —
+  // a click right around midnight IST (or a stale cached card) could
+  // otherwise silently look up a different day than the one on screen.
   const users = await getMealBreakdownUsers(
     mealTime as MealTimeType,
+    date,
     bucket as MealBucket
   )
   const label = BUCKET_LABELS[bucket as MealBucket]
   const mealLabel = mealTime === "LUNCH" ? "Lunch" : "Dinner"
+  const dateLabel = formatIST(date, "EEEE, dd MMM yyyy")
 
   return (
     <div className="flex-1 space-y-6 p-4 sm:p-6">
@@ -60,7 +70,7 @@ export default async function MealBreakdownPage({
             </h1>
             <p className="text-muted-foreground mt-1">
               {users.length} boarder{users.length === 1 ? "" : "s"} having{" "}
-              {label.toLowerCase()} today.
+              {label.toLowerCase()} on {dateLabel}.
             </p>
           </div>
         </div>

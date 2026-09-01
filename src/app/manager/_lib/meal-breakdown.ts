@@ -1,6 +1,5 @@
 import "server-only"
 
-import { istCalendarDay } from "@/lib/date"
 import { MealTimeType, MealType, NonVegType } from "@/lib/generated/prisma"
 import { calculateActualNonVegMeal } from "@/lib/meal-priority"
 import { getMessConfig } from "@/lib/mess-config"
@@ -22,21 +21,27 @@ export interface MealBreakdownUser {
   roomNo: string | null
 }
 
+/**
+ * `date` must be the exact day-key of the DailyMealActivity row being
+ * viewed (mealData.date), not "today" recomputed here — the caller may be
+ * looking at a record from a different IST calendar day than the moment
+ * this runs (stale client cache, a click right around midnight, etc.), and
+ * re-deriving "today" independently silently queries the wrong day.
+ */
 export async function getMealBreakdownUsers(
   mealTime: MealTimeType,
+  date: Date,
   bucket: MealBucket
 ): Promise<MealBreakdownUser[]> {
-  const todayStart = istCalendarDay()
-
   const activity = await prisma.dailyMealActivity.findFirst({
-    where: { mealTime, date: todayStart },
+    where: { mealTime, date },
     select: { actualNonVegServed: true },
   })
 
   if (!activity) return []
 
   const attendances = await prisma.mealAttendance.findMany({
-    where: { mealTime, date: todayStart },
+    where: { mealTime, date },
     select: {
       user: { select: { id: true, name: true, image: true, roomNo: true } },
       meal: {
