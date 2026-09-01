@@ -9,7 +9,6 @@ import {
   ForkKnife,
   Moon,
   Sun,
-  Users,
 } from "@phosphor-icons/react"
 import { parseAsInteger, useQueryStates } from "nuqs"
 
@@ -17,10 +16,10 @@ import { formatIST } from "@/lib/date"
 import { exportTableToCSV } from "@/lib/export"
 import { useDataTable } from "@/hooks/use-data-table"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { P } from "@/components/custom/p"
 import { DataTable } from "@/components/data-table/data-table"
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar"
+import { KpiTrendCard } from "@/components/kpi-trend-card"
 
 import { getMonthlyMealsForManager } from "../_lib/actions"
 import { shiftMonth, type MonthlyMealRow } from "../_lib/aggregate"
@@ -39,7 +38,7 @@ interface MonthlyMealsTableProps {
 }
 
 export function MonthlyMealsTable({ reportPromise }: MonthlyMealsTableProps) {
-  const { data, pageCount, totalRows, totals, period } =
+  const { data, pageCount, totalRows, totals, dailySeries, period } =
     React.use(reportPromise)
 
   const columns = React.useMemo(() => getMonthlyMealColumns(), [])
@@ -87,12 +86,30 @@ export function MonthlyMealsTable({ reportPromise }: MonthlyMealsTableProps) {
     period.year === Number(formatIST(now, "yyyy")) &&
     period.month === Number(formatIST(now, "M"))
 
-  const summary = [
-    { label: "Boarders", value: totals.boarders, icon: Users },
-    { label: "Lunch", value: totals.lunch, icon: Sun },
-    { label: "Dinner", value: totals.dinner, icon: Moon },
-    { label: "Guest meals", value: totals.guest, icon: Users },
-    { label: "Total meals", value: totals.total, icon: ForkKnife },
+  const monthName = monthLabel(period.year, period.month)
+
+  const kpiCards = [
+    {
+      title: "Total meals",
+      value: totals.total,
+      color: "var(--primary)",
+      icon: ForkKnife,
+      data: dailySeries.map((point) => ({ value: point.total })),
+    },
+    {
+      title: "Lunch",
+      value: totals.lunch,
+      color: "var(--warning)",
+      icon: Sun,
+      data: dailySeries.map((point) => ({ value: point.lunch })),
+    },
+    {
+      title: "Dinner",
+      value: totals.dinner,
+      color: "var(--info)",
+      icon: Moon,
+      data: dailySeries.map((point) => ({ value: point.dinner })),
+    },
   ]
 
   return (
@@ -107,9 +124,7 @@ export function MonthlyMealsTable({ reportPromise }: MonthlyMealsTableProps) {
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <span className="min-w-40 text-center font-medium">
-            {monthLabel(period.year, period.month)}
-          </span>
+          <span className="min-w-40 text-center font-medium">{monthName}</span>
           <Button
             variant="outline"
             size="icon"
@@ -137,21 +152,17 @@ export function MonthlyMealsTable({ reportPromise }: MonthlyMealsTableProps) {
         </Button>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        {summary.map((item) => (
-          <Card key={item.label}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-muted-foreground text-sm font-medium">
-                {item.label}
-              </CardTitle>
-              <item.icon className="text-muted-foreground h-4 w-4" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold tabular-nums">
-                {item.value}
-              </div>
-            </CardContent>
-          </Card>
+      <div className="grid gap-4 sm:grid-cols-3">
+        {kpiCards.map((card) => (
+          <KpiTrendCard
+            key={card.title}
+            title={card.title}
+            period={monthName}
+            value={card.value}
+            data={card.data}
+            color={card.color}
+            icon={card.icon}
+          />
         ))}
       </div>
 
