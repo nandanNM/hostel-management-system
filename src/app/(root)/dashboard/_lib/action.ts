@@ -36,10 +36,9 @@ export async function toggleMealStatus(
     }
   }
 
-  const limit = await checkRateLimit(
-    mealToggleLimiter,
-    `meal-toggle:${session.user.id}`
-  )
+  const userId = session.user.id
+
+  const limit = await checkRateLimit(mealToggleLimiter, `meal-toggle:${userId}`)
   if (!limit.allowed) {
     return {
       status: "error",
@@ -53,21 +52,38 @@ export async function toggleMealStatus(
   }
 
   try {
-    await prisma.$transaction([
-      prisma.meal.update({
-        where: { userId: session.user.id },
+    await prisma.$transaction(async (tx) => {
+      // updateMany + a status-mismatch filter makes this atomic and
+      // idempotent: a duplicate submission (double-click, retry, a second
+      // tab) that lands after the first one already applied finds nothing
+      // left to change and skips the log — so it can never write a second
+      // "OFF" (or "ON") entry for the same state.
+      const { count } = await tx.meal.updateMany({
+        where: { userId, status: { not: status } },
         data: { status },
-      }),
-      prisma.activityLog.create({
+      })
+      if (count === 0) {
+        // Either already in the requested state (fine, no-op), or this user
+        // has no meal record at all — tell those two apart instead of
+        // silently reporting success either way.
+        const meal = await tx.meal.findUnique({
+          where: { userId },
+          select: { id: true },
+        })
+        if (!meal) throw new Error("No meal record found for your account.")
+        return
+      }
+
+      await tx.activityLog.create({
         data: {
-          userId: session.user.id,
+          userId,
           actionType: "MEAL_STATUS_CHANGE",
           entityType: "MEAL",
           newData: { status },
           details: `Meal turned ${status === "ACTIVE" ? "ON" : "OFF"}`,
         },
-      }),
-    ])
+      })
+    })
     return {
       status: "success",
       message: "Meal status updated successfully",
