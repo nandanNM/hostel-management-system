@@ -1,12 +1,24 @@
 "use client"
 
+import * as React from "react"
 import { ColumnDef } from "@tanstack/react-table"
 
 import { formatIST } from "@/lib/date"
-import { Badge } from "@/components/ui/badge"
+import { GuestMealStatusType } from "@/lib/generated/prisma"
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header"
+import { Badge } from "@/components/reui/badge"
 
 import type { GuestMealHistoryRow } from "../_lib/actions"
+
+type BadgeVariant = React.ComponentProps<typeof Badge>["variant"]
+
+// History only ever contains these two statuses, but mapped as a partial
+// record so a future status added upstream falls back to a neutral badge
+// instead of breaking.
+const STATUS_VARIANT: Partial<Record<GuestMealStatusType, BadgeVariant>> = {
+  APPROVED: "info-light",
+  SERVED: "success-light",
+}
 
 function prettify(value: string) {
   return value
@@ -55,7 +67,12 @@ export function getColumns(): ColumnDef<GuestMealHistoryRow>[] {
         <DataTableColumnHeader column={column} title="Status" />
       ),
       cell: ({ row }) => (
-        <Badge variant="secondary">{prettify(row.original.status)}</Badge>
+        <Badge
+          variant={STATUS_VARIANT[row.original.status] ?? "secondary"}
+          size="sm"
+        >
+          {prettify(row.original.status)}
+        </Badge>
       ),
     },
   ]
