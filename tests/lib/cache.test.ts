@@ -3,24 +3,37 @@ import { describe, expect, it, vi } from "vitest"
 // The module imports "server-only", which throws outside a server component
 // context, and reads the Redis env vars at import time.
 vi.mock("server-only", () => ({}))
-vi.mock("./redis", () => ({ redis: null, isRedisEnabled: false }))
+vi.mock("@/lib/redis", () => ({ redis: null, isRedisEnabled: false }))
 
 const { cacheKeys, cached, mealScheduleKeys, secondsUntilIstMidnight } =
-  await import("./cache")
+  await import("@/lib/cache")
 
 describe("cacheKeys", () => {
   it("uses one key per month for the whole hostel", () => {
-    expect(cacheKeys.leaderboard(2026, 7)).toBe("v1:leaderboard:2026-08")
+    expect(cacheKeys.leaderboard(2026, 7)).toContain("leaderboard:2026-08")
     // Not per user: two boarders must resolve to the same key.
     expect(cacheKeys.leaderboard(2026, 7)).toBe(cacheKeys.leaderboard(2026, 7))
   })
 
   it("pads the month so keys sort correctly", () => {
-    expect(cacheKeys.leaderboard(2026, 0)).toBe("v1:leaderboard:2026-01")
+    expect(cacheKeys.leaderboard(2026, 0)).toContain("leaderboard:2026-01")
   })
 
   it("keys birthdays by the India day", () => {
-    expect(cacheKeys.birthdays("2026-08-03")).toBe("v1:birthdays:2026-08-03")
+    expect(cacheKeys.birthdays("2026-08-03")).toContain("birthdays:2026-08-03")
+  })
+
+  it("namespaces every key under one version", () => {
+    // A half-bumped namespace would leave stale entries readable.
+    const version = cacheKeys.messConfig().split(":")[0]
+    expect(version).toMatch(/^v\d+$/)
+    for (const key of [
+      cacheKeys.leaderboard(2026, 7),
+      cacheKeys.birthdays("2026-08-03"),
+      cacheKeys.mealSchedule("MONDAY", "LUNCH"),
+    ]) {
+      expect(key.startsWith(`${version}:`)).toBe(true)
+    }
   })
 })
 

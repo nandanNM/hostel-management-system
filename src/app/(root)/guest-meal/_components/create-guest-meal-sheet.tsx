@@ -64,7 +64,9 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
   // non-veg options are bookable; booking above the scheduled item would make
   // the mess buy something for a single guest.
   const [allowedNonVeg, setAllowedNonVeg] = useState<string[] | null>(null)
-  const [offering, setOffering] = useState<string | null>(null)
+  const [offers, setOffers] = useState<string[] | null>(null)
+  // One flat price for the night, whatever the guest picks.
+  const [nightPrice, setNightPrice] = useState<number | null>(null)
   // The prefect sets the horizon; 3 days was hardcoded here before.
   const [maxDaysAhead, setMaxDaysAhead] = useState(3)
 
@@ -95,16 +97,16 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
 
   const watchedDate = form.watch("date")
   const watchedMealTime = form.watch("mealTime")
-  const watchedType = form.watch("type")
 
   useEffect(() => {
-    if (watchedType !== "NON_VEG" || !watchedDate) return
+    if (!watchedDate) return
     let cancelled = false
 
     getAllowedGuestMealOptions(watchedDate, watchedMealTime)
-      .then(({ offering: scheduled, allowed }) => {
+      .then(({ offers: scheduled, allowed, price }) => {
         if (cancelled) return
-        setOffering(scheduled)
+        setOffers(scheduled)
+        setNightPrice(price)
         setAllowedNonVeg(allowed.filter((type) => type !== "NONE"))
 
         // Leaving a now-invalid choice selected would only fail on submit.
@@ -120,7 +122,7 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
     return () => {
       cancelled = true
     }
-  }, [watchedDate, watchedMealTime, watchedType, form])
+  }, [watchedDate, watchedMealTime, form])
 
   const nonVegChoices = (
     allowedNonVeg ?? NON_VEG_OPTIONS.filter((type) => type !== "NONE")
@@ -293,12 +295,15 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
                             ))}
                           </SelectContent>
                         </Select>
-                        {offering && (
+                        {offers && offers.length > 0 && (
                           <FormDescription>
-                            {offering.charAt(0) +
-                              offering.slice(1).toLowerCase()}{" "}
-                            is scheduled for this meal, so richer options are
-                            not available.
+                            This meal serves{" "}
+                            {offers
+                              .map(
+                                (t) => t.charAt(0) + t.slice(1).toLowerCase()
+                              )
+                              .join(", ")}
+                            . Anything else is not being cooked.
                           </FormDescription>
                         )}
                         <FormMessage />
@@ -342,6 +347,15 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
                         }
                       />
                     </FormControl>
+                    {nightPrice !== null && (
+                      <FormDescription>
+                        ₹{nightPrice.toFixed(2)} per meal for this day — the
+                        same whatever your guest picks
+                        {form.watch("numberOfMeals") > 1 &&
+                          `, so ₹${(nightPrice * Number(form.watch("numberOfMeals") || 0)).toFixed(2)} in total`}
+                        .
+                      </FormDescription>
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}

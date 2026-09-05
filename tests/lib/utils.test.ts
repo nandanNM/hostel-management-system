@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { formatDate, getCurrentMealSlot, isActiveTime } from "./utils"
+import { formatDate, getCurrentMealSlot, isActiveTime } from "@/lib/utils"
 
 describe("getCurrentMealSlot", () => {
   it("splits the day on India noon, not UTC noon", () => {

@@ -12,8 +12,15 @@ import {
   DayOfWeek,
   MealTimeType,
   MenuItem,
+  NonVegType,
   type MealScheduleEntry,
 } from "@/lib/generated/prisma"
+import {
+  describeOffers,
+  OFFERABLE_TYPES,
+  resolveOffers,
+  suggestOffersFromName,
+} from "@/lib/meal-priority"
 import { toast } from "@/lib/toast"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -70,36 +77,69 @@ function DayMealCard({
   onOpen: (day: DayOfWeek, meal: MealTimeType) => void
 }) {
   const entry = schedule.find((s) => s.dayOfWeek === day && s.mealTime === meal)
+  const dishes = entry?.menuItems ?? []
+  const isSet = dishes.length > 0
+
+  // What this slot will actually count as, before anyone generates it.
+  // `?? []`: mid-deploy, an instance running the previous build queries
+  // without the `offers` column and hands back undefined. Crashing the whole
+  // schedule screen for that window is not worth it.
+  const slotOffers = resolveOffers(
+    dishes.map((mi) => ({ offers: mi.menuItem.offers ?? [] }))
+  )
+
+  // Every slot gets the same footer line, so the grid reads as one table
+  // rather than seven columns of differently-shaped cards.
+  const summary = !isSet
+    ? "Counts as all non-veg"
+    : `Serves ${describeOffers(slotOffers)}`
+
+  const summaryTone = !isSet
+    ? "text-amber-700 dark:text-amber-400"
+    : slotOffers.length > 0
+      ? "text-orange-700 dark:text-orange-400"
+      : "text-green-700 dark:text-green-400"
+
   return (
     <Card
-      className="group hover:border-primary/50 border-muted/60 cursor-pointer transition-all active:scale-[0.98]"
+      className="group hover:border-primary/50 border-muted/60 flex h-full cursor-pointer flex-col gap-0 py-0 transition-all active:scale-[0.98]"
       onClick={() => onOpen(day, meal)}
     >
-      <CardHeader className="p-2 sm:p-3">
+      <CardHeader className="gap-0 p-2 pb-1.5 sm:p-3 sm:pb-2">
         <div className="flex items-center justify-between">
           <span className="text-muted-foreground/80 text-[10px] font-bold tracking-widest uppercase sm:text-xs">
             {meal}
           </span>
-          <ChevronDown className="h-3 w-3 opacity-30 transition-opacity group-hover:opacity-100" />
+          <ChevronDown className="h-3 w-3 shrink-0 opacity-30 transition-opacity group-hover:opacity-100" />
         </div>
       </CardHeader>
-      <CardContent className="px-2 pt-0 pb-2 sm:px-3 sm:pb-3">
-        {entry?.menuItems && entry.menuItems.length > 0 ? (
-          <div className="flex flex-wrap gap-1">
-            {entry.menuItems.map((mi) => (
+      <CardContent className="flex flex-1 flex-col gap-2 px-2 pt-0 pb-2 sm:px-3 sm:pb-3">
+        <div className="flex flex-1 flex-wrap content-start gap-1">
+          {isSet ? (
+            dishes.map((mi) => (
               <span
                 key={mi.menuItem.id}
                 className="bg-primary/5 border-primary/10 text-primary/80 inline-flex rounded-sm border px-1 py-0.5 text-[9px] font-semibold sm:text-[10px]"
               >
                 {mi.menuItem.name}
               </span>
-            ))}
-          </div>
-        ) : (
-          <p className="text-muted-foreground/50 text-[9px] italic sm:text-[10px]">
-            Not Set
-          </p>
-        )}
+            ))
+          ) : (
+            <span className="text-muted-foreground/50 text-[9px] italic sm:text-[10px]">
+              No menu set
+            </span>
+          )}
+        </div>
+        {/* Two lines reserved, so a one-line offer and a wrapped one still
+            produce the same card height in the common case. */}
+        <p
+          className={cn(
+            "border-muted/50 min-h-[1.85rem] border-t pt-1.5 text-[9px] leading-snug font-medium sm:text-[10px]",
+            summaryTone
+          )}
+        >
+          {summary}
+        </p>
       </CardContent>
     </Card>
   )
@@ -113,6 +153,11 @@ export default function MealScheduleView({
   const [schedule] = useState(initialSchedule)
   const [isMenuItemModalOpen, setIsMenuItemModalOpen] = useState(false)
   const [editingMenuItem, setEditingMenuItem] = useState<MenuItem | null>(null)
+  // What a boarder can be given on a day this dish is scheduled. Ticked by
+  // the prefect, never guessed from the dish name.
+  const [offers, setOffers] = useState<NonVegType[]>([])
+  // Only suggest from the name until the prefect touches the boxes.
+  const [offersTouched, setOffersTouched] = useState(false)
 
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false)
   const [activeSlot, setActiveSlot] = useState<{
@@ -135,6 +180,7 @@ export default function MealScheduleView({
       id: editingMenuItem?.id,
       name,
       costPerUnit: cost,
+      offers,
     })
 
     if (result.status === "success") {
@@ -207,7 +253,7 @@ export default function MealScheduleView({
 
       <TabsContent value="schedule" className="space-y-6">
         {/* Mobile View: One day at a time */}
-        <div className="block md:hidden">
+        <div className="block lg:hidden">
           <Tabs defaultValue="MONDAY" className="w-full">
             <ScrollArea className="w-full pb-2 whitespace-nowrap">
               <TabsList className="inline-flex h-9 w-max gap-1 bg-transparent p-0">
@@ -247,23 +293,32 @@ export default function MealScheduleView({
         </div>
 
         {/* Desktop View: 7-column grid */}
-        <div className="hidden gap-3 md:grid md:grid-cols-4 lg:grid-cols-7">
+        {/* Real grid rows, not seven independent columns of stacked cards.
+            A grid row sizes to its tallest card and stretches the rest to
+            match, so every LUNCH card lines up with every other LUNCH card
+            and the DINNER row below stays straight however long one day's
+            offer text runs. Stacking per column let a single wrapped line
+            push one day's DINNER card out of line with the other six. */}
+        <div className="hidden gap-3 lg:grid lg:grid-cols-7">
           {DAYS.map((day) => (
-            <div key={day} className="space-y-3">
-              <h3 className="text-muted-foreground text-center text-[10px] font-bold tracking-[0.2em] uppercase">
-                {day.substring(0, 3)}
-              </h3>
-              {(["LUNCH", "DINNER"] as MealTimeType[]).map((meal) => (
-                <DayMealCard
-                  key={`${day}-${meal}`}
-                  day={day}
-                  meal={meal}
-                  schedule={schedule}
-                  onOpen={openScheduleDialog}
-                />
-              ))}
-            </div>
+            <h3
+              key={`head-${day}`}
+              className="text-muted-foreground text-center text-[10px] font-bold tracking-[0.2em] uppercase"
+            >
+              {day.substring(0, 3)}
+            </h3>
           ))}
+          {(["LUNCH", "DINNER"] as MealTimeType[]).flatMap((meal) =>
+            DAYS.map((day) => (
+              <DayMealCard
+                key={`${day}-${meal}`}
+                day={day}
+                meal={meal}
+                schedule={schedule}
+                onOpen={openScheduleDialog}
+              />
+            ))
+          )}
         </div>
       </TabsContent>
 
@@ -294,6 +349,8 @@ export default function MealScheduleView({
               size="sm"
               onClick={() => {
                 setEditingMenuItem(null)
+                setOffers([])
+                setOffersTouched(false)
                 setIsMenuItemModalOpen(true)
               }}
               className="flex-1 text-[10px] font-bold tracking-wider uppercase sm:flex-initial"
@@ -308,19 +365,29 @@ export default function MealScheduleView({
           {menuItems.map((item) => (
             <Card
               key={item.id}
-              className="group border-muted/60 relative overflow-hidden transition-shadow hover:shadow-sm"
+              className="group border-muted/60 relative flex h-full flex-col gap-0 overflow-hidden py-0 transition-shadow hover:shadow-sm"
             >
-              <CardHeader className="flex flex-row items-start justify-between space-y-0 p-3 pb-0">
+              <CardHeader className="gap-0 p-3 pb-0">
                 <div className="flex flex-col">
                   <span className="line-clamp-1 text-xs leading-tight font-bold">
                     {item.name}
                   </span>
                   <span className="text-muted-foreground mt-0.5 text-[10px]">
-                    ₹ {item.costPerUnit.toFixed(2)}
+                    ₹ {item.costPerUnit.toFixed(2)} per guest
                   </span>
                 </div>
               </CardHeader>
-              <CardContent className="p-3 pt-2">
+              <CardContent className="flex flex-1 flex-col justify-between gap-2 p-3 pt-2">
+                <span
+                  className={cn(
+                    "w-fit rounded px-1.5 py-0.5 text-[9px] leading-snug font-bold tracking-wider uppercase",
+                    (item.offers ?? []).length > 0
+                      ? "bg-orange-600/10 text-orange-700 dark:text-orange-400"
+                      : "bg-green-600/10 text-green-700 dark:text-green-400"
+                  )}
+                >
+                  {describeOffers(item.offers ?? [])}
+                </span>
                 <div className="border-muted/30 flex justify-end gap-1 border-t pt-2">
                   <Button
                     variant="ghost"
@@ -328,6 +395,8 @@ export default function MealScheduleView({
                     className="hover:bg-primary/10 hover:text-primary h-7 w-7 rounded-full transition-colors"
                     onClick={() => {
                       setEditingMenuItem(item)
+                      setOffers(item.offers ?? [])
+                      setOffersTouched(true)
                       setIsMenuItemModalOpen(true)
                     }}
                   >
@@ -373,11 +442,17 @@ export default function MealScheduleView({
                   name="name"
                   placeholder="e.g. Chicken Curry"
                   defaultValue={editingMenuItem?.name}
+                  onChange={(e) => {
+                    // A hint only. The name cannot decide this — reading
+                    // "Roti" as veg is exactly what broke the meal count.
+                    if (!offersTouched)
+                      setOffers(suggestOffersFromName(e.target.value))
+                  }}
                   required
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="cost">Estimated Cost per Unit (₹)</Label>
+                <Label htmlFor="cost">Guest price for this day (₹)</Label>
                 <Input
                   id="cost"
                   name="cost"
@@ -387,6 +462,43 @@ export default function MealScheduleView({
                   defaultValue={editingMenuItem?.costPerUnit.toString()}
                   required
                 />
+                <p className="text-muted-foreground text-[11px]">
+                  A guest pays this flat, whatever they pick.
+                </p>
+              </div>
+              <div className="grid gap-2">
+                <Label>What can boarders get on this day?</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {OFFERABLE_TYPES.map((tier) => (
+                    <label
+                      key={tier}
+                      className={cn(
+                        "flex cursor-pointer items-center gap-2 rounded-md border p-2 text-sm transition-colors",
+                        offers.includes(tier)
+                          ? "bg-primary/5 border-primary/20"
+                          : "hover:bg-muted/50"
+                      )}
+                    >
+                      <Checkbox
+                        checked={offers.includes(tier)}
+                        onCheckedChange={(checked) => {
+                          setOffersTouched(true)
+                          setOffers((prev) =>
+                            checked
+                              ? [...prev, tier]
+                              : prev.filter((t) => t !== tier)
+                          )
+                        }}
+                      />
+                      {tier.charAt(0) + tier.slice(1).toLowerCase()}
+                    </label>
+                  ))}
+                </div>
+                <p className="text-muted-foreground text-[11px]">
+                  {offers.length === 0
+                    ? "Nothing ticked — this is a veg-only day."
+                    : `Boarders get ${describeOffers(offers)}, in that order. Anyone who dislikes all of them gets veg.`}
+                </p>
               </div>
             </div>
             <DialogFooter>

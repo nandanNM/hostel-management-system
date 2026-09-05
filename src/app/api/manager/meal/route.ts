@@ -16,12 +16,14 @@ import {
   UserStatusType,
 } from "@/lib/generated/prisma"
 import getSession from "@/lib/get-session"
-import { resolveOffering } from "@/lib/meal-priority"
+import {
+  assignBucket,
+  resolveOffers,
+  type MealBucket,
+} from "@/lib/meal-priority"
 import { getMessConfig } from "@/lib/mess-config"
 import prisma from "@/lib/prisma"
 import { getCurrentMealSlot } from "@/lib/utils"
-
-import { calculateActualNonVegMeal } from "./_lib/utils"
 
 export async function GET() {
   try {
@@ -98,25 +100,32 @@ export async function POST() {
       return Response.json({ error: "Already Generated" }, { status: 400 })
     }
 
-    // Determine today's non-veg offering from the meal schedule
-    const todayScheduleEntry = await prisma.mealScheduleEntry.findUnique({
-      where: { dayOfWeek_mealTime: { dayOfWeek, mealTime } },
-      include: { menuItems: { include: { menuItem: true } } },
-    })
-
-    const hasSchedule = !!todayScheduleEntry
-    let hostelDailyOffering: NonVegType | null = null
-
-    // Same configured chain the booking form uses, so the count and the
-    // bookings can never disagree about what is on offer.
+    // Same order the booking form uses, so the count and the bookings can
+    // never disagree about what is on offer.
     const { nonVegPriority } = await getMessConfig()
 
-    if (hasSchedule && todayScheduleEntry.menuItems.length > 0) {
-      hostelDailyOffering = resolveOffering(
-        todayScheduleEntry.menuItems.map((mi) => mi.menuItem.name),
-        nonVegPriority
-      )
-    }
+    // What today provides is the union of what each scheduled dish offers -
+    // ticked by the prefect per dish, never guessed from the dish's name.
+    const todayScheduleEntry = await prisma.mealScheduleEntry.findUnique({
+      where: { dayOfWeek_mealTime: { dayOfWeek, mealTime } },
+      include: {
+        menuItems: { select: { menuItem: { select: { offers: true } } } },
+      },
+    })
+
+    const scheduledDishes =
+      todayScheduleEntry?.menuItems.map((mi) => mi.menuItem) ?? []
+
+    // A slot with no menu at all is a configuration gap, not a veg day.
+    // Offering everything keeps the count erring towards non-veg, which is
+    // the safe direction, and the schedule screen flags the empty slot.
+    const offers =
+      scheduledDishes.length > 0
+        ? resolveOffers(scheduledDishes, nonVegPriority)
+        : resolveOffers([{ offers: [...nonVegPriority] }], nonVegPriority)
+
+    const offeringBucket: MealBucket =
+      (offers[0] as Exclude<MealBucket, "VEG"> | undefined) ?? "VEG"
 
     const [allRegularMeals, allActiveGuestMeals] = await Promise.all([
       prisma.meal.findMany({
@@ -152,10 +161,13 @@ export async function POST() {
       }),
     ])
 
-    let vegCount = 0
-    let chickenCount = 0
-    let fishCount = 0
-    let eggCount = 0
+    const bucketCounts: Record<MealBucket, number> = {
+      VEG: 0,
+      MUTTON: 0,
+      CHICKEN: 0,
+      FISH: 0,
+      EGG: 0,
+    }
     const attendanceRecordsToCreate: {
       userId: string
       mealTime: "LUNCH" | "DINNER"
@@ -164,26 +176,9 @@ export async function POST() {
     }[] = []
 
     for (const meal of allRegularMeals) {
-      if (meal.type === MealType.VEG) {
-        vegCount++
-      } else if (hasSchedule) {
-        // Apply priority chain: from today's offering downward, find the first type the user accepts
-        const actualType = calculateActualNonVegMeal(
-          meal.nonVegType !== NonVegType.NONE
-            ? meal.nonVegType
-            : NonVegType.CHICKEN,
-          meal.dislikedNonVegTypes,
-          hostelDailyOffering,
-          nonVegPriority
-        )
-        if (actualType === NonVegType.CHICKEN) chickenCount++
-        else if (actualType === NonVegType.FISH) fishCount++
-        else if (actualType === NonVegType.EGG) eggCount++
-        else vegCount++ // disliked all available non-veg → falls back to veg
-      } else {
-        // No schedule configured: count as generic non-veg in chickenCount for backward compat
-        chickenCount++
-      }
+      // Shared with the breakdown drill-down, so the card and the list it
+      // links to can never disagree about where a boarder belongs.
+      bucketCounts[assignBucket(meal, offers)]++
 
       attendanceRecordsToCreate.push({
         userId: meal.userId,
@@ -199,12 +194,15 @@ export async function POST() {
       guestTotalMeals += numMeals
 
       if (guestMeal.type === MealType.VEG) {
-        vegCount += numMeals
+        bucketCounts.VEG += numMeals
+      } else if (guestMeal.nonVegType === NonVegType.NONE) {
+        // NON_VEG with no type is stale data: count it as the day's headline
+        // rather than silently folding it into chicken.
+        bucketCounts[offeringBucket] += numMeals
       } else {
-        // Guest meals are counted by their explicitly requested non-veg type
-        if (guestMeal.nonVegType === NonVegType.FISH) fishCount += numMeals
-        else if (guestMeal.nonVegType === NonVegType.EGG) eggCount += numMeals
-        else chickenCount += numMeals // CHICKEN, MUTTON, or NONE fallback
+        // Guests are counted by what they booked - mutton included, which
+        // used to be added to the chicken total.
+        bucketCounts[guestMeal.nonVegType] += numMeals
       }
     }
 
@@ -217,11 +215,13 @@ export async function POST() {
           totalMeal: totalMeals,
           date: todayStart,
           totalGuestMeal: guestTotalMeals,
-          totalVeg: vegCount,
-          totalNonvegChicken: chickenCount,
-          totalNonvegFish: fishCount,
-          totalNonvegEgg: eggCount,
-          actualNonVegServed: hostelDailyOffering,
+          totalVeg: bucketCounts.VEG,
+          totalNonvegChicken: bucketCounts.CHICKEN,
+          totalNonvegFish: bucketCounts.FISH,
+          totalNonvegEgg: bucketCounts.EGG,
+          totalNonvegMutton: bucketCounts.MUTTON,
+          offeredTypes: offers,
+          actualNonVegServed: offers[0] ?? null,
           generatedById,
         },
       })

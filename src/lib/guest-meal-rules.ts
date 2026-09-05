@@ -109,8 +109,27 @@ export function checkMonthlyGuestQuota(
 }
 
 /**
- * Price for one guest meal: the prefect's rate table first, then the menu
- * item's own cost, then the configured fallback.
+ * The flat price the scheduled menu sets for one guest meal that night.
+ *
+ * A guest pays for the *day*, not for the tier they picked: a roti night
+ * costs the same with chicken, with egg or with veg. Where a slot lists
+ * several dishes the dearest sets the price, so adding a cheap side can never
+ * undercut the night.
+ *
+ * This replaces looking the dish up by *name* ("Veg"/"Chicken"/"Egg"...),
+ * which could never match a dish called Roti and so charged a roti night at
+ * the plain tier rate.
+ */
+export function resolveScheduledMealPrice(
+  dishes: { costPerUnit: number }[]
+): number | null {
+  const priced = dishes.map((d) => d.costPerUnit).filter((c) => c > 0)
+  return priced.length > 0 ? Math.max(...priced) : null
+}
+
+/**
+ * Price for one guest meal: the prefect's rate table first, then what the
+ * scheduled menu sets, then the configured fallback.
  */
 export function resolveGuestMealCharge(args: {
   rate?: number | null

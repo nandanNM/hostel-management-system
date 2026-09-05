@@ -9,7 +9,7 @@ import {
   sumMonthlyMeals,
   type MonthlyMealRow,
   type ReportUser,
-} from "./aggregate"
+} from "@/app/manager/reports/monthly-meals/_lib/aggregate"
 
 const users: ReportUser[] = [
   {
