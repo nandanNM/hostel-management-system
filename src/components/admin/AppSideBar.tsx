@@ -147,7 +147,7 @@ export default function AppSideBar({ state, user }: AppSideBarProps) {
         </SidebarMenu>
       </SidebarHeader>
       <Separator />
-      <SidebarContent>
+      <SidebarContent className="scrollbar-quiet">
         {onUserDetail && (
           <SidebarGroup>
             <SidebarGroupContent>

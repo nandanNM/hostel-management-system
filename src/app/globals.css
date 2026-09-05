@@ -257,6 +257,27 @@ body {
   }
 }
 
+/* A scroll container that does not announce itself.
+
+   The sidebar overflows once a role has enough nav groups — mess-prefect has
+   seven, manager four — and Chrome on Windows answers that with a full-width
+   grey bar pinned against the nav labels. Keep the scrolling, drop the
+   furniture: a thin bar that stays invisible until the pointer or the
+   keyboard is actually inside it.
+
+   Standard properties only. Chrome ignores ::-webkit-scrollbar as soon as
+   scrollbar-width is set, and the browsers that lack these (Safari before
+   18.2) draw overlay scrollbars, which were never the problem. */
+@utility scrollbar-quiet {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+
+  &:hover,
+  &:focus-within {
+    scrollbar-color: var(--border) transparent;
+  }
+}
+
 @keyframes wave {
   0%,
   60%,
