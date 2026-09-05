@@ -30,6 +30,10 @@ function makeLimiter(tokens: number, window: `${number} ${"s" | "m" | "h"}`) {
 
 export const guestMealBookingLimiter = makeLimiter(10, "1 h")
 export const mealToggleLimiter = makeLimiter(20, "1 h")
+// Reports reach a public tracker, so this is spam control as much as load
+// control. Low enough to stop a flood, high enough that a boarder chasing a
+// real bug can file a follow-up.
+export const issueReportLimiter = makeLimiter(3, "1 h")
 
 export type RateLimitVerdict =
   | { allowed: true }

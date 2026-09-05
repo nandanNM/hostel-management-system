@@ -59,6 +59,7 @@ model User {
   UserFine              UserFine[]          @relation("FineWaiver")
   generatedMealCounts   DailyMealActivity[] @relation("MealCountGenerator")
   subscriptions         Subscription[]
+  issueReports          IssueReport[]
   messConfigUpdates     MessConfig[]        @relation("MessConfigEditor")
 
   createdAt DateTime @default(now()) @map("created_at")
@@ -611,6 +612,34 @@ model GuestMealRate {
 
   @@unique([mealTime, type, nonVegType])
   @@map("guest_meal_rates")
+}
+
+/// A bug or problem a boarder reported from inside the app.
+///
+/// The row is written before GitHub is contacted and kept whether or not that
+/// succeeds, so a missing token or a GitHub outage cannot silently swallow a
+/// report.
+model IssueReport {
+  id     String @id @default(cuid())
+  userId String @map("user_id")
+
+  title       String
+  description String
+
+  /// Where the reporter was standing when they hit it, for triage.
+  pageUrl   String? @map("page_url")
+  userAgent String? @map("user_agent")
+
+  /// Null until the report reaches GitHub.
+  githubIssueNumber Int?    @map("github_issue_number")
+  githubIssueUrl    String? @map("github_issue_url")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("issue_reports")
 }
 
 model Subscription {
