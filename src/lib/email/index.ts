@@ -4,6 +4,7 @@ export {
   sendFineIssuedEmail,
   sendPaymentReceivedEmail,
   sendDueAddedEmail,
+  sendDuesReminderEmail,
   sendHappyBirthdayEmail,
   sendTerminationEmail,
   sendBoarderInviteEmail,

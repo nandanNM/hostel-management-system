@@ -64,7 +64,7 @@ export function DataTableDateRangeFilter({
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-3" align="start">
+      <PopoverContent className="w-auto p-3" align="start" sideOffset={8}>
         <RangeCalendar
           value={value}
           maxValue={today(getLocalTimeZone())}
