@@ -4,6 +4,10 @@ import { format } from "date-fns"
 
 import { MealStatusType } from "@/lib/generated/prisma"
 
+import {
+  alumniFarewellEmail,
+  type AlumniFarewellStats,
+} from "./emails/alumni-farewell"
 import { dueAddedEmail } from "./emails/due-added"
 import { happyBirthdayEmail } from "./emails/happy-birthday"
 import { emailLayout } from "./emails/layout"
@@ -321,5 +325,23 @@ export async function sendBoarderInviteEmail({
     to,
     subject: "You have been invited to the mess",
     html: emailLayout("Mess invitation", body),
+  })
+}
+
+export async function sendAlumniFarewellEmail({
+  to,
+  alumniId,
+  ...stats
+}: AlumniFarewellStats & {
+  to: string
+  /** Keyed on the alumni row so a repeated transfer cannot mail twice. */
+  alumniId?: string
+}): Promise<boolean> {
+  const { subject, html } = alumniFarewellEmail(stats)
+  return sendEmail({
+    to,
+    subject,
+    html,
+    idempotencyKey: alumniId ? `alumni-farewell/${alumniId}` : undefined,
   })
 }

@@ -3,50 +3,74 @@ import "server-only"
 import { addDays } from "date-fns"
 
 import prisma from "@/lib/prisma"
+import { decidePushPrompt, type PushPromptState } from "@/lib/push-rules"
 import { requireUser } from "@/lib/require-user"
+
+export { decidePushPrompt, type PushPromptState } from "@/lib/push-rules"
 
 export const PUSH_PROMPT_REMIND_DAYS = 3
 
-export type PushPromptState = {
-  shouldPrompt: boolean
-  pushEnabled: boolean
-  skipped: boolean
-  remindAt: Date | null
-}
-
-export async function getPushPromptState(): Promise<PushPromptState> {
+/**
+ * Push is per-device state, so every answer here is about the device asking.
+ *
+ * It used to be answered from `User.pushEnabled`, a single boolean for the
+ * whole account. Enabling on a laptop set it, and every other device then read
+ * "already on": never prompted, toggle stuck showing enabled, no subscription
+ * row ever created for it. Notifications only ever reached whichever device
+ * happened to subscribe first.
+ *
+ * `endpoint` is the browser's own push endpoint, or null when it has none.
+ */
+export async function getPushPromptState(
+  endpoint?: string | null
+): Promise<PushPromptState> {
   const session = await requireUser()
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: {
-      pushEnabled: true,
-      pushPromptSkipped: true,
-      pushPromptRemindAt: true,
-      _count: { select: { subscriptions: true } },
-    },
-  })
+  const [user, subscriptions] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: {
+        pushEnabled: true,
+        pushPromptSkipped: true,
+        pushPromptRemindAt: true,
+      },
+    }),
+    prisma.subscription.findMany({
+      where: { userId: session.user.id },
+      select: { endpoint: true },
+    }),
+  ])
 
   if (!user) {
     return {
       shouldPrompt: false,
-      pushEnabled: false,
+      enabledHere: false,
+      otherDevices: 0,
       skipped: false,
       remindAt: null,
     }
   }
 
-  const hasSubscription = user._count.subscriptions > 0
-  const snoozed =
-    user.pushPromptRemindAt !== null && user.pushPromptRemindAt > new Date()
+  const decision = decidePushPrompt({
+    endpoint: endpoint ?? null,
+    endpoints: subscriptions.map((sub) => sub.endpoint),
+    skipped: user.pushPromptSkipped,
+    remindAt: user.pushPromptRemindAt,
+  })
+
+  // The flag drifts: a subscription pruned as expired, or unsubscribed from
+  // browser settings, leaves it stuck on. Reconcile it whenever we look.
+  if (user.pushEnabled !== subscriptions.length > 0) {
+    await prisma.user
+      .update({
+        where: { id: session.user.id },
+        data: { pushEnabled: subscriptions.length > 0 },
+      })
+      .catch(() => {})
+  }
 
   return {
-    shouldPrompt:
-      !hasSubscription &&
-      !user.pushEnabled &&
-      !user.pushPromptSkipped &&
-      !snoozed,
-    pushEnabled: user.pushEnabled,
+    ...decision,
     skipped: user.pushPromptSkipped,
     remindAt: user.pushPromptRemindAt,
   }
@@ -70,20 +94,5 @@ export async function skipPushPrompt() {
   await prisma.user.update({
     where: { id: session.user.id },
     data: { pushPromptSkipped: true, pushPromptRemindAt: null },
-  })
-}
-
-export async function setPushEnabled(enabled: boolean) {
-  const session = await requireUser()
-
-  await prisma.user.update({
-    where: { id: session.user.id },
-    data: enabled
-      ? {
-          pushEnabled: true,
-          pushPromptSkipped: false,
-          pushPromptRemindAt: null,
-        }
-      : { pushEnabled: false },
   })
 }

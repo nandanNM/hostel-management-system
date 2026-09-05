@@ -34,7 +34,11 @@ export default function PushNotificationsCard() {
   const { mutate: toggle, isPending } = useTogglePushNotifications()
   const [showBlockedHelp, setShowBlockedHelp] = useState(false)
 
-  const enabled = data?.pushEnabled ?? false
+  // This device's own state. It used to read an account-wide flag, so a phone
+  // showed the toggle already on because the laptop had enabled it - with no
+  // subscription of its own and no way to make one.
+  const enabled = data?.enabledHere ?? false
+  const otherDevices = data?.otherDevices ?? 0
   const unsupported =
     typeof window !== "undefined" && !("PushManager" in window)
 
@@ -93,6 +97,13 @@ export default function PushNotificationsCard() {
                   monthly bill is issued, or a payment/due is recorded on your
                   account. You can turn this off anytime.
                 </p>
+                {!unsupported && otherDevices > 0 && (
+                  <p className="text-muted-foreground mt-2 text-xs">
+                    {enabled
+                      ? `Also on ${otherDevices} other device${otherDevices > 1 ? "s" : ""}.`
+                      : `On ${otherDevices} other device${otherDevices > 1 ? "s" : ""}, but not this one — turn it on here too.`}
+                  </p>
+                )}
                 {unsupported && (
                   <p className="text-destructive mt-2 text-xs">
                     Your browser doesn&apos;t support push notifications.

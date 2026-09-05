@@ -29,9 +29,15 @@ export async function registerPushNotification() {
     )
   }
 
+  // The browser may already hold a subscription the server has never seen -
+  // the row can be pruned as expired, or lost with the database - in which
+  // case the toggle reads off while `pushManager.subscribe` refuses to make a
+  // second one. Re-registering the existing subscription heals that instead
+  // of dead-ending the user.
   const existingSubscription = await getCurrentPushSubscription()
   if (existingSubscription) {
-    throw Error("Push notifications are already enabled")
+    await sendPushSubscriptionToServer(existingSubscription)
+    return
   }
 
   const sw = await getReadyServiceWorker()

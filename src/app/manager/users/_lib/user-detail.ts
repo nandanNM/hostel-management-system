@@ -8,9 +8,15 @@ import { ApiResponse } from "@/types"
 import { z } from "zod"
 
 import { cacheKeys, invalidate } from "@/lib/cache"
-import { sendDueAddedEmail, sendPaymentReceivedEmail } from "@/lib/email"
+import { istDaysBetween } from "@/lib/date"
+import {
+  sendAlumniFarewellEmail,
+  sendDueAddedEmail,
+  sendPaymentReceivedEmail,
+} from "@/lib/email"
 import {
   BillEntryType,
+  GuestMealStatusType,
   MealStatusType,
   NotificationType,
   Prisma,
@@ -634,7 +640,7 @@ export async function transferUserToAlumni(
       createdAt: user.createdAt.toISOString(),
     }
 
-    await prisma.$transaction(async (tx) => {
+    const { alumniId } = await prisma.$transaction(async (tx) => {
       const alumni = await tx.alumni.create({
         data: {
           name: alumniName,
@@ -681,15 +687,44 @@ export async function transferUserToAlumni(
     revalidatePath("/dashboard")
     await invalidate(cacheKeys.userFinance(userId))
 
-    after(() =>
-      sendPushToUser(userId, {
+    after(async () => {
+      await sendPushToUser(userId, {
         title: "Congratulations, graduate! 🎓",
         body: "You've been transferred to alumni status. Thank you for being part of D.L Bhawan — wishing you the very best ahead!",
         icon: "/app-icon-192.png",
         url: "/alumni",
         tag: `alumni-${userId}`,
       }).catch((err) => console.error("Push notification failed:", err))
-    )
+
+      // A send-off built from what this hostel actually recorded of their
+      // stay. Gathered after the response so the prefect never waits on it,
+      // and every failure is swallowed - a farewell note must not be able to
+      // undo a transfer that already committed.
+      try {
+        const since = user.joinDate ?? user.createdAt
+        const [mealsShared, guestMeals] = await Promise.all([
+          prisma.mealAttendance.count({ where: { userId } }),
+          prisma.guestMeal.aggregate({
+            _sum: { numberOfMeals: true },
+            where: { userId, status: GuestMealStatusType.APPROVED },
+          }),
+        ])
+
+        await sendAlumniFarewellEmail({
+          to: alumniEmail,
+          alumniId,
+          name: user.name,
+          department,
+          year,
+          roomNo: user.roomNo,
+          daysStayed: since ? istDaysBetween(since) : null,
+          mealsShared,
+          guestsHosted: guestMeals._sum.numberOfMeals ?? 0,
+        })
+      } catch (err) {
+        console.error("Alumni farewell email failed:", err)
+      }
+    })
 
     return {
       status: "success",

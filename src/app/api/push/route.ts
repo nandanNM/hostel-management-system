@@ -1,13 +1,15 @@
 import {
   getPushPromptState,
   remindPushPromptLater,
-  setPushEnabled,
   skipPushPrompt,
 } from "@/lib/push-prompt"
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    const state = await getPushPromptState()
+    // The caller passes its own push endpoint, because "is push on?" is a
+    // question about this browser, not about the account.
+    const endpoint = new URL(req.url).searchParams.get("endpoint")
+    const state = await getPushPromptState(endpoint)
     return Response.json(state)
   } catch (error) {
     console.error(error)
@@ -17,19 +19,17 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    const { action, enabled } = await req.json()
+    const { action, endpoint } = await req.json()
 
     if (action === "remind-later") {
       await remindPushPromptLater()
     } else if (action === "skip") {
       await skipPushPrompt()
-    } else if (action === "set-enabled") {
-      await setPushEnabled(Boolean(enabled))
     } else {
       return Response.json({ error: "Unknown action" }, { status: 400 })
     }
 
-    const state = await getPushPromptState()
+    const state = await getPushPromptState(endpoint ?? null)
     return Response.json(state)
   } catch (error) {
     console.error(error)
