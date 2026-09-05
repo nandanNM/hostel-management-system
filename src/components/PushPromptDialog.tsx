@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import { PushPermissionDeniedError } from "@/helpers/pushService"
 import { registerServiceWorker } from "@/helpers/serviceWorker"
 import { BellRinging } from "@phosphor-icons/react"
+import { useQueryClient } from "@tanstack/react-query"
 
 import { fireConfetti } from "@/lib/confetti"
 import { haptic } from "@/lib/haptic"
@@ -38,11 +39,17 @@ export default function PushPromptDialog() {
   // count as "totally ignored it" and should stop the prompt for good.
   const explicitActionRef = useRef(false)
 
+  const queryClient = useQueryClient()
+
   useEffect(() => {
-    registerServiceWorker().catch((err) =>
-      console.error("Service worker registration failed:", err)
-    )
-  }, [])
+    registerServiceWorker()
+      // Whether this device is subscribed can only be read once the worker is
+      // active, and the first read races that. Ask again now that it is.
+      .then(() =>
+        queryClient.invalidateQueries({ queryKey: ["push-prompt-state"] })
+      )
+      .catch((err) => console.error("Service worker registration failed:", err))
+  }, [queryClient])
 
   useEffect(() => {
     if (data?.shouldPrompt) {

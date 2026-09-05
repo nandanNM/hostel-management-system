@@ -30,13 +30,19 @@ export async function sendPushToUsers(
   const details = vapidDetails()
   if (!details || userIds.length === 0) return { sent: 0, removed: 0 }
 
+  // Selected by having a subscription, not by `pushEnabled`. That flag is a
+  // per-account convenience that drifts out of sync - a device unsubscribed
+  // from browser settings, or a subscription pruned below as expired, leaves
+  // it stuck on. The subscription rows are the only real record of where a
+  // notification can actually be delivered.
   const recipients = await prisma.user.findMany({
-    where: { id: { in: userIds }, pushEnabled: true },
+    where: { id: { in: userIds }, subscriptions: { some: {} } },
     include: { subscriptions: true },
   })
 
   let sent = 0
   let removed = 0
+  const prunedByUser = new Map<string, number>()
 
   const pushPromises = recipients
     .map((recipient) => {
@@ -61,7 +67,13 @@ export async function sendPushToUsers(
               (error.statusCode === 404 || error.statusCode === 410)
             ) {
               removed += 1
-              await prisma.subscription.delete({ where: { id: sub.id } })
+              prunedByUser.set(
+                recipient.id,
+                (prunedByUser.get(recipient.id) ?? 0) + 1
+              )
+              await prisma.subscription
+                .delete({ where: { id: sub.id } })
+                .catch(() => {})
             }
           })
       )
@@ -69,6 +81,17 @@ export async function sendPushToUsers(
     .flat()
 
   await Promise.all(pushPromises)
+
+  // Pruning the last device used to leave `pushEnabled` true forever, so the
+  // settings toggle kept claiming push was on while nothing was delivered.
+  for (const [userId] of prunedByUser) {
+    const left = await prisma.subscription.count({ where: { userId } })
+    if (left === 0) {
+      await prisma.user
+        .update({ where: { id: userId }, data: { pushEnabled: false } })
+        .catch(() => {})
+    }
+  }
 
   return { sent, removed }
 }
