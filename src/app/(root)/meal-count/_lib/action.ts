@@ -37,6 +37,7 @@ export async function getDailyMealCounts() {
       totalNonvegChicken: true,
       totalNonvegFish: true,
       totalNonvegEgg: true,
+      totalNonvegMutton: true,
       createdAt: true,
       generatedBy: {
         select: { name: true },
@@ -49,7 +50,12 @@ export async function getDailyMealCounts() {
     totalMeal: r.totalMeal,
     totalGuestMeal: r.totalGuestMeal,
     totalVeg: r.totalVeg,
-    totalNonVeg: r.totalNonvegChicken + r.totalNonvegFish + r.totalNonvegEgg,
+    // Mutton included: leaving it out under-reported every mutton night.
+    totalNonVeg:
+      r.totalNonvegChicken +
+      r.totalNonvegFish +
+      r.totalNonvegEgg +
+      r.totalNonvegMutton,
     generatedAt: r.createdAt,
     generatedBy: canSeeGenerator ? r.generatedBy : null,
   }))

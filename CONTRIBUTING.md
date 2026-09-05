@@ -114,7 +114,7 @@ reads, and `istDateOnly()` for a date the user picked in a calendar.
 Never write the output of `istWallClock()` to the database or pass it to a
 Prisma filter — it is a display-only fake instant.
 
-`src/lib/date.test.ts` pins the day-key values to what production already
+`tests/lib/date.test.ts` pins the day-key values to what production already
 stores. **If that suite fails, existing rows have stopped matching new
 queries** — treat it as data corruption, not a broken test.
 
@@ -152,16 +152,26 @@ guards with `canManage()` / `isManager()` / `requireUser()` /
 
 ## Tests
 
-Vitest, `environment: "node"`, files named `*.test.ts` next to the code they
-cover. The suite is pinned to `TZ=UTC` locally and re-run under three zones in
-CI.
+Vitest, `environment: "node"`. Tests live in `tests/`, mirroring the `src/`
+path of what they cover, so a suite is easy to find and `src/` stays free of
+files that never ship:
+
+```
+src/lib/date.ts                                  -> tests/lib/date.test.ts
+src/app/manager/reports/monthly-meals/_lib/      -> tests/app/manager/reports/
+  aggregate.ts                                        monthly-meals/aggregate.test.ts
+```
+
+Import the subject through the `@/` alias, never a relative path — a test is
+no longer a sibling of the code it covers. The suite is pinned to `TZ=UTC`
+locally and re-run under three zones in CI.
 
 Worth testing: date and time logic, billing arithmetic, meal-count derivation,
 authorization helpers, anything with a boundary condition. Not worth testing:
 JSX that only arranges other components.
 
 When you fix a bug, add the failing case first. Every test in
-`src/lib/date.test.ts` exists because something was once wrong in production.
+`tests/lib/date.test.ts` exists because something was once wrong in production.
 
 ---
 

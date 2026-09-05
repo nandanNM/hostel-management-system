@@ -265,13 +265,21 @@ model DailyMealActivity {
   id       String       @id @default(cuid())
   mealTime MealTimeType
 
-  totalMeal          Int         @map("total_meals")
-  totalGuestMeal     Int         @map("total_guest_meals")
-  totalVeg           Int         @map("total_veg")
-  totalNonvegChicken Int         @map("total_nonveg_chicken")
-  totalNonvegFish    Int         @map("total_nonveg_fish")
-  totalNonvegEgg     Int         @map("total_nonveg_egg")
-  date               DateTime    @map("meal_date")
+  totalMeal          Int      @map("total_meals")
+  totalGuestMeal     Int      @map("total_guest_meals")
+  totalVeg           Int      @map("total_veg")
+  totalNonvegChicken Int      @map("total_nonveg_chicken")
+  totalNonvegFish    Int      @map("total_nonveg_fish")
+  totalNonvegEgg     Int      @map("total_nonveg_egg")
+  totalNonvegMutton  Int      @default(0) @map("total_nonveg_mutton")
+  date               DateTime @map("meal_date")
+
+  /// Exactly what was on offer when this count was generated, so the
+  /// drill-down reproduces the same buckets even if the menu is edited later.
+  offeredTypes NonVegType[] @default([]) @map("offered_types")
+
+  /// The richest thing offered. Kept for display and for rows generated
+  /// before `offeredTypes` existed.
   actualNonVegServed NonVegType? @map("actual_non_veg_served")
   createdAt          DateTime    @default(now()) @map("created_at")
   updatedAt          DateTime    @updatedAt @map("updated_at")
@@ -353,9 +361,21 @@ model Media {
 }
 
 model MenuItem {
-  id                  String                        @id @default(cuid())
-  name                String                        @unique
-  costPerUnit         Float
+  id   String @id @default(cuid())
+  name String @unique
+
+  /// Flat guest price for any night this dish is scheduled. A guest pays this
+  /// whatever they pick - a roti night costs the same with chicken, egg or veg.
+  costPerUnit Float
+
+  /// What boarders can actually be given on a day this dish is scheduled.
+  ///
+  /// The prefect ticks these per dish, so the fallback only ever walks food
+  /// the kitchen is really cooking. Empty means veg only. This replaced
+  /// guessing the day's food from the dish's *name*, which read "Roti" as
+  /// veg and silently counted every non-veg boarder as vegetarian.
+  offers NonVegType[] @default([])
+
   createdAt           DateTime                      @default(now())
   updatedAt           DateTime                      @updatedAt
   mealScheduleEntries MenuItemOnMealScheduleEntry[]

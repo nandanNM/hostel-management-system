@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from "vitest"
 
 vi.mock("server-only", () => ({}))
-vi.mock("./redis", () => ({ redis: null, isRedisEnabled: false }))
+vi.mock("@/lib/redis", () => ({ redis: null, isRedisEnabled: false }))
 
-const { checkRateLimit, describeRetryAfter } = await import("./ratelimit")
+const { checkRateLimit, describeRetryAfter } = await import("@/lib/ratelimit")
 
 describe("checkRateLimit", () => {
   it("allows the request when Redis is not configured", async () => {

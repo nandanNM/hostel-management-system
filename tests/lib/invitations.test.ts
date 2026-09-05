@@ -6,7 +6,7 @@ import {
   inviteUrl,
   normaliseEmail,
   verifyInviteToken,
-} from "./invitations"
+} from "@/lib/invitations"
 
 const SECRET = "test-secret"
 const NOW = new Date("2026-08-07T00:00:00.000Z")

@@ -3,6 +3,7 @@
 import Link from "next/link"
 import {
   CookingPot as ChefHat,
+  Cow,
   Egg,
   Fish,
   Leaf,
@@ -15,6 +16,13 @@ import { useSession } from "next-auth/react"
 import { formatIST } from "@/lib/date"
 import type { DailyMealActivity, User } from "@/lib/generated/prisma"
 import kyInstance from "@/lib/ky"
+import {
+  BUCKET_LABELS,
+  bucketsForOffers,
+  describeOffers,
+  offersForRecord,
+  type MealBucket,
+} from "@/lib/meal-priority"
 import { toast } from "@/lib/toast"
 import { cn, formatRelativeDate } from "@/lib/utils"
 import {
@@ -139,10 +147,53 @@ export function MealDataCard() {
   )
 }
 
-type Bucket = "VEG" | "CHICKEN" | "FISH" | "EGG"
+type BucketPresentation = {
+  count: (data: DailyMealActivity) => number
+  icon: React.ReactNode
+  colorClass: string
+  bgClass: string
+}
+
+/**
+ * One entry per bucket, so a tier is added by adding a row rather than another
+ * branch. Mutton had no entry at all: on a mutton night its boarders were
+ * counted into total_veg and no card could show them.
+ */
+const BUCKET_PRESENTATION: Record<MealBucket, BucketPresentation> = {
+  MUTTON: {
+    count: (d) => d.totalNonvegMutton,
+    icon: <Cow className="h-5 w-5 text-red-600" />,
+    colorClass: "text-red-600",
+    bgClass: "bg-red-600/10",
+  },
+  CHICKEN: {
+    count: (d) => d.totalNonvegChicken,
+    icon: <Utensils className="h-5 w-5 text-orange-600" />,
+    colorClass: "text-orange-600",
+    bgClass: "bg-orange-600/10",
+  },
+  FISH: {
+    count: (d) => d.totalNonvegFish,
+    icon: <Fish className="h-5 w-5 text-blue-500" />,
+    colorClass: "text-blue-500",
+    bgClass: "bg-blue-500/10",
+  },
+  EGG: {
+    count: (d) => d.totalNonvegEgg,
+    icon: <Egg className="h-5 w-5 text-yellow-500" />,
+    colorClass: "text-yellow-500",
+    bgClass: "bg-yellow-500/10",
+  },
+  VEG: {
+    count: (d) => d.totalVeg,
+    icon: <Leaf className="h-5 w-5 text-green-600" />,
+    colorClass: "text-green-600",
+    bgClass: "bg-green-600/10",
+  },
+}
 
 type MealCardItem = {
-  bucket: Bucket
+  bucket: MealBucket
   label: string
   sublabel?: string
   count: number
@@ -151,108 +202,54 @@ type MealCardItem = {
   bgClass: string
 }
 
+/** "dislikes Chicken", "dislikes Chicken & Fish" — why a boarder dropped here. */
+function fallbackReason(higher: MealBucket[]): string | undefined {
+  if (higher.length === 0) return undefined
+  const names = higher.map((tier) => BUCKET_LABELS[tier])
+  const last = names.pop()
+  return `dislikes ${names.length > 0 ? `${names.join(", ")} & ${last}` : last}`
+}
+
 function MealBreakdownCards({ mealData }: { mealData: DailyMealActivity }) {
-  const serving = mealData.actualNonVegServed
+  // What the day actually offered, recorded when the count was generated. The
+  // drill-down reconstructs this the same way, so the cards and the lists they
+  // link to cannot disagree - including on rows that predate the column.
+  const offers = offersForRecord(
+    mealData.offeredTypes ?? [],
+    mealData.actualNonVegServed
+  )
+  const isLegacyUnknown = offers === null
 
-  const cards: MealCardItem[] = []
+  const buckets: MealBucket[] = isLegacyUnknown
+    ? mealData.totalNonvegChicken > 0
+      ? ["CHICKEN", "VEG"]
+      : ["VEG"]
+    : bucketsForOffers(offers)
 
-  if (serving === "CHICKEN" || serving === "FISH" || serving === "EGG") {
-    // Priority-based day: show each type with context labels
-    if (serving === "CHICKEN") {
-      cards.push({
-        bucket: "CHICKEN",
-        label: "Chicken",
-        count: mealData.totalNonvegChicken,
-        icon: <Utensils className="h-5 w-5 text-orange-600" />,
-        colorClass: "text-orange-600",
-        bgClass: "bg-orange-600/10",
-      })
-      cards.push({
-        bucket: "FISH",
-        label: "Fish",
-        sublabel: "dislikes Chicken",
-        count: mealData.totalNonvegFish,
-        icon: <Fish className="h-5 w-5 text-blue-500" />,
-        colorClass: "text-blue-500",
-        bgClass: "bg-blue-500/10",
-      })
-      cards.push({
-        bucket: "EGG",
-        label: "Egg",
-        sublabel: "dislikes Chicken & Fish",
-        count: mealData.totalNonvegEgg,
-        icon: <Egg className="h-5 w-5 text-yellow-500" />,
-        colorClass: "text-yellow-500",
-        bgClass: "bg-yellow-500/10",
-      })
-    } else if (serving === "FISH") {
-      cards.push({
-        bucket: "FISH",
-        label: "Fish",
-        count: mealData.totalNonvegFish,
-        icon: <Fish className="h-5 w-5 text-blue-500" />,
-        colorClass: "text-blue-500",
-        bgClass: "bg-blue-500/10",
-      })
-      cards.push({
-        bucket: "EGG",
-        label: "Egg",
-        sublabel: "dislikes Fish",
-        count: mealData.totalNonvegEgg,
-        icon: <Egg className="h-5 w-5 text-yellow-500" />,
-        colorClass: "text-yellow-500",
-        bgClass: "bg-yellow-500/10",
-      })
-    } else if (serving === "EGG") {
-      cards.push({
-        bucket: "EGG",
-        label: "Egg",
-        count: mealData.totalNonvegEgg,
-        icon: <Egg className="h-5 w-5 text-yellow-500" />,
-        colorClass: "text-yellow-500",
-        bgClass: "bg-yellow-500/10",
-      })
+  const cards: MealCardItem[] = buckets.map((bucket, index) => {
+    const presentation = BUCKET_PRESENTATION[bucket]
+    const higher = buckets.slice(0, index).filter((b) => b !== "VEG")
+
+    return {
+      bucket,
+      label:
+        isLegacyUnknown && bucket === "CHICKEN"
+          ? "Non-Vegetarian"
+          : BUCKET_LABELS[bucket],
+      sublabel:
+        bucket === "VEG"
+          ? buckets.length > 2
+            ? "incl. all fallbacks"
+            : undefined
+          : fallbackReason(higher),
+      count: presentation.count(mealData),
+      icon: presentation.icon,
+      colorClass: presentation.colorClass,
+      bgClass: presentation.bgClass,
     }
+  })
 
-    cards.push({
-      bucket: "VEG",
-      label: "Vegetarian",
-      sublabel: serving !== "EGG" ? "incl. all fallbacks" : undefined,
-      count: mealData.totalVeg,
-      icon: <Leaf className="h-5 w-5 text-green-600" />,
-      colorClass: "text-green-600",
-      bgClass: "bg-green-600/10",
-    })
-  } else {
-    // No schedule or veg day: show simple Veg / Non-Veg split
-    cards.push({
-      bucket: "VEG",
-      label: "Vegetarian",
-      count: mealData.totalVeg,
-      icon: <Leaf className="h-5 w-5 text-green-600" />,
-      colorClass: "text-green-600",
-      bgClass: "bg-green-600/10",
-    })
-    if (mealData.totalNonvegChicken > 0) {
-      cards.push({
-        bucket: "CHICKEN",
-        label: "Non-Vegetarian",
-        count: mealData.totalNonvegChicken,
-        icon: <Utensils className="h-5 w-5 text-orange-600" />,
-        colorClass: "text-orange-600",
-        bgClass: "bg-orange-600/10",
-      })
-    }
-  }
-
-  const dayLabel =
-    serving === "CHICKEN"
-      ? "Chicken Day"
-      : serving === "FISH"
-        ? "Fish Day"
-        : serving === "EGG"
-          ? "Egg Day"
-          : null
+  const dayLabel = offers === null ? null : describeOffers(offers)
 
   const cols =
     cards.length <= 2
@@ -266,7 +263,7 @@ function MealBreakdownCards({ mealData }: { mealData: DailyMealActivity }) {
       {dayLabel && (
         <div className="flex items-center gap-2">
           <Badge variant="secondary" className="text-xs font-semibold">
-            Today&apos;s Non-Veg: {dayLabel}
+            Serving today: {dayLabel}
           </Badge>
         </div>
       )}

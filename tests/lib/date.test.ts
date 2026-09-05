@@ -14,7 +14,7 @@ import {
   istStartOfDay,
   istStartOfDaysAgo,
   istYmd,
-} from "./date"
+} from "@/lib/date"
 
 const IST = "Asia/Kolkata"
 
