@@ -265,14 +265,14 @@ model DailyMealActivity {
   id       String       @id @default(cuid())
   mealTime MealTimeType
 
-  totalMeal          Int         @map("total_meals")
-  totalGuestMeal     Int         @map("total_guest_meals")
-  totalVeg           Int         @map("total_veg")
-  totalNonvegChicken Int         @map("total_nonveg_chicken")
-  totalNonvegFish    Int         @map("total_nonveg_fish")
-  totalNonvegEgg     Int         @map("total_nonveg_egg")
-  totalNonvegMutton  Int         @default(0) @map("total_nonveg_mutton")
-  date               DateTime    @map("meal_date")
+  totalMeal          Int      @map("total_meals")
+  totalGuestMeal     Int      @map("total_guest_meals")
+  totalVeg           Int      @map("total_veg")
+  totalNonvegChicken Int      @map("total_nonveg_chicken")
+  totalNonvegFish    Int      @map("total_nonveg_fish")
+  totalNonvegEgg     Int      @map("total_nonveg_egg")
+  totalNonvegMutton  Int      @default(0) @map("total_nonveg_mutton")
+  date               DateTime @map("meal_date")
 
   /// Exactly what was on offer when this count was generated, so the
   /// drill-down reproduces the same buckets even if the menu is edited later.
