@@ -5,8 +5,16 @@
 #   pnpm db:backup                    # whatever DATABASE_URL points at
 #   pnpm db:backup "postgres://..."   # an explicit URL, e.g. production
 #
-# Restore with:
-#   psql "$TARGET_URL" -f backups/<file>.sql
+# Restore with the DIRECT endpoint, not the pooler - drop "-pooler" from the
+# Neon host:
+#   psql "$DIRECT_URL" -f backups/<file>.sql
+#
+# pg_dump writes `set_config('search_path','')` at the top of every dump. Sent
+# through a connection pooler that session is handed back to the pool with an
+# empty search_path, and every later query on it fails with "relation does not
+# exist" - including Prisma's, which then reports "migration persistence is
+# not initialized". Restoring over the direct endpoint avoids poisoning the
+# pool. Run `prisma migrate deploy` over the direct endpoint too.
 #
 # pg_dump rather than a hand-rolled JSON export: it gets column types, foreign
 # key ordering and defaults right, and restores with psql alone. A dump that
@@ -47,5 +55,5 @@ SIZE="$(du -h "$OUT" | cut -f1)"
 ROWS="$(grep -c '^INSERT INTO\|^COPY ' "$OUT" || true)"
 echo "Done: ${SIZE}, ${ROWS} data statements"
 echo
-echo "Restore into a target with:"
-echo "  psql \"\$TARGET_URL\" -f ${OUT}"
+echo "Restore with the DIRECT endpoint (no \"-pooler\" in the host):"
+echo "  psql \"\$DIRECT_URL\" -f ${OUT}"

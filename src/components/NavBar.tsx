@@ -17,8 +17,12 @@ export default function NavBar() {
   const [isOpen, setIsOpen] = useState(false)
   return (
     <header className="border-grid bg-sidebar supports-[backdrop-filter]:bg-sidebar/60 sticky top-0 z-50 w-full border-b backdrop-blur">
-      <nav className="mx-auto flex h-14 w-full max-w-7xl shrink-0 items-center justify-between gap-3">
-        <div className="ml-4 flex items-center gap-3">
+      {/* Padding on the nav, not margins on the children: with `justify-between`
+          a child's own margin is laid out *outside* the free space, so on a
+          narrow phone the right-hand group was pushed past the viewport and
+          the avatar clipped, taking the whole page into horizontal scroll. */}
+      <nav className="mx-auto flex h-14 w-full max-w-7xl shrink-0 items-center justify-between gap-2 px-3 sm:gap-3 sm:px-4">
+        <div className="flex min-w-0 items-center gap-3">
           <button onClick={() => setIsOpen(true)} className="block sm:hidden">
             <Menu size={24} />
           </button>
@@ -27,14 +31,15 @@ export default function NavBar() {
             setIsOpen={setIsOpen}
             navItems={navItems}
           />
-          <Link href="/" className="font-bold whitespace-nowrap">
-            D.L Bhawan
-            <Badge className="ml-2 rounded-full" variant="destructive">
+          <Link href="/" className="flex min-w-0 items-center font-bold">
+            <span className="truncate">D.L Bhawan</span>
+            <Badge className="ml-2 shrink-0 rounded-full" variant="destructive">
               PG1
             </Badge>
           </Link>
         </div>
-        <div className="mr-4 flex items-center justify-center gap-2">
+        {/* Never compresses: these are the only controls on a phone. */}
+        <div className="flex shrink-0 items-center justify-center gap-1 sm:gap-2">
           <NavNotifications />
           <ThemeSwitcher />
           <UserButton />
