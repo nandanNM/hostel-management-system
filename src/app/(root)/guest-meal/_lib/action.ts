@@ -21,8 +21,9 @@ import {
   checkGuestsPerBooking,
   checkMonthlyGuestQuota,
   resolveGuestMealCharge,
+  resolveScheduledMealPrice,
 } from "@/lib/guest-meal-rules"
-import { getAllowedNonVegTypes, resolveOffering } from "@/lib/meal-priority"
+import { getAllowedGuestTypes, resolveOffers } from "@/lib/meal-priority"
 import { getMessConfig } from "@/lib/mess-config"
 import prisma from "@/lib/prisma"
 import {
@@ -42,36 +43,59 @@ const MENU_TTL_SECONDS = 60 * 60
  * The weekday is taken in India time - on a UTC server the picked date would
  * otherwise resolve to the previous day and read the wrong menu.
  */
-export async function getAllowedGuestMealOptions(
+type ScheduledDish = { offers: NonVegType[]; costPerUnit: number }
+
+/**
+ * The slot's menu, reduced to what booking needs: what each dish can provide
+ * and what it costs. Changes only when the prefect edits the menu, which
+ * invalidates this key.
+ */
+async function getScheduledDishes(
   date: Date,
   mealTime: MealTimeType
-): Promise<{ offering: NonVegType | null; allowed: NonVegType[] }> {
-  await requireUser()
-
-  const { nonVegPriority } = await getMessConfig()
+): Promise<ScheduledDish[]> {
   const dayOfWeek = formatIST(date, "EEEE").toUpperCase() as DayOfWeek
 
-  // Only the item names matter here, and the menu changes when the prefect
-  // edits it - which invalidates this key.
-  const menuItemNames = await cached(
+  const dishes = await cached(
     cacheKeys.mealSchedule(dayOfWeek, mealTime),
     MENU_TTL_SECONDS,
     async () => {
       const entry = await prisma.mealScheduleEntry.findUnique({
         where: { dayOfWeek_mealTime: { dayOfWeek, mealTime } },
-        include: { menuItems: { include: { menuItem: true } } },
+        include: {
+          menuItems: {
+            select: {
+              menuItem: { select: { offers: true, costPerUnit: true } },
+            },
+          },
+        },
       })
-      return entry?.menuItems.map((mi) => mi.menuItem.name) ?? null
+      return entry?.menuItems.map((mi) => mi.menuItem) ?? []
     }
   )
 
-  const offering = menuItemNames
-    ? resolveOffering(menuItemNames, nonVegPriority)
-    : null
+  return dishes ?? []
+}
+
+export async function getAllowedGuestMealOptions(
+  date: Date,
+  mealTime: MealTimeType
+): Promise<{
+  offers: NonVegType[]
+  allowed: NonVegType[]
+  price: number | null
+}> {
+  await requireUser()
+
+  const { nonVegPriority } = await getMessConfig()
+  const dishes = await getScheduledDishes(date, mealTime)
+  const offers = resolveOffers(dishes, nonVegPriority)
 
   return {
-    offering,
-    allowed: getAllowedNonVegTypes(offering, nonVegPriority),
+    offers,
+    allowed: getAllowedGuestTypes(offers),
+    // Flat for the night, so the form can show one price up front.
+    price: resolveScheduledMealPrice(dishes),
   }
 }
 
@@ -201,54 +225,32 @@ export async function createGuestMeal(values: GuestMeal): Promise<ApiResponse> {
     // Re-check server-side: the form filters the dropdown, but a crafted
     // request could still ask for an item the kitchen is not cooking.
     if (values.type === "NON_VEG") {
-      const { offering, allowed } = await getAllowedGuestMealOptions(
+      const { allowed } = await getAllowedGuestMealOptions(
         values.date,
         values.mealTime
       )
       const requested = values.nonVegType ?? NonVegType.NONE
 
       if (!allowed.includes(requested)) {
-        const offeringLabel = offering
-          ? offering.toLowerCase()
-          : "the scheduled menu"
+        const bookable = allowed
+          .filter((type) => type !== NonVegType.NONE)
+          .map((type) => type.toLowerCase())
         return {
           status: "error",
-          message: `${requested.toLowerCase()} is not available for that meal. ${offeringLabel} is scheduled, so you can pick ${allowed
-            .filter((type) => type !== NonVegType.NONE)
-            .map((type) => type.toLowerCase())
-            .join(", ")} or veg.`,
+          message:
+            bookable.length > 0
+              ? `${requested.toLowerCase()} is not being cooked for that meal. It serves ${bookable.join(" and ")}, so you can book ${bookable.join(", ")} or veg.`
+              : `That meal is vegetarian only, so you can book veg.`,
         }
       }
     }
 
-    const searchName =
-      values.type === "VEG"
-        ? "Veg"
-        : values.nonVegType
-          ? values.nonVegType.charAt(0).toUpperCase() +
-            values.nonVegType.slice(1).toLowerCase()
-          : ""
-
-    // Try to find exact match first, then fallback to contains
-    let MenuItemData = await prisma.menuItem.findFirst({
-      where: {
-        name: {
-          equals: searchName,
-          mode: "insensitive",
-        },
-      },
-    })
-
-    if (!MenuItemData) {
-      MenuItemData = await prisma.menuItem.findFirst({
-        where: {
-          name: {
-            contains: searchName,
-            mode: "insensitive",
-          },
-        },
-      })
-    }
+    // The night's flat price, off the menu actually scheduled for that day -
+    // so a dish like Roti sets the price for every guest, and any dish the
+    // prefect adds later is picked up with no code change.
+    const scheduledPrice = resolveScheduledMealPrice(
+      await getScheduledDishes(values.date, values.mealTime)
+    )
 
     const rate = await prisma.guestMealRate.findUnique({
       where: {
@@ -262,7 +264,7 @@ export async function createGuestMeal(values: GuestMeal): Promise<ApiResponse> {
 
     const chargePerMeal = resolveGuestMealCharge({
       rate: rate?.amount,
-      menuItemCost: MenuItemData?.costPerUnit,
+      menuItemCost: scheduledPrice,
       fallback: config.guestMealFallbackCharge,
     })
 

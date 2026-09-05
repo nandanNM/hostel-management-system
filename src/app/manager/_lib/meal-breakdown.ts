@@ -1,18 +1,19 @@
 import "server-only"
 
-import { MealTimeType, MealType, NonVegType } from "@/lib/generated/prisma"
-import { calculateActualNonVegMeal } from "@/lib/meal-priority"
+import { MealTimeType, MealType } from "@/lib/generated/prisma"
+import {
+  assignBucket,
+  offersForRecord,
+  type MealBucket,
+} from "@/lib/meal-priority"
 import { getMessConfig } from "@/lib/mess-config"
 import prisma from "@/lib/prisma"
 
-export type MealBucket = "VEG" | "CHICKEN" | "FISH" | "EGG"
-
-export const BUCKET_LABELS: Record<MealBucket, string> = {
-  VEG: "Vegetarian",
-  CHICKEN: "Chicken",
-  FISH: "Fish",
-  EGG: "Egg",
-}
+export {
+  BUCKET_LABELS,
+  bucketsForOffers,
+  type MealBucket,
+} from "@/lib/meal-priority"
 
 export interface MealBreakdownUser {
   id: string
@@ -35,7 +36,7 @@ export async function getMealBreakdownUsers(
 ): Promise<MealBreakdownUser[]> {
   const activity = await prisma.dailyMealActivity.findFirst({
     where: { mealTime, date },
-    select: { actualNonVegServed: true },
+    select: { offeredTypes: true, actualNonVegServed: true },
   })
 
   if (!activity) return []
@@ -51,29 +52,28 @@ export async function getMealBreakdownUsers(
   })
 
   const { nonVegPriority } = await getMessConfig()
-  const offering = activity.actualNonVegServed
+
+  // The day recorded what it was generated from, so buckets are reproduced
+  // rather than recomputed off a menu the prefect may have edited since.
+  const offers = offersForRecord(
+    activity.offeredTypes,
+    activity.actualNonVegServed,
+    nonVegPriority
+  )
 
   const matches = attendances.filter(({ meal }) => {
     if (!meal) return false
-    if (meal.type === MealType.VEG) return bucket === "VEG"
 
-    if (!offering) {
-      // No schedule that day: every non-veg boarder counted as a single
-      // generic bucket, same as the fallback path at generation time.
+    // A pre-`offeredTypes` row that also recorded no tier cannot say what was
+    // served: back then an unscheduled slot and a veg menu both stored null.
+    // The old screen put every non-veg boarder in one generic bucket; keep
+    // doing that so those records read as they always have.
+    if (offers === null) {
+      if (meal.type === MealType.VEG) return bucket === "VEG"
       return bucket === "CHICKEN"
     }
 
-    const actualType = calculateActualNonVegMeal(
-      meal.nonVegType !== NonVegType.NONE
-        ? meal.nonVegType
-        : NonVegType.CHICKEN,
-      meal.dislikedNonVegTypes,
-      offering,
-      nonVegPriority
-    )
-
-    if (actualType === NonVegType.NONE) return bucket === "VEG"
-    return actualType === bucket
+    return assignBucket(meal, offers) === bucket
   })
 
   return matches

@@ -6,7 +6,8 @@ import {
   checkMonthlyGuestQuota,
   istMinuteOfDay,
   resolveGuestMealCharge,
-} from "./guest-meal-rules"
+  resolveScheduledMealPrice,
+} from "@/lib/guest-meal-rules"
 
 const CONFIG = {
   guestBookingMaxDaysAhead: 7,
@@ -147,5 +148,24 @@ describe("resolveGuestMealCharge", () => {
     expect(
       resolveGuestMealCharge({ rate: 0, menuItemCost: 55, fallback: 60 })
     ).toBe(55)
+  })
+})
+
+describe("resolveScheduledMealPrice", () => {
+  it("charges the night's flat price, whatever the guest picks", () => {
+    // A roti night costs the same with chicken, with egg or with veg.
+    expect(resolveScheduledMealPrice([{ costPerUnit: 65 }])).toBe(65)
+  })
+
+  it("lets the dearest dish set the night, so a cheap side cannot undercut it", () => {
+    expect(
+      resolveScheduledMealPrice([{ costPerUnit: 65 }, { costPerUnit: 10 }])
+    ).toBe(65)
+  })
+
+  it("says nothing when the menu cannot price the night", () => {
+    // Falls through to the rate table, then the configured default.
+    expect(resolveScheduledMealPrice([])).toBeNull()
+    expect(resolveScheduledMealPrice([{ costPerUnit: 0 }])).toBeNull()
   })
 })

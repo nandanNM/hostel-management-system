@@ -5,7 +5,8 @@ import requireManager from "@/data/manager/require-manager"
 import { ApiResponse } from "@/types"
 
 import { invalidate, mealScheduleKeys } from "@/lib/cache"
-import { DayOfWeek, MealTimeType } from "@/lib/generated/prisma"
+import { DayOfWeek, MealTimeType, NonVegType } from "@/lib/generated/prisma"
+import { describeOffers, OFFERABLE_TYPES } from "@/lib/meal-priority"
 import prisma from "@/lib/prisma"
 
 export async function getMenuItems() {
@@ -19,10 +20,15 @@ export async function upsertMenuItem(data: {
   id?: string
   name: string
   costPerUnit: number
+  offers: NonVegType[]
 }): Promise<ApiResponse> {
   const session = await requireManager()
   const actorId = session.user.id
   if (!actorId) return { status: "error", message: "Unauthorized" }
+
+  // Only real tiers, deduped and kept in priority order, so the stored value
+  // never depends on the order the boxes happened to be ticked.
+  const offers = OFFERABLE_TYPES.filter((tier) => data.offers.includes(tier))
 
   try {
     const item = data.id
@@ -31,12 +37,14 @@ export async function upsertMenuItem(data: {
           data: {
             name: data.name,
             costPerUnit: data.costPerUnit,
+            offers,
           },
         })
       : await prisma.menuItem.create({
           data: {
             name: data.name,
             costPerUnit: data.costPerUnit,
+            offers,
           },
         })
 
@@ -47,8 +55,8 @@ export async function upsertMenuItem(data: {
           actionType: data.id ? "UPDATE" : "CREATE",
           entityType: "MENU_ITEM",
           entityId: item.id,
-          newData: { name: data.name, costPerUnit: data.costPerUnit },
-          details: `${data.id ? "Updated" : "Created"} menu item "${data.name}" (₹${data.costPerUnit}).`,
+          newData: { name: data.name, costPerUnit: data.costPerUnit, offers },
+          details: `${data.id ? "Updated" : "Created"} menu item "${data.name}" (₹${data.costPerUnit}, serves ${describeOffers(offers)}).`,
         },
       })
       .catch((err) => console.error("Activity log creation failed:", err))
@@ -82,7 +90,11 @@ export async function deleteMenuItem(id: string): Promise<ApiResponse> {
           actionType: "DELETE",
           entityType: "MENU_ITEM",
           entityId: id,
-          oldData: { name: deleted.name, costPerUnit: deleted.costPerUnit },
+          oldData: {
+            name: deleted.name,
+            costPerUnit: deleted.costPerUnit,
+            offers: deleted.offers,
+          },
           details: `Deleted menu item "${deleted.name}".`,
         },
       })
@@ -190,19 +202,33 @@ export async function seedDefaultMenuItems(): Promise<ApiResponse> {
   const actorId = session.user.id
   if (!actorId) return { status: "error", message: "Unauthorized" }
 
-  const defaults = [
-    { name: "Veg", costPerUnit: 45 },
-    { name: "Egg", costPerUnit: 50 },
-    { name: "Fish", costPerUnit: 55 },
-    { name: "Chicken", costPerUnit: 60 },
-    { name: "Mutton", costPerUnit: 130 },
+  // Each tier serves itself and everything leaner, which is what the old
+  // implicit chain did. The prefect narrows these per dish afterwards.
+  const defaults: {
+    name: string
+    costPerUnit: number
+    offers: NonVegType[]
+  }[] = [
+    { name: "Veg", costPerUnit: 45, offers: [] },
+    { name: "Egg", costPerUnit: 50, offers: [NonVegType.EGG] },
+    {
+      name: "Fish",
+      costPerUnit: 55,
+      offers: [NonVegType.FISH, NonVegType.EGG],
+    },
+    {
+      name: "Chicken",
+      costPerUnit: 60,
+      offers: [NonVegType.CHICKEN, NonVegType.FISH, NonVegType.EGG],
+    },
+    { name: "Mutton", costPerUnit: 130, offers: [...OFFERABLE_TYPES] },
   ]
   try {
     for (const item of defaults) {
       await prisma.menuItem.upsert({
         where: { name: item.name },
-        update: { costPerUnit: item.costPerUnit },
-        create: { name: item.name, costPerUnit: item.costPerUnit },
+        update: { costPerUnit: item.costPerUnit, offers: item.offers },
+        create: item,
       })
     }
 

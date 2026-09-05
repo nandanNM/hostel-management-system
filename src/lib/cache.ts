@@ -6,8 +6,12 @@ import { redis } from "@/lib/redis"
 /**
  * Cache keys. Namespaced and versioned: bumping the version retires every old
  * entry at once, which is cheaper and safer than trying to delete them.
+ *
+ * v2: the cached meal schedule holds what each dish offers and costs, not a
+ * list of dish names. A v1 entry deserialises into the wrong shape, so every
+ * old entry has to retire on deploy.
  */
-const V = "v1"
+const V = "v2"
 
 export const cacheKeys = {
   /** One key for everyone - the leaderboard is identical for every boarder. */
