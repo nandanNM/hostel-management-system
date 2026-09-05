@@ -14,7 +14,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import ReportIssueDialog from "@/app/(root)/_components/report-issue-dialog"
 
 export default function SideNav() {
   const navItems = NavItems()
@@ -80,9 +79,7 @@ export default function SideNav() {
             </div>
           </div>
           {/* Bottom */}
-          <div className="sticky bottom-0 mt-auto mb-4 block space-y-1 whitespace-nowrap transition duration-200">
-            {/* Not a NavItem: those are links, and this opens a dialog. */}
-            <ReportIssueDialog isSidebarExpanded={isSidebarExpanded} />
+          <div className="sticky bottom-0 mt-auto mb-4 block whitespace-nowrap transition duration-200">
             {navItems.map((item, idx) => {
               if (item.position === "bottom") {
                 return (
