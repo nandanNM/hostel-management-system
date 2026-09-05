@@ -124,3 +124,22 @@ export type GuestMeal = z.infer<typeof guestMealSchema>
 export type BanUser = z.infer<typeof banUserSchema>
 export type ChangeRole = z.infer<typeof changeRoleSchema>
 export type Settings = z.infer<typeof settingsSchema>
+
+// Bug reports filed from inside the app
+export const issueReportSchema = z.object({
+  title: z
+    .string()
+    .trim()
+    .min(6, "Give the problem a short title.")
+    .max(120, "Keep the title under 120 characters."),
+  description: z
+    .string()
+    .trim()
+    .min(20, "Tell us what happened and what you expected.")
+    .max(4000, "Keep the description under 4000 characters."),
+  /** Filled in by the dialog, not typed by the reporter. */
+  pageUrl: z.string().max(500).optional(),
+  userAgent: z.string().max(500).optional(),
+})
+
+export type IssueReport = z.infer<typeof issueReportSchema>
