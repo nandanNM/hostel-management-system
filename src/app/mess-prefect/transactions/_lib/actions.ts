@@ -327,9 +327,10 @@ export async function getTransactionsOverview(search: TransactionsSearch) {
       }
     })
 
-  // One name per metric, not a table. The card sits the heaviest guest-meal
-  // requester beside the most-fined boarder, so both sides only ever need
-  // their single top row.
+  // Ranked lists, not a single name: the card shares a grid row with the
+  // daily-flow chart and stretches to its height, so one row per column left
+  // the bottom two thirds of the card empty.
+  const TOP_PER_METRIC = 5
   const rank = (rows: typeof guestMealCharges) =>
     rows
       .map((row) => ({
@@ -339,51 +340,51 @@ export async function getTransactionsOverview(search: TransactionsSearch) {
       }))
       .filter((row) => row.amount > 0)
       .sort((a, b) => b.amount - a.amount)
-      .at(0)
+      .slice(0, TOP_PER_METRIC)
 
-  const topGuestRow = rank(guestMealCharges)
-  const topFineRow = rank(fineCharges)
+  const topGuestRows = rank(guestMealCharges)
+  const topFineRows = rank(fineCharges)
 
-  const topIds = [topGuestRow?.userId, topFineRow?.userId].filter(
-    (id): id is string => Boolean(id)
-  )
+  const topIds = [...topGuestRows, ...topFineRows].map((row) => row.userId)
   const topUsers = topIds.length
     ? await prisma.user.findMany({
-        where: { id: { in: topIds } },
+        where: { id: { in: [...new Set(topIds)] } },
         select: { id: true, name: true, image: true },
       })
     : []
   const topUserById = new Map(topUsers.map((user) => [user.id, user]))
 
-  const topOf = (row: ReturnType<typeof rank>) => {
-    if (!row) return null
-    const user = topUserById.get(row.userId)
-    if (!user) return null
-    return {
-      userId: user.id,
-      name: user.name ?? "Boarder",
-      image: user.image,
-      amount: row.amount,
-      count: row.count,
-    }
-  }
+  const withUsers = (rows: ReturnType<typeof rank>) =>
+    rows.flatMap((row) => {
+      const user = topUserById.get(row.userId)
+      if (!user) return []
+      return [
+        {
+          userId: user.id,
+          name: user.name ?? "Boarder",
+          image: user.image,
+          amount: row.amount,
+          count: row.count,
+        },
+      ]
+    })
 
   // No paid/unpaid split here. Nothing in the app ever sets `isPaid` on a
   // charge — settlement is recorded as PAYMENT rows against the running
   // balance — so `guestPaid` was structurally always zero and the bar just
   // relabelled the total as "unpaid". Guest-meal and fine totals sit side by
-  // side instead, each with the one boarder who accounts for the most of it.
+  // side instead, each over the boarders who account for the most of it.
   const guestMeals = {
     revenue: guest,
     count: guestMealCharges.reduce((sum, row) => sum + row._count._all, 0),
     pending: pendingGuestMeals,
-    top: topOf(topGuestRow),
+    top: withUsers(topGuestRows),
   }
 
   const fineSummary = {
     total: fine,
     count: fineCharges.reduce((sum, row) => sum + row._count._all, 0),
-    top: topOf(topFineRow),
+    top: withUsers(topFineRows),
   }
 
   const totalCharges = meal + guest + fine + other

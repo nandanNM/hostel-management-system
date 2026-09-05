@@ -235,23 +235,18 @@ export default async function TransactionsPage({
           </CardContent>
         </Card>
 
-        {/* self-start: grid items stretch by default, and the daily-flow card
-            beside this one is ~3x taller. With one name per metric instead of
-            a five-row list there is nothing left to fill that height, so the
-            card was drawing its border around 300px of nothing. Hug the
-            content and let the row height stay the chart's business. */}
-        <Card className="min-w-0 gap-3 lg:self-start">
+        <Card className="min-w-0 gap-3">
           <CardHeader>
             <CardTitle className="text-base">Guest meals &amp; fines</CardTitle>
             <p className="text-muted-foreground text-sm">
               All time &middot; {guestMeals.pending} awaiting review
             </p>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="flex flex-1 flex-col">
             {/* The two charge types the prefect actually levies, side by side.
                 No paid/unpaid bar: nothing sets `isPaid`, so it only ever
                 relabelled the whole total as unpaid. */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid flex-1 grid-cols-2 gap-3">
               {[
                 {
                   key: "guest",
@@ -272,7 +267,7 @@ export default async function TransactionsPage({
                   empty: "No fines issued yet.",
                 },
               ].map((col) => (
-                <div key={col.key} className="min-w-0 space-y-3">
+                <div key={col.key} className="flex min-w-0 flex-col gap-3">
                   {/* Label and volume on separate lines: the columns are a
                       third of a card wide, and "Guest meals · 313 charges" on
                       one line truncated to "313 char…". */}
@@ -290,30 +285,37 @@ export default async function TransactionsPage({
 
                   <Separator />
 
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <p className="text-muted-foreground mb-2 truncate text-xs font-medium">
                       {col.caption}
                     </p>
-                    {col.top ? (
-                      <div className="flex min-w-0 items-center gap-2.5">
-                        <Avatar size="sm">
-                          <AvatarImage
-                            src={col.top.image ?? undefined}
-                            alt={col.top.name}
-                          />
-                          <AvatarFallback>
-                            {initials(col.top.name)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-medium">
-                            {col.top.name}
-                          </p>
-                          <p className="text-muted-foreground truncate text-xs tabular-nums">
-                            {formatMoneyShort(col.top.amount)}
-                          </p>
-                        </div>
-                      </div>
+                    {col.top.length > 0 ? (
+                      <ul className="space-y-2.5">
+                        {col.top.map((person) => (
+                          <li
+                            key={person.userId}
+                            className="flex min-w-0 items-center gap-2.5"
+                          >
+                            <Avatar size="sm">
+                              <AvatarImage
+                                src={person.image ?? undefined}
+                                alt={person.name}
+                              />
+                              <AvatarFallback>
+                                {initials(person.name)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-sm font-medium">
+                                {person.name}
+                              </p>
+                              <p className="text-muted-foreground truncate text-xs tabular-nums">
+                                {formatMoneyShort(person.amount)}
+                              </p>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
                     ) : (
                       <p className="text-muted-foreground text-xs">
                         {col.empty}
