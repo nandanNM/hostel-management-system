@@ -74,6 +74,24 @@ export function istCalendarDay(date: Date | string | number = new Date()) {
   return new Date(`${istYmd(date)}T00:00:00.000Z`)
 }
 
+/**
+ * Whole India calendar days between two instants.
+ *
+ * Both ends are reduced to their India day-key first, so the answer never
+ * depends on the process timezone. `differenceInCalendarDays` alone counts
+ * *server* days: a stay that began at 19:00Z is already the next day in
+ * India, and on a UTC server that is off by one.
+ */
+export function istDaysBetween(
+  from: Date | string | number,
+  to: Date | string | number = new Date()
+): number {
+  const start = istCalendarDay(from).getTime()
+  const end = istCalendarDay(to).getTime()
+  // Both ends are UTC midnights and India has no DST, so this is exact.
+  return Math.round((end - start) / 86_400_000)
+}
+
 export function istCalendarDayEnd(date: Date | string | number = new Date()) {
   return new Date(`${istYmd(date)}T23:59:59.999Z`)
 }

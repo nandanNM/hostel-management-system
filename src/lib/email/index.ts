@@ -7,4 +7,5 @@ export {
   sendHappyBirthdayEmail,
   sendTerminationEmail,
   sendBoarderInviteEmail,
+  sendAlumniFarewellEmail,
 } from "./email-service"

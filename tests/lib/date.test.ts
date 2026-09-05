@@ -9,6 +9,7 @@ import {
   istCalendarMonthEnd,
   istCalendarMonthStart,
   istDateOnly,
+  istDaysBetween,
   istEndOfDay,
   istParts,
   istStartOfDay,
@@ -176,5 +177,52 @@ describe("istDateOnly (date of birth)", () => {
   it("is idempotent", () => {
     const once = istDateOnly("2004-04-21T18:30:00.000Z")
     expect(istDateOnly(once).getTime()).toBe(once.getTime())
+  })
+})
+
+describe("istDaysBetween", () => {
+  it("counts whole India calendar days", () => {
+    expect(
+      istDaysBetween("2026-01-01T00:00:00.000Z", "2026-01-11T00:00:00.000Z")
+    ).toBe(10)
+  })
+
+  it("counts the India day, not the server's", () => {
+    // 19:00Z is already the next morning in India. A UTC server counting
+    // calendar days would be a day short.
+    const joinedLateEvening = "2026-01-01T19:00:00.000Z" // 2 Jan, 00:30 IST
+    const leftLateEvening = "2026-01-08T19:00:00.000Z" // 9 Jan, 00:30 IST
+    expect(istDaysBetween(joinedLateEvening, leftLateEvening)).toBe(7)
+    // Same instant, read as an India day-key, is the 2nd not the 1st.
+    expect(istDaysBetween(joinedLateEvening, "2026-01-02T06:00:00.000Z")).toBe(
+      0
+    )
+  })
+
+  it("is zero across a single India day, boundary to boundary", () => {
+    // The India day 22 Apr runs 21 Apr 18:30Z -> 22 Apr 18:29Z.
+    expect(
+      istDaysBetween("2026-04-21T18:30:00.000Z", "2026-04-22T18:29:59.999Z")
+    ).toBe(0)
+  })
+
+  it("ticks over at 18:30Z, where the India day actually starts", () => {
+    // Same UTC date, one minute apart, but a different India day - which is
+    // why this cannot be `differenceInCalendarDays` on the raw instants.
+    expect(
+      istDaysBetween("2026-04-22T18:29:00.000Z", "2026-04-22T18:31:00.000Z")
+    ).toBe(1)
+  })
+
+  it("goes negative when the order is reversed", () => {
+    expect(
+      istDaysBetween("2026-01-11T00:00:00.000Z", "2026-01-01T00:00:00.000Z")
+    ).toBe(-10)
+  })
+
+  it("spans a leap day", () => {
+    expect(
+      istDaysBetween("2024-02-28T00:00:00.000Z", "2024-03-01T00:00:00.000Z")
+    ).toBe(2)
   })
 })
