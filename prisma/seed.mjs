@@ -6,10 +6,16 @@
  *
  *   pnpm db:seed
  *
- * Staff accounts use the real Google addresses, because sign-in matches on
- * email and a seeded account you cannot log into is useless. Boarders are
- * synthetic: dev does not need 53 people's phone numbers and addresses, and
- * their meal preferences are what actually matter for testing the count.
+ * Staff are *promoted*, never created. Inserting a user row with a real email
+ * and no linked OAuth account makes Google sign-in fail with
+ * `OAuthAccountNotLinked` — the adapter refuses to attach a login to a
+ * pre-existing account with a matching address, which is what stops anyone
+ * claiming an account by knowing its email. So: sign in first, then run this
+ * again and the account is promoted.
+ *
+ * Boarders are synthetic: dev does not need 53 people's phone numbers and
+ * addresses, and it is their meal preferences that matter for the count. They
+ * never sign in, so the linking problem does not apply to them.
  */
 import { PrismaClient } from "../src/lib/generated/prisma/index.js"
 
@@ -146,20 +152,29 @@ async function main() {
     process.exit(1)
   }
 
+  let promoted = 0
+  const awaitingSignIn = []
   for (const s of STAFF) {
-    await prisma.user.upsert({
+    const existing = await prisma.user.findUnique({
       where: { email: s.email },
-      update: { role: s.role, status: "ACTIVE", onboardingCompleted: true },
-      create: {
-        ...s,
+      select: { id: true },
+    })
+    if (!existing) {
+      awaitingSignIn.push(s.email)
+      continue
+    }
+    await prisma.user.update({
+      where: { id: existing.id },
+      data: {
+        name: s.name,
+        role: s.role,
         status: "ACTIVE",
         onboardingCompleted: true,
-        emailVerified: new Date(),
-        joinDate: new Date("2024-07-01"),
       },
     })
+    promoted += 1
   }
-  console.log(`  staff        ${STAFF.length}`)
+  console.log(`  staff        ${promoted} promoted`)
 
   for (const [i, b] of BOARDERS.entries()) {
     const user = await prisma.user.upsert({
@@ -230,9 +245,17 @@ async function main() {
     },
   })
   console.log("  mess config  1")
-  console.log(
-    "\nDone. Sign in with your Google account to reach the manager views."
-  )
+
+  if (awaitingSignIn.length > 0) {
+    console.log(
+      `\nNot yet signed in, so not promoted:\n` +
+        awaitingSignIn.map((e) => `  - ${e}`).join("\n") +
+        `\n\nSign in with Google at ${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}` +
+        `, then run 'pnpm db:seed' again to grant the role.`
+    )
+  } else {
+    console.log("\nDone. Every staff account is signed in and promoted.")
+  }
 }
 
 main()
