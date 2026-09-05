@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { LeaderboardCard } from "@/components/ui/leaderboard-card"
 import { SegmentedBar } from "@/components/ui/segmented-bar"
+import { Separator } from "@/components/ui/separator"
 import {
   Table,
   TableBody,
@@ -102,7 +103,6 @@ export default async function TransactionsPage({
     totalCollected,
     totalOutstanding,
     totalFines,
-    finesCollected,
     breakdown,
     monthly,
     period,
@@ -116,6 +116,7 @@ export default async function TransactionsPage({
     boarders,
     attention,
     guestMeals,
+    fineSummary,
     recent,
   } = data
 
@@ -167,7 +168,9 @@ export default async function TransactionsPage({
     },
     {
       title: "Total Fines",
-      metric: `${formatMoneyShort(finesCollected)} collected`,
+      // Not "x collected": that read `isPaid`, which nothing in the app ever
+      // sets, so it was permanently ₹0 no matter how much had been settled.
+      metric: "Penalties charged",
       baseValue: formatMoneyShort(totalFines),
       baseLabel: "Total",
       targetValue: formatMoneyShort(range.fines),
@@ -232,76 +235,94 @@ export default async function TransactionsPage({
           </CardContent>
         </Card>
 
-        <Card className="min-w-0 gap-3">
+        {/* self-start: grid items stretch by default, and the daily-flow card
+            beside this one is ~3x taller. With one name per metric instead of
+            a five-row list there is nothing left to fill that height, so the
+            card was drawing its border around 300px of nothing. Hug the
+            content and let the row height stay the chart's business. */}
+        <Card className="min-w-0 gap-3 lg:self-start">
           <CardHeader>
-            <CardTitle className="text-base">Guest meals</CardTitle>
+            <CardTitle className="text-base">Guest meals &amp; fines</CardTitle>
             <p className="text-muted-foreground text-sm">
               All time &middot; {guestMeals.pending} awaiting review
             </p>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div>
-              <p className="text-2xl font-bold tracking-tight tabular-nums">
-                {formatMoney(guestMeals.revenue)}
-              </p>
-              <p className="text-muted-foreground text-xs">Total revenue</p>
-            </div>
-
-            <SegmentedBar
-              showTicks={false}
-              segments={[
+            {/* The two charge types the prefect actually levies, side by side.
+                No paid/unpaid bar: nothing sets `isPaid`, so it only ever
+                relabelled the whole total as unpaid. */}
+            <div className="grid grid-cols-2 gap-3">
+              {[
                 {
-                  key: "paid",
-                  label: "Paid",
-                  value: guestMeals.paid,
-                  className: "bg-green-600",
+                  key: "guest",
+                  label: "Guest meals",
+                  caption: "Most requested by",
+                  total: guestMeals.revenue,
+                  count: guestMeals.count,
+                  top: guestMeals.top,
+                  empty: "No guest meals charged yet.",
                 },
                 {
-                  key: "unpaid",
-                  label: "Unpaid",
-                  value: guestMeals.unpaid,
-                  className: "bg-amber-500",
+                  key: "fine",
+                  label: "Fines",
+                  caption: "Most fined",
+                  total: fineSummary.total,
+                  count: fineSummary.count,
+                  top: fineSummary.top,
+                  empty: "No fines issued yet.",
                 },
-              ]}
-              formatValue={formatMoneyShort}
-              emptyLabel="No guest meals charged yet."
-            />
+              ].map((col) => (
+                <div key={col.key} className="min-w-0 space-y-3">
+                  {/* Label and volume on separate lines: the columns are a
+                      third of a card wide, and "Guest meals · 313 charges" on
+                      one line truncated to "313 char…". */}
+                  <div className="min-w-0">
+                    <p className="truncate text-2xl font-bold tracking-tight tabular-nums">
+                      {formatMoney(col.total)}
+                    </p>
+                    <p className="text-muted-foreground truncate text-xs">
+                      {col.label}
+                    </p>
+                    <p className="text-muted-foreground truncate text-xs tabular-nums">
+                      {col.count} charge{col.count === 1 ? "" : "s"}
+                    </p>
+                  </div>
 
-            {guestMeals.topRequesters.length > 0 && (
-              <div>
-                <p className="text-muted-foreground mb-2 text-xs font-medium">
-                  Most requested by
-                </p>
-                <ul className="space-y-2">
-                  {guestMeals.topRequesters.map((person) => (
-                    <li
-                      key={person.userId}
-                      className="flex items-center gap-2.5"
-                    >
-                      <Avatar size="sm">
-                        <AvatarImage
-                          src={person.image ?? undefined}
-                          alt={person.name}
-                        />
-                        <AvatarFallback>{initials(person.name)}</AvatarFallback>
-                      </Avatar>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium">
-                          {person.name}
-                        </p>
-                        <p className="text-muted-foreground text-xs tabular-nums">
-                          {person.count} charge
-                          {person.count === 1 ? "" : "s"}
-                        </p>
+                  <Separator />
+
+                  <div className="min-w-0">
+                    <p className="text-muted-foreground mb-2 truncate text-xs font-medium">
+                      {col.caption}
+                    </p>
+                    {col.top ? (
+                      <div className="flex min-w-0 items-center gap-2.5">
+                        <Avatar size="sm">
+                          <AvatarImage
+                            src={col.top.image ?? undefined}
+                            alt={col.top.name}
+                          />
+                          <AvatarFallback>
+                            {initials(col.top.name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-medium">
+                            {col.top.name}
+                          </p>
+                          <p className="text-muted-foreground truncate text-xs tabular-nums">
+                            {formatMoneyShort(col.top.amount)}
+                          </p>
+                        </div>
                       </div>
-                      <span className="shrink-0 text-sm font-semibold tabular-nums">
-                        {formatMoneyShort(person.amount)}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+                    ) : (
+                      <p className="text-muted-foreground text-xs">
+                        {col.empty}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
       </div>

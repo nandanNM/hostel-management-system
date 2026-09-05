@@ -58,10 +58,11 @@ export async function getTransactionsOverview(search: TransactionsSearch) {
     overdueBills,
     pendingGuestMeals,
     guestMealCharges,
+    fineCharges,
     balances,
   ] = await Promise.all([
     prisma.userBill.findMany({
-      select: { type: true, amount: true, isPaid: true, issueDate: true },
+      select: { type: true, amount: true, issueDate: true },
     }),
     prisma.userBill.findMany({
       where: { issueDate: { gte: period.from, lte: period.to } },
@@ -105,6 +106,14 @@ export async function getTransactionsOverview(search: TransactionsSearch) {
       _sum: { amount: true },
       _count: { _all: true },
     }),
+    // Same shape for fines, so the card can put the heaviest guest-meal
+    // requester and the most-fined boarder side by side off one query each.
+    prisma.userBill.groupBy({
+      by: ["userId"],
+      where: { type: BillEntryType.FINE_CHARGE },
+      _sum: { amount: true },
+      _count: { _all: true },
+    }),
     // Scoped to the same population as `activeBoarders` above, so the two
     // numbers can be shown against each other without one exceeding the other.
     prisma.userBill.groupBy({
@@ -123,9 +132,7 @@ export async function getTransactionsOverview(search: TransactionsSearch) {
   let meal = 0
   let guest = 0
   let fine = 0
-  let finesCollected = 0
   let other = 0
-  let guestPaid = 0
   let collected = 0
 
   const base = startOfMonth(new Date())
@@ -197,11 +204,9 @@ export async function getTransactionsOverview(search: TransactionsSearch) {
         break
       case BillEntryType.GUEST_MEAL_CHARGE:
         guest += bill.amount
-        if (bill.isPaid) guestPaid += bill.amount
         break
       case BillEntryType.FINE_CHARGE:
         fine += bill.amount
-        if (bill.isPaid) finesCollected += bill.amount
         break
       case BillEntryType.SECURITY_DEPOSIT:
       case BillEntryType.ADJUSTMENT_DEBIT:
@@ -322,42 +327,63 @@ export async function getTransactionsOverview(search: TransactionsSearch) {
       }
     })
 
-  const TOP_REQUESTERS = 5
-  const requesterRows = guestMealCharges
-    .map((row) => ({
-      userId: row.userId,
-      amount: row._sum.amount ?? 0,
-      count: row._count._all,
-    }))
-    .filter((row) => row.amount > 0)
-    .sort((a, b) => b.amount - a.amount)
-    .slice(0, TOP_REQUESTERS)
+  // One name per metric, not a table. The card sits the heaviest guest-meal
+  // requester beside the most-fined boarder, so both sides only ever need
+  // their single top row.
+  const rank = (rows: typeof guestMealCharges) =>
+    rows
+      .map((row) => ({
+        userId: row.userId,
+        amount: Math.round(row._sum.amount ?? 0),
+        count: row._count._all,
+      }))
+      .filter((row) => row.amount > 0)
+      .sort((a, b) => b.amount - a.amount)
+      .at(0)
 
-  const requesterUsers = requesterRows.length
+  const topGuestRow = rank(guestMealCharges)
+  const topFineRow = rank(fineCharges)
+
+  const topIds = [topGuestRow?.userId, topFineRow?.userId].filter(
+    (id): id is string => Boolean(id)
+  )
+  const topUsers = topIds.length
     ? await prisma.user.findMany({
-        where: { id: { in: requesterRows.map((row) => row.userId) } },
+        where: { id: { in: topIds } },
         select: { id: true, name: true, image: true },
       })
     : []
-  const requesterById = new Map(requesterUsers.map((user) => [user.id, user]))
+  const topUserById = new Map(topUsers.map((user) => [user.id, user]))
 
+  const topOf = (row: ReturnType<typeof rank>) => {
+    if (!row) return null
+    const user = topUserById.get(row.userId)
+    if (!user) return null
+    return {
+      userId: user.id,
+      name: user.name ?? "Boarder",
+      image: user.image,
+      amount: row.amount,
+      count: row.count,
+    }
+  }
+
+  // No paid/unpaid split here. Nothing in the app ever sets `isPaid` on a
+  // charge — settlement is recorded as PAYMENT rows against the running
+  // balance — so `guestPaid` was structurally always zero and the bar just
+  // relabelled the total as "unpaid". Guest-meal and fine totals sit side by
+  // side instead, each with the one boarder who accounts for the most of it.
   const guestMeals = {
     revenue: guest,
-    paid: guestPaid,
-    unpaid: Math.max(0, guest - guestPaid),
+    count: guestMealCharges.reduce((sum, row) => sum + row._count._all, 0),
     pending: pendingGuestMeals,
-    topRequesters: requesterRows
-      .filter((row) => requesterById.has(row.userId))
-      .map((row) => {
-        const user = requesterById.get(row.userId)!
-        return {
-          userId: user.id,
-          name: user.name ?? "Boarder",
-          image: user.image,
-          amount: Math.round(row.amount),
-          count: row.count,
-        }
-      }),
+    top: topOf(topGuestRow),
+  }
+
+  const fineSummary = {
+    total: fine,
+    count: fineCharges.reduce((sum, row) => sum + row._count._all, 0),
+    top: topOf(topFineRow),
   }
 
   const totalCharges = meal + guest + fine + other
@@ -416,7 +442,6 @@ export async function getTransactionsOverview(search: TransactionsSearch) {
     totalCollected: collected,
     totalOutstanding: outstanding,
     totalFines: fine,
-    finesCollected,
     breakdown,
     monthly,
     period: {
@@ -469,6 +494,7 @@ export async function getTransactionsOverview(search: TransactionsSearch) {
       boardersWithDues,
     },
     guestMeals,
+    fineSummary,
     recent: recent.map((bill) => ({
       id: bill.id,
       type: bill.type,
