@@ -1,5 +1,6 @@
 import { Metadata } from "next"
 
+import MealOfferHelp from "./_components/meal-offer-help"
 import MealScheduleView from "./_components/meal-schedule-view"
 import { getMealSchedule, getMenuItems } from "./_lib/actions"
 
@@ -17,9 +18,12 @@ export default async function MealSchedulingPage() {
   return (
     <div className="w-full space-y-6 p-4 sm:p-6">
       <div className="flex flex-col gap-2">
-        <h1 className="text-foreground text-2xl font-bold tracking-tight">
-          Meal Scheduling
-        </h1>
+        <div className="flex items-center gap-1">
+          <h1 className="text-foreground text-2xl font-bold tracking-tight">
+            Meal Scheduling
+          </h1>
+          <MealOfferHelp />
+        </div>
         <p className="text-muted-foreground">
           Define your weekly menu items and schedule them across the days of the
           week.
