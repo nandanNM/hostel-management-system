@@ -28,7 +28,12 @@ export function LeaderboardCard() {
   })
 
   return (
-    <Card className="gap-3">
+    // min-w-0: the name span is `truncate`, so white-space: nowrap makes its
+    // min-content the whole unwrapped string. min-width:0 lets it *shrink*,
+    // but the card still reports that string's width as its own min-content,
+    // and the grid column sizes to it -- pushing "10 meals" off the phone.
+    // Capping the card's minimum is what actually lets the ellipsis engage.
+    <Card className="min-w-0 gap-3">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
           <Trophy className="size-5 text-amber-500" weight="fill" />

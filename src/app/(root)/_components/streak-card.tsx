@@ -21,7 +21,7 @@ export function StreakCard() {
   const streak = data?.streak ?? 0
 
   return (
-    <Card className="relative min-h-44 overflow-hidden border-0 bg-neutral-900 p-0">
+    <Card className="relative min-h-44 min-w-0 overflow-hidden border-0 bg-neutral-900 p-0">
       <video
         src="/firstbox.mp4"
         autoPlay
