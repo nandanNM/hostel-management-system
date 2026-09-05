@@ -25,7 +25,10 @@ export function RestrictedAccessActions({
   const [isSigningOut, startSignOut] = useTransition()
 
   return (
-    <div className="flex flex-col gap-3 sm:flex-row">
+    // Stacked at every width. Side by side, these two `w-full` buttons each
+    // claimed the full row and could not shrink (`Button` carries `shrink-0`),
+    // so the second one escaped the card.
+    <div className="flex flex-col gap-3">
       <Button
         type="button"
         variant="outline"
@@ -46,7 +49,7 @@ export function RestrictedAccessActions({
 
       <Button
         type="button"
-        variant="ghost"
+        variant="outline"
         className="w-full"
         disabled={isSigningOut}
         onClick={() => startSignOut(() => void signOutAction())}

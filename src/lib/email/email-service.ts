@@ -9,6 +9,7 @@ import {
   type AlumniFarewellStats,
 } from "./emails/alumni-farewell"
 import { dueAddedEmail } from "./emails/due-added"
+import { duesReminderEmail } from "./emails/dues-reminder"
 import { happyBirthdayEmail } from "./emails/happy-birthday"
 import { emailLayout } from "./emails/layout"
 import { terminationEmail } from "./emails/termination"
@@ -205,6 +206,28 @@ export async function sendDueAddedEmail({
     html,
     idempotencyKey: billId ? `due-added/${billId}` : undefined,
   })
+}
+
+export async function sendDuesReminderEmail({
+  to,
+  name,
+  outstanding,
+  overdueCount,
+  oldestDueLabel,
+}: {
+  to: string
+  name: string | null
+  outstanding: number
+  overdueCount?: number
+  oldestDueLabel?: string | null
+}): Promise<boolean> {
+  const { subject, html } = duesReminderEmail({
+    name,
+    outstanding,
+    overdueCount,
+    oldestDueLabel,
+  })
+  return sendEmail({ to, subject, html })
 }
 
 export async function sendHappyBirthdayEmail({

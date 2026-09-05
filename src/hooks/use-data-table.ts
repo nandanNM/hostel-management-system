@@ -14,6 +14,7 @@ import {
   type ColumnDef,
   type ColumnFiltersState,
   type PaginationState,
+  type Row,
   type SortingState,
   type TableState,
   type VisibilityState,
@@ -93,6 +94,13 @@ interface UseDataTableProps<TData, TValue> {
       desc: boolean
     }[]
   }
+
+  /**
+   * Stable row identity. Without it TanStack keys row selection by index,
+   * which silently re-selects a different record once server-side pagination
+   * swaps the rows under the same indexes.
+   */
+  getRowId?: (originalRow: TData, index: number, parent?: Row<TData>) => string
 }
 
 const searchParamsSchema = z.object({
@@ -108,6 +116,7 @@ export function useDataTable<TData, TValue>({
   filterFields = [],
   enableAdvancedFilter = false,
   state,
+  getRowId,
 }: UseDataTableProps<TData, TValue>) {
   const router = useRouter()
   const pathname = usePathname()
@@ -325,6 +334,7 @@ export function useDataTable<TData, TValue>({
     getSortedRowModel: getSortedRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
+    ...(getRowId ? { getRowId } : {}),
     manualPagination: true,
     manualSorting: true,
     manualFiltering: true,
