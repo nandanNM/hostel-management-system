@@ -7,7 +7,6 @@ import { ApiResponse } from "@/types"
 import { formatIST, istDaysBetween } from "@/lib/date"
 import { sendDuesReminderEmail } from "@/lib/email"
 import {
-  BillEntryType,
   NotificationType,
   UserRoleType,
   UserStatusType,
@@ -15,6 +14,7 @@ import {
 import prisma from "@/lib/prisma"
 import { sendPushToUsers } from "@/lib/push"
 
+import { settleDues } from "./dues"
 import {
   reminderSchema,
   type AttentionResponse,
@@ -22,14 +22,6 @@ import {
   type AttentionSearch,
   type SendRemindersInput,
 } from "./validations"
-
-const CHARGE_TYPES = [
-  BillEntryType.MEAL_CHARGE,
-  BillEntryType.FINE_CHARGE,
-  BillEntryType.GUEST_MEAL_CHARGE,
-  BillEntryType.SECURITY_DEPOSIT,
-  BillEntryType.ADJUSTMENT_DEBIT,
-]
 
 const ACTIVE_BOARDER = {
   role: UserRoleType.STUDENT,
@@ -50,77 +42,61 @@ async function buildRows(
 ): Promise<AttentionRow[]> {
   const now = new Date()
 
-  const [balances, overdueBills] = await Promise.all([
-    prisma.userBill.groupBy({
-      by: ["userId"],
-      where: { user: ACTIVE_BOARDER },
-      _sum: { amount: true },
-    }),
-    prisma.userBill.findMany({
-      where: {
-        isPaid: false,
-        dueDate: { lt: now },
-        type: { in: CHARGE_TYPES },
-        user: ACTIVE_BOARDER,
-      },
-      select: { userId: true, amount: true, dueDate: true },
-    }),
-  ])
+  // The whole ledger for active boarders, because a payment is not tied to the
+  // charge it settles - the position only falls out once each boarder's rows
+  // are read together. One hostel's ledger, so this stays small.
+  const entries = await prisma.userBill.findMany({
+    where: { user: ACTIVE_BOARDER },
+    select: {
+      userId: true,
+      amount: true,
+      dueDate: true,
+      issueDate: true,
+      user: { select: { name: true, email: true, image: true } },
+    },
+  })
 
-  const overdueByUser = new Map<
+  const byUser = new Map<
     string,
-    { total: number; count: number; oldest: Date | null }
+    { name: string; email: string; image: string | null; rows: typeof entries }
   >()
-  for (const bill of overdueBills) {
-    const entry = overdueByUser.get(bill.userId) ?? {
-      total: 0,
-      count: 0,
-      oldest: null,
+  for (const entry of entries) {
+    const bucket = byUser.get(entry.userId) ?? {
+      name: entry.user.name ?? "Boarder",
+      email: entry.user.email,
+      image: entry.user.image,
+      rows: [],
     }
-    entry.total += bill.amount
-    entry.count += 1
-    if (bill.dueDate && (!entry.oldest || bill.dueDate < entry.oldest)) {
-      entry.oldest = bill.dueDate
-    }
-    overdueByUser.set(bill.userId, entry)
+    bucket.rows.push(entry)
+    byUser.set(entry.userId, bucket)
   }
 
-  const outstandingByUser = new Map(
-    balances.map((row) => [row.userId, row._sum.amount ?? 0])
-  )
+  const rows: AttentionRow[] = []
 
-  const userIds =
-    type === "overdue"
-      ? [...overdueByUser.keys()]
-      : [...outstandingByUser.entries()]
-          .filter(([, amount]) => amount > 0.005)
-          .map(([userId]) => userId)
+  for (const [userId, boarder] of byUser) {
+    const position = settleDues(boarder.rows, now)
 
-  if (userIds.length === 0) return []
+    // The dues tab is everyone carrying a balance; the overdue tab is only
+    // those whose unpaid charges have already fallen due.
+    const amount =
+      type === "overdue" ? position.overdueAmount : position.outstanding
+    if (amount <= 0.005) continue
 
-  const users = await prisma.user.findMany({
-    where: { id: { in: userIds } },
-    select: { id: true, name: true, email: true, image: true },
-  })
-
-  return users.map((user) => {
-    const overdue = overdueByUser.get(user.id)
-    return {
-      userId: user.id,
-      name: user.name ?? "Boarder",
-      email: user.email,
-      image: user.image,
-      amount:
-        type === "overdue"
-          ? (overdue?.total ?? 0)
-          : (outstandingByUser.get(user.id) ?? 0),
-      overdueCount: overdue?.count ?? 0,
-      oldestDueDate: overdue?.oldest ?? null,
-      daysOverdue: overdue?.oldest
-        ? Math.max(0, istDaysBetween(overdue.oldest, now))
+    rows.push({
+      userId,
+      name: boarder.name,
+      email: boarder.email,
+      image: boarder.image,
+      amount,
+      overdueCount: position.overdueCount,
+      oldestDueDate: position.oldestDueDate,
+      daysOverdue: position.oldestDueDate
+        ? Math.max(0, istDaysBetween(position.oldestDueDate, now))
         : 0,
-    }
-  })
+    })
+  }
+
+  return rows
 }
 
 function compare(a: AttentionRow, b: AttentionRow, column: string) {
