@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest"
 
 import {
+  buildGuestMealPricing,
   checkBookingWindow,
   checkGuestsPerBooking,
   checkMonthlyGuestQuota,
+  guestChoiceKey,
+  guestChoicesFor,
   istMinuteOfDay,
   resolveGuestMealCharge,
   resolveScheduledMealPrice,
@@ -167,5 +170,134 @@ describe("resolveScheduledMealPrice", () => {
     // Falls through to the rate table, then the configured default.
     expect(resolveScheduledMealPrice([])).toBeNull()
     expect(resolveScheduledMealPrice([{ costPerUnit: 0 }])).toBeNull()
+  })
+})
+
+describe("guestChoicesFor", () => {
+  it("always offers veg, then every tier on offer", () => {
+    expect(guestChoicesFor(["CHICKEN", "EGG", "NONE"])).toEqual([
+      { type: "VEG", nonVegType: "NONE" },
+      { type: "NON_VEG", nonVegType: "CHICKEN" },
+      { type: "NON_VEG", nonVegType: "EGG" },
+    ])
+  })
+
+  it("leaves veg as the only choice on a veg-only slot", () => {
+    expect(guestChoicesFor(["NONE"])).toEqual([
+      { type: "VEG", nonVegType: "NONE" },
+    ])
+  })
+})
+
+describe("buildGuestMealPricing", () => {
+  const ALLOWED = ["CHICKEN", "EGG", "NONE"] as const
+
+  it("quotes the rate the booking will actually be charged", () => {
+    // The regression: the form quoted the menu's 65 while the rate table
+    // billed 90 for chicken and 45 for veg.
+    const { prices } = buildGuestMealPricing({
+      allowed: [...ALLOWED],
+      rates: { "NON_VEG:CHICKEN": 90, "VEG:NONE": 45 },
+      menuItemCost: 65,
+      fallback: 60,
+    })
+
+    expect(
+      prices[guestChoiceKey({ type: "NON_VEG", nonVegType: "CHICKEN" })]
+    ).toBe(90)
+    expect(prices[guestChoiceKey({ type: "VEG", nonVegType: "NONE" })]).toBe(45)
+    // No egg row, so the night's menu price stands.
+    expect(prices[guestChoiceKey({ type: "NON_VEG", nonVegType: "EGG" })]).toBe(
+      65
+    )
+  })
+
+  it("prices lunch and dinner apart when their rates differ", () => {
+    const rated = (amount: number) =>
+      buildGuestMealPricing({
+        allowed: ["NONE"],
+        rates: { "VEG:NONE": amount },
+        menuItemCost: 65,
+        fallback: 60,
+      }).prices["VEG:NONE"]
+
+    // Same weekday menu, different slot rates - the form showed 65 for both.
+    expect(rated(40)).toBe(40)
+    expect(rated(75)).toBe(75)
+  })
+
+  it("always names a price, so no booking is quoted blank", () => {
+    const { prices, flat } = buildGuestMealPricing({
+      allowed: [...ALLOWED],
+      rates: {},
+      menuItemCost: null,
+      fallback: 60,
+    })
+
+    expect(Object.values(prices)).toEqual([60, 60, 60])
+    expect(flat).toBe(true)
+  })
+
+  it("reports a slot as flat only when every choice really costs the same", () => {
+    expect(
+      buildGuestMealPricing({
+        allowed: [...ALLOWED],
+        rates: {},
+        menuItemCost: 65,
+        fallback: 60,
+      }).flat
+    ).toBe(true)
+
+    expect(
+      buildGuestMealPricing({
+        allowed: [...ALLOWED],
+        rates: { "NON_VEG:CHICKEN": 90 },
+        menuItemCost: 65,
+        fallback: 60,
+      }).flat
+    ).toBe(false)
+  })
+
+  it("prices only bookable choices, never non-veg without a tier", () => {
+    // The form quoted `NON_VEG:NONE` the moment you switched to Non-Veg but
+    // had not picked a tier yet. It is not a bookable choice - the schema
+    // rejects it - so it has no price, and the quote used to vanish.
+    const { prices } = buildGuestMealPricing({
+      allowed: [...ALLOWED],
+      rates: {},
+      menuItemCost: 65,
+      fallback: 60,
+    })
+
+    expect(prices).not.toHaveProperty("NON_VEG:NONE")
+    expect(Object.keys(prices)).toEqual([
+      "VEG:NONE",
+      "NON_VEG:CHICKEN",
+      "NON_VEG:EGG",
+    ])
+  })
+
+  it("leaves a veg-only slot with nothing non-veg to book", () => {
+    // Friday lunch: one dish that offers no tier. Booking non-veg there is a
+    // dead end, so the form has to steer away from it rather than price it.
+    const { prices } = buildGuestMealPricing({
+      allowed: ["NONE"],
+      rates: {},
+      menuItemCost: 45,
+      fallback: 60,
+    })
+
+    expect(Object.keys(prices)).toEqual(["VEG:NONE"])
+    expect(prices["VEG:NONE"]).toBe(45)
+  })
+
+  it("ignores a zero rate rather than quoting a free meal", () => {
+    const { prices } = buildGuestMealPricing({
+      allowed: ["NONE"],
+      rates: { "VEG:NONE": 0 },
+      menuItemCost: 65,
+      fallback: 60,
+    })
+    expect(prices["VEG:NONE"]).toBe(65)
   })
 })

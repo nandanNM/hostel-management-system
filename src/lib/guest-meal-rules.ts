@@ -111,10 +111,11 @@ export function checkMonthlyGuestQuota(
 /**
  * The flat price the scheduled menu sets for one guest meal that night.
  *
- * A guest pays for the *day*, not for the tier they picked: a roti night
- * costs the same with chicken, with egg or with veg. Where a slot lists
- * several dishes the dearest sets the price, so adding a cheap side can never
- * undercut the night.
+ * Absent a rate row, a guest pays for the *day* and not for the tier they
+ * picked: a roti night costs the same with chicken, with egg or with veg.
+ * Where a slot lists several dishes the dearest sets the price, so adding a
+ * cheap side can never undercut the night. A rate row overrides this per meal
+ * time and tier — see `buildGuestMealPricing`.
  *
  * This replaces looking the dish up by *name* ("Veg"/"Chicken"/"Egg"...),
  * which could never match a dish called Roti and so charged a roti night at
@@ -142,12 +143,59 @@ export function resolveGuestMealCharge(args: {
   return args.fallback
 }
 
-export type RateKey = {
-  mealTime: MealTimeType
-  type: MealType
-  nonVegType: NonVegType
+/**
+ * One bookable choice, keyed exactly like the rate table's unique index so a
+ * quote and a charge can never disagree about which row applies.
+ */
+export type GuestChoice = { type: MealType; nonVegType: NonVegType }
+
+export function guestChoiceKey({ type, nonVegType }: GuestChoice): string {
+  return `${type}:${nonVegType}`
 }
 
-export function rateKey({ mealTime, type, nonVegType }: RateKey): string {
-  return `${mealTime}:${type}:${nonVegType}`
+/** Veg, plus every tier the slot actually offers. */
+export function guestChoicesFor(allowed: NonVegType[]): GuestChoice[] {
+  return [
+    { type: MealType.VEG, nonVegType: NonVegType.NONE },
+    ...allowed
+      .filter((tier) => tier !== NonVegType.NONE)
+      .map((tier) => ({ type: MealType.NON_VEG, nonVegType: tier })),
+  ]
+}
+
+export type GuestMealPricing = {
+  /** Price per meal for each bookable choice, by `guestChoiceKey`. */
+  prices: Record<string, number>
+  /** True when every choice in the slot costs the same. */
+  flat: boolean
+}
+
+/**
+ * What every choice in one slot costs.
+ *
+ * The booking form used to quote `resolveScheduledMealPrice` on its own while
+ * the charge went through the rate table, so the moment the prefect set any
+ * rate the number on screen stopped being the number billed. And because the
+ * rate table is keyed by meal time as well as tier, lunch and dinner were
+ * quoted the same menu figure while being charged apart. Both sides read this
+ * now, so the quote is the charge by construction.
+ */
+export function buildGuestMealPricing(args: {
+  allowed: NonVegType[]
+  rates: Record<string, number>
+  menuItemCost: number | null
+  fallback: number
+}): GuestMealPricing {
+  const prices: Record<string, number> = {}
+
+  for (const choice of guestChoicesFor(args.allowed)) {
+    const key = guestChoiceKey(choice)
+    prices[key] = resolveGuestMealCharge({
+      rate: args.rates[key],
+      menuItemCost: args.menuItemCost,
+      fallback: args.fallback,
+    })
+  }
+
+  return { prices, flat: new Set(Object.values(prices)).size <= 1 }
 }

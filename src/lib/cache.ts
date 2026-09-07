@@ -10,8 +10,12 @@ import { redis } from "@/lib/redis"
  * v2: the cached meal schedule holds what each dish offers and costs, not a
  * list of dish names. A v1 entry deserialises into the wrong shape, so every
  * old entry has to retire on deploy.
+ *
+ * v3: it carries the dish name again alongside those, so the booking form can
+ * name the night's actual menu. A v2 entry has no name and would render the
+ * menu as blank, so it has to retire too.
  */
-const V = "v2"
+const V = "v3"
 
 export const cacheKeys = {
   /** One key for everyone - the leaderboard is identical for every boarder. */
@@ -26,7 +30,14 @@ export const cacheKeys = {
   /** 14 rows total, read whenever the booking form or the count needs a menu. */
   mealSchedule: (dayOfWeek: string, mealTime: string) =>
     `${V}:meal-schedule:${dayOfWeek}:${mealTime}`,
+  /** The prefect's guest rates for one slot, read on every booking quote. */
+  guestMealRates: (mealTime: string) => `${V}:guest-meal-rates:${mealTime}`,
 } as const
+
+/** Both slot keys, for clearing after a rate edit. */
+export function guestMealRateKeys(): string[] {
+  return ["LUNCH", "DINNER"].map((slot) => cacheKeys.guestMealRates(slot))
+}
 
 /** Every meal schedule key, for clearing the lot after a menu edit. */
 export function mealScheduleKeys(): string[] {
