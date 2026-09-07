@@ -45,8 +45,17 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: "/icon.png",
+    // iOS reads the home screen icon from here; with none set it screenshots
+    // the page instead.
+    apple: "/app-icon-192.png",
   },
-  manifest: `${siteConfig.url}/site.webmanifest`,
+  appleWebApp: {
+    capable: true,
+    title: siteConfig.name,
+    statusBarStyle: "default",
+  },
+  // No `manifest` field: `src/app/manifest.ts` is linked automatically and
+  // that link takes precedence over this one.
 }
 
 export const viewport: Viewport = {
