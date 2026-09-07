@@ -67,8 +67,13 @@ export default async function AttentionPage({
         ))}
       </div>
 
+      {/* Keyed on the tab only. With the search text in the key every
+          keystroke threw the table away and replayed the skeleton, which read
+          as a full page reload and took the focus out of the search box. The
+          other tables key nothing, and let the transition hold the old rows
+          until the new ones arrive. */}
       <React.Suspense
-        key={`${search.type}-${search.days}-${search.name ?? ""}`}
+        key={search.type}
         fallback={
           <DataTableSkeleton
             columnCount={6}
