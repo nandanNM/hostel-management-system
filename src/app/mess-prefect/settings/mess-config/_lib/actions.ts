@@ -5,8 +5,9 @@ import requireMessPrefect from "@/data/mess-prefect/require-mess-prefect"
 import { ApiResponse } from "@/types"
 import { z } from "zod"
 
-import { cacheKeys, invalidate } from "@/lib/cache"
+import { cacheKeys, guestMealRateKeys, invalidate } from "@/lib/cache"
 import { MealTimeType, MealType, NonVegType } from "@/lib/generated/prisma"
+import { OFFERABLE_TYPES } from "@/lib/meal-priority"
 import {
   getMessConfig,
   MESS_CONFIG_DEFAULTS,
@@ -51,8 +52,31 @@ export type GuestMealRateRow = {
   mealTime: MealTimeType
   type: MealType
   nonVegType: NonVegType
-  amount: number
+  /** null means no rate is set, so the menu price applies. */
+  amount: number | null
 }
+
+/**
+ * Every rate the table's unique index allows: both slots, veg plus each tier.
+ *
+ * The editor used to render only rows that already existed, so an empty table
+ * offered nothing to fill in and per-slot pricing could never be entered at
+ * all - which is why every meal quoted the one menu price.
+ */
+const RATE_GRID: Omit<GuestMealRateRow, "amount">[] = [
+  MealTimeType.LUNCH,
+  MealTimeType.DINNER,
+].flatMap((mealTime) => [
+  { mealTime, type: MealType.VEG, nonVegType: NonVegType.NONE },
+  ...OFFERABLE_TYPES.map((nonVegType) => ({
+    mealTime,
+    type: MealType.NON_VEG,
+    nonVegType,
+  })),
+])
+
+const gridKey = (row: Omit<GuestMealRateRow, "amount">) =>
+  `${row.mealTime}:${row.type}:${row.nonVegType}`
 
 export async function getMessConfigForEditing(): Promise<{
   config: MessConfigValues
@@ -72,9 +96,14 @@ export async function getMessConfigForEditing(): Promise<{
     }),
   ])
 
+  const saved = new Map(rates.map((row) => [gridKey(row), row.amount]))
+
   return {
     config,
-    rates,
+    rates: RATE_GRID.map((row) => ({
+      ...row,
+      amount: saved.get(gridKey(row)) ?? null,
+    })),
     defaults: {
       guestBookingMaxDaysAhead: MESS_CONFIG_DEFAULTS.guestBookingMaxDaysAhead,
       guestBookingCutoffMinutes: MESS_CONFIG_DEFAULTS.guestBookingCutoffMinutes,
@@ -133,7 +162,7 @@ export async function updateMessConfig(
 
     // These values gate the booking form and the meal count, so every surface
     // that reads them has to be refreshed.
-    await invalidate(cacheKeys.messConfig())
+    await invalidate(cacheKeys.messConfig(), ...guestMealRateKeys())
     revalidatePath("/mess-prefect/settings/mess-config")
     revalidatePath("/guest-meal")
     revalidatePath("/meal-count")
@@ -204,19 +233,47 @@ export async function upsertGuestMealRate(
     const actorId = session.user.id
     if (!actorId) return { status: "error", message: "Unauthorized" }
 
+    const where = {
+      mealTime: row.mealTime,
+      type: row.type,
+      nonVegType: row.nonVegType,
+    }
+    const label = `${row.mealTime} ${row.type}${row.nonVegType !== "NONE" ? ` (${row.nonVegType})` : ""}`
+
+    // A blank amount means "no rate": drop the row so the menu price applies
+    // again. deleteMany, so clearing an already-blank row is not an error.
+    if (row.amount === null) {
+      await prisma.guestMealRate.deleteMany({ where })
+
+      prisma.activityLog
+        .create({
+          data: {
+            userId: actorId,
+            actionType: "UPDATE",
+            entityType: "GUEST_MEAL_RATE",
+            entityId: gridKey(row),
+            oldData: row,
+            details: `Cleared the guest meal rate for ${label}; the menu price applies.`,
+          },
+        })
+        .catch((err) => console.error("Activity log creation failed:", err))
+
+      await invalidate(...guestMealRateKeys())
+      revalidatePath("/mess-prefect/settings/mess-config")
+      revalidatePath("/guest-meal")
+      return {
+        status: "success",
+        message: "Rate cleared — menu price applies.",
+      }
+    }
+
     if (!Number.isFinite(row.amount) || row.amount < 0) {
       return { status: "error", message: "Enter a valid amount." }
     }
 
     const rate = await prisma.guestMealRate.upsert({
-      where: {
-        mealTime_type_nonVegType: {
-          mealTime: row.mealTime,
-          type: row.type,
-          nonVegType: row.nonVegType,
-        },
-      },
-      create: row,
+      where: { mealTime_type_nonVegType: where },
+      create: { ...where, amount: row.amount },
       update: { amount: row.amount },
     })
 
@@ -228,12 +285,12 @@ export async function upsertGuestMealRate(
           entityType: "GUEST_MEAL_RATE",
           entityId: rate.id,
           newData: row,
-          details: `Set guest meal rate for ${row.mealTime} ${row.type}${row.nonVegType !== "NONE" ? ` (${row.nonVegType})` : ""} to ₹${row.amount}.`,
+          details: `Set guest meal rate for ${label} to ₹${row.amount}.`,
         },
       })
       .catch((err) => console.error("Activity log creation failed:", err))
 
-    await invalidate(cacheKeys.messConfig())
+    await invalidate(...guestMealRateKeys())
     revalidatePath("/mess-prefect/settings/mess-config")
     revalidatePath("/guest-meal")
     return { status: "success", message: "Rate saved." }
