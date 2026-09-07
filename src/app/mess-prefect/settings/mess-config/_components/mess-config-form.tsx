@@ -459,8 +459,9 @@ export function MessConfigForm({
         <CardHeader>
           <CardTitle>Guest meal pricing</CardTitle>
           <CardDescription>
-            Rates override the menu item cost. Leave a row unset to keep using
-            the menu item price.
+            A rate overrides the menu item cost for that slot and tier — this is
+            how lunch and dinner, or veg and chicken, come to different prices.
+            Leave a row blank to keep charging the menu item price.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -498,52 +499,55 @@ export function MessConfigForm({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {rateRows.length === 0 ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={4}
-                      className="text-muted-foreground text-sm"
-                    >
-                      No rates configured — menu item prices are used.
+                {rateRows.map((row, index) => (
+                  <TableRow
+                    key={`${row.mealTime}-${row.type}-${row.nonVegType}`}
+                  >
+                    {/* Ten rows, so the slot is named once per group rather
+                        than repeated down every line. */}
+                    <TableCell className="text-muted-foreground">
+                      {index === 0 ||
+                      rateRows[index - 1]?.mealTime !== row.mealTime
+                        ? prettify(row.mealTime)
+                        : ""}
+                    </TableCell>
+                    <TableCell>
+                      {row.type === "VEG" ? "Veg" : prettify(row.nonVegType)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Input
+                        type="number"
+                        inputMode="numeric"
+                        min={0}
+                        className="text-right"
+                        placeholder="Menu price"
+                        value={row.amount ?? ""}
+                        onChange={(event) => {
+                          const raw = event.target.value
+                          const next = [...rateRows]
+                          next[index] = {
+                            ...row,
+                            // Blank is a real value here - it means "no rate",
+                            // which is different from a rate of zero.
+                            amount:
+                              raw === "" ? null : Math.max(0, Number(raw) || 0),
+                          }
+                          setRateRows(next)
+                        }}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => saveRate(rateRows[index] ?? row)}
+                      >
+                        Save
+                      </Button>
                     </TableCell>
                   </TableRow>
-                ) : (
-                  rateRows.map((row, index) => (
-                    <TableRow
-                      key={`${row.mealTime}-${row.type}-${row.nonVegType}`}
-                    >
-                      <TableCell>{prettify(row.mealTime)}</TableCell>
-                      <TableCell>
-                        {row.type === "VEG" ? "Veg" : prettify(row.nonVegType)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Input
-                          type="number"
-                          className="text-right"
-                          value={row.amount}
-                          onChange={(event) => {
-                            const next = [...rateRows]
-                            next[index] = {
-                              ...row,
-                              amount: Number(event.target.value) || 0,
-                            }
-                            setRateRows(next)
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="outline"
-                          onClick={() => saveRate(rateRows[index] ?? row)}
-                        >
-                          Save
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
+                ))}
               </TableBody>
             </Table>
           </div>

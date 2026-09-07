@@ -8,10 +8,21 @@ import {
   NON_VEG_OPTIONS,
 } from "@/constants/form.constants"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Calendar as CalendarIcon } from "@phosphor-icons/react"
+import {
+  Bird,
+  Calendar as CalendarIcon,
+  Cow,
+  Egg,
+  Fish,
+  ForkKnife,
+  Plant,
+  type Icon,
+} from "@phosphor-icons/react"
 import { addDays, format, isAfter, isBefore, startOfDay } from "date-fns"
 import { useForm } from "react-hook-form"
 
+import type { NonVegType as NonVegTier } from "@/lib/generated/prisma"
+import { guestChoiceKey, type GuestMealPricing } from "@/lib/guest-meal-rules"
 import { cn } from "@/lib/utils"
 import { guestMealSchema, type GuestMeal } from "@/lib/validations"
 import { Button } from "@/components/ui/button"
@@ -57,16 +68,72 @@ import { useCreateGuestMeal } from "../_lib/mutations"
 
 type createGuestMealSheetProps = React.ComponentPropsWithRef<typeof Sheet>
 
+function inr(n: number) {
+  return `₹${n.toFixed(2)}`
+}
+
+const TIER_ICONS: Record<string, Icon> = {
+  MUTTON: Cow,
+  CHICKEN: Bird,
+  FISH: Fish,
+  EGG: Egg,
+}
+
+/**
+ * One dropdown row: what it is, and what the mess will charge for it.
+ *
+ * A fragment, so the icon, label and price lay out on the flex row the select
+ * item already provides - and so the same row renders inside the trigger once
+ * it is picked.
+ */
+function ChoiceRow({
+  icon: TierIcon,
+  label,
+  price,
+  from = false,
+}: {
+  icon: Icon
+  label: string
+  price: number | null
+  /** The row covers several tiers that are not all priced alike. */
+  from?: boolean
+}) {
+  return (
+    <>
+      <TierIcon weight="duotone" />
+      <span>{label}</span>
+      {price !== null && (
+        <span className="text-muted-foreground ml-auto pl-3 text-xs tabular-nums">
+          {from ? `from ${inr(price)}` : inr(price)}
+        </span>
+      )}
+    </>
+  )
+}
+
+/** Lets the price sit hard right in the list; harmless in the w-fit trigger. */
+const CHOICE_ITEM = "[&>span:last-child]:w-full"
+
+function prettifyTier(tier: string) {
+  return tier.charAt(0) + tier.slice(1).toLowerCase()
+}
+
 export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
   const { mutate: createGuestMeal, isPending: isCreatePending } =
     useCreateGuestMeal(props.onOpenChange)
   // What the kitchen is cooking for the chosen day and slot decides which
   // non-veg options are bookable; booking above the scheduled item would make
   // the mess buy something for a single guest.
-  const [allowedNonVeg, setAllowedNonVeg] = useState<string[] | null>(null)
-  const [offers, setOffers] = useState<string[] | null>(null)
-  // One flat price for the night, whatever the guest picks.
-  const [nightPrice, setNightPrice] = useState<number | null>(null)
+  const [allowedNonVeg, setAllowedNonVeg] = useState<NonVegTier[] | null>(null)
+  const [offers, setOffers] = useState<NonVegTier[] | null>(null)
+  // The dishes the prefect scheduled, by name. Whatever is on the menu shows
+  // up here - nothing in this form knows any dish by name.
+  const [menu, setMenu] = useState<string[]>([])
+  const [dayOfWeek, setDayOfWeek] = useState<string | null>(null)
+  // Price per meal for every choice in the slot. The server bills out of this
+  // same map, so the figure below is the figure charged - the form used to
+  // quote the menu price while the rate table did the billing.
+  const [pricing, setPricing] = useState<GuestMealPricing | null>(null)
   // The prefect sets the horizon; 3 days was hardcoded here before.
   const [maxDaysAhead, setMaxDaysAhead] = useState(3)
 
@@ -103,11 +170,28 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
     let cancelled = false
 
     getAllowedGuestMealOptions(watchedDate, watchedMealTime)
-      .then(({ offers: scheduled, allowed, price }) => {
+      .then((slot) => {
         if (cancelled) return
+        const { offers: scheduled, allowed, pricing: slotPricing } = slot
         setOffers(scheduled)
-        setNightPrice(price)
-        setAllowedNonVeg(allowed.filter((type) => type !== "NONE"))
+        setPricing(slotPricing)
+        setMenu(slot.menu)
+        setDayOfWeek(slot.dayOfWeek)
+
+        const tiers = allowed.filter((type) => type !== "NONE")
+        setAllowedNonVeg(tiers)
+
+        // Nothing non-veg is cooked for this slot, so a non-veg booking is a
+        // dead end: an empty tier list, no price, and a submit that fails
+        // validation. Put the guest back on veg instead of letting them find
+        // that out at the end.
+        if (tiers.length === 0) {
+          if (form.getValues("type") === "NON_VEG") {
+            form.setValue("type", "VEG", { shouldValidate: false })
+          }
+          form.setValue("nonVegType", "NONE", { shouldValidate: false })
+          return
+        }
 
         // Leaving a now-invalid choice selected would only fail on submit.
         const current = form.getValues("nonVegType")
@@ -116,7 +200,12 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
         }
       })
       .catch(() => {
-        if (!cancelled) setAllowedNonVeg(null)
+        if (cancelled) return
+        setAllowedNonVeg(null)
+        // Better nothing than a stale menu or figure from the previous slot.
+        setPricing(null)
+        setMenu([])
+        setDayOfWeek(null)
       })
 
     return () => {
@@ -127,6 +216,55 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
   const nonVegChoices = (
     allowedNonVeg ?? NON_VEG_OPTIONS.filter((type) => type !== "NONE")
   ).filter((type) => type !== "NONE")
+
+  // Lunch and dinner, and veg and each tier, can each carry their own rate,
+  // so every dropdown row is priced from the same map the server bills from.
+  const watchedType = form.watch("type")
+  const watchedNonVegType = form.watch("nonVegType")
+  const watchedMeals = Number(form.watch("numberOfMeals") || 0)
+
+  const priceFor = (type: "VEG" | "NON_VEG", nonVegType: NonVegTier) =>
+    pricing?.prices[guestChoiceKey({ type, nonVegType })] ?? null
+
+  const vegPrice = priceFor("VEG", "NONE")
+
+  // Non-veg spans several tiers, so its row quotes the cheapest and says so
+  // rather than pretending one figure covers the lot.
+  const nonVegPrices = nonVegChoices
+    .map((tier) => priceFor("NON_VEG", tier))
+    .filter((price): price is number => price !== null)
+  const cheapestNonVeg =
+    nonVegPrices.length > 0 ? Math.min(...nonVegPrices) : null
+  const nonVegVaries =
+    cheapestNonVeg !== null && Math.max(...nonVegPrices) !== cheapestNonVeg
+
+  // "Non-veg with no tier picked" is a real state - it is what the form opens
+  // into the moment you switch to Non-Veg - and it has no price of its own,
+  // so quote the cheapest on offer instead of dropping the line entirely.
+  const pickedPrice =
+    watchedType === "VEG"
+      ? vegPrice
+      : priceFor("NON_VEG", watchedNonVegType ?? "NONE")
+  const unitPrice = pickedPrice ?? cheapestNonVeg ?? vegPrice
+  const quoteIsFrom = pickedPrice === null && nonVegVaries
+
+  // Only an actual empty tier list means veg only; null means the quote is in
+  // flight or failed, and guessing then would disable a valid choice.
+  const vegOnly = allowedNonVeg !== null && allowedNonVeg.length === 0
+
+  // What the kitchen is cooking, named. Falls back to the generic slot label
+  // only when the prefect has scheduled nothing for it.
+  const menuLabel = menu.length > 0 ? menu.join(", ") : null
+  const slotLabel = [dayOfWeek?.toLowerCase(), watchedMealTime.toLowerCase()]
+    .filter(Boolean)
+    .join(" ")
+
+  const choiceLabel =
+    watchedType === "VEG"
+      ? "veg"
+      : watchedNonVegType && watchedNonVegType !== "NONE"
+        ? watchedNonVegType.toLowerCase()
+        : "non-veg"
 
   function onSubmit(values: GuestMeal) {
     createGuestMeal(values)
@@ -239,6 +377,26 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
                     </FormItem>
                   )}
                 />
+              </div>
+
+              {/* What the kitchen is actually cooking, read straight off the
+                  schedule - a dish added later needs no change here. */}
+              {menuLabel && (
+                <div className="bg-muted/40 rounded-md border p-3">
+                  <div className="flex items-center gap-2 text-sm font-medium">
+                    <ForkKnife weight="duotone" className="size-4 shrink-0" />
+                    <span className="capitalize">{slotLabel}</span>
+                  </div>
+                  <p className="mt-1 text-sm">{menuLabel}</p>
+                  <p className="text-muted-foreground mt-0.5 text-xs">
+                    {offers && offers.length > 0
+                      ? `Served with ${offers.map(prettifyTier).join(", ")} or veg.`
+                      : "Vegetarian only."}
+                  </p>
+                </div>
+              )}
+
+              <div className="flex flex-wrap gap-4">
                 <FormField
                   control={form.control}
                   name="type"
@@ -252,7 +410,10 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
                             form.setValue("nonVegType", "NONE")
                           }
                         }}
-                        defaultValue={field.value}
+                        // Controlled: the effect above snaps this back to veg
+                        // on a veg-only slot, which an uncontrolled select
+                        // would keep showing as Non-Veg.
+                        value={field.value}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -261,17 +422,35 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
                         </FormControl>
                         <SelectContent>
                           {MEAL_TYPE_OPTIONS.map((type) => (
-                            <SelectItem key={type} value={type}>
-                              {type === "NON_VEG" ? "Non-Veg" : "Veg"}
+                            <SelectItem
+                              key={type}
+                              value={type}
+                              className={CHOICE_ITEM}
+                              disabled={type === "NON_VEG" && vegOnly}
+                            >
+                              <ChoiceRow
+                                icon={type === "NON_VEG" ? ForkKnife : Plant}
+                                label={type === "NON_VEG" ? "Non-Veg" : "Veg"}
+                                price={
+                                  type === "NON_VEG" ? cheapestNonVeg : vegPrice
+                                }
+                                from={type === "NON_VEG" && nonVegVaries}
+                              />
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
+                      {vegOnly && (
+                        <FormDescription>
+                          {menuLabel ?? `This ${watchedMealTime.toLowerCase()}`}{" "}
+                          is vegetarian only.
+                        </FormDescription>
+                      )}
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                {form.watch("type") === "NON_VEG" && (
+                {watchedType === "NON_VEG" && (
                   <FormField
                     control={form.control}
                     name="nonVegType"
@@ -280,30 +459,36 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
                         <FormLabel>Non-Veg Type</FormLabel>
                         <Select
                           onValueChange={field.onChange}
-                          defaultValue={field.value}
+                          // "" shows the placeholder like undefined does, but
+                          // keeps the select controlled for its whole life.
+                          value={field.value === "NONE" ? "" : field.value}
                         >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select non-veg type" />
+                              <SelectValue placeholder="Pick a non-veg type" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {nonVegChoices.map((type) => (
-                              <SelectItem key={type} value={type}>
-                                {type.charAt(0) + type.slice(1).toLowerCase()}
+                            {nonVegChoices.map((tier) => (
+                              <SelectItem
+                                key={tier}
+                                value={tier}
+                                className={CHOICE_ITEM}
+                              >
+                                <ChoiceRow
+                                  icon={TIER_ICONS[tier] ?? ForkKnife}
+                                  label={prettifyTier(tier)}
+                                  price={priceFor("NON_VEG", tier)}
+                                />
                               </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
                         {offers && offers.length > 0 && (
                           <FormDescription>
-                            This meal serves{" "}
-                            {offers
-                              .map(
-                                (t) => t.charAt(0) + t.slice(1).toLowerCase()
-                              )
-                              .join(", ")}
-                            . Anything else is not being cooked.
+                            {menuLabel ?? "This meal"} is served with{" "}
+                            {offers.map(prettifyTier).join(", ")}. Anything else
+                            is not being cooked.
                           </FormDescription>
                         )}
                         <FormMessage />
@@ -347,12 +532,16 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
                         }
                       />
                     </FormControl>
-                    {nightPrice !== null && (
+                    {unitPrice !== null && (
                       <FormDescription>
-                        ₹{nightPrice.toFixed(2)} per meal for this day — the
-                        same whatever your guest picks
-                        {form.watch("numberOfMeals") > 1 &&
-                          `, so ₹${(nightPrice * Number(form.watch("numberOfMeals") || 0)).toFixed(2)} in total`}
+                        {quoteIsFrom ? "From " : ""}
+                        {inr(unitPrice)} per meal for{" "}
+                        {menuLabel ?? watchedMealTime.toLowerCase()}
+                        {pricing?.flat
+                          ? " — the same whatever your guest picks"
+                          : ` with ${choiceLabel}`}
+                        {watchedMeals > 1 &&
+                          `, so ${inr(unitPrice * watchedMeals)} in total`}
                         .
                       </FormDescription>
                     )}

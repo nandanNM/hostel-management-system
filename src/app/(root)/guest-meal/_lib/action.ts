@@ -17,11 +17,13 @@ import {
   NonVegType,
 } from "@/lib/generated/prisma"
 import {
+  buildGuestMealPricing,
   checkBookingWindow,
   checkGuestsPerBooking,
   checkMonthlyGuestQuota,
-  resolveGuestMealCharge,
+  guestChoiceKey,
   resolveScheduledMealPrice,
+  type GuestMealPricing,
 } from "@/lib/guest-meal-rules"
 import { getAllowedGuestTypes, resolveOffers } from "@/lib/meal-priority"
 import { getMessConfig } from "@/lib/mess-config"
@@ -35,6 +37,7 @@ import { requireUser } from "@/lib/require-user"
 import { GuestMeal, guestMealSchema } from "@/lib/validations"
 
 const MENU_TTL_SECONDS = 60 * 60
+const RATES_TTL_SECONDS = 60 * 60
 
 /**
  * The non-veg options a guest meal may use for a given day and slot, derived
@@ -43,7 +46,16 @@ const MENU_TTL_SECONDS = 60 * 60
  * The weekday is taken in India time - on a UTC server the picked date would
  * otherwise resolve to the previous day and read the wrong menu.
  */
-type ScheduledDish = { offers: NonVegType[]; costPerUnit: number }
+type ScheduledDish = {
+  name: string
+  offers: NonVegType[]
+  costPerUnit: number
+}
+
+/** The weekday the menu is keyed by, read in India time on any server. */
+function istDayOfWeek(date: Date): DayOfWeek {
+  return formatIST(date, "EEEE").toUpperCase() as DayOfWeek
+}
 
 /**
  * The slot's menu, reduced to what booking needs: what each dish can provide
@@ -54,7 +66,7 @@ async function getScheduledDishes(
   date: Date,
   mealTime: MealTimeType
 ): Promise<ScheduledDish[]> {
-  const dayOfWeek = formatIST(date, "EEEE").toUpperCase() as DayOfWeek
+  const dayOfWeek = istDayOfWeek(date)
 
   const dishes = await cached(
     cacheKeys.mealSchedule(dayOfWeek, mealTime),
@@ -65,7 +77,9 @@ async function getScheduledDishes(
         include: {
           menuItems: {
             select: {
-              menuItem: { select: { offers: true, costPerUnit: true } },
+              menuItem: {
+                select: { name: true, offers: true, costPerUnit: true },
+              },
             },
           },
         },
@@ -77,25 +91,74 @@ async function getScheduledDishes(
   return dishes ?? []
 }
 
+/**
+ * The prefect's rate rows for one slot, by `guestChoiceKey`.
+ *
+ * At most five rows, read on every quote as the guest changes the form, so it
+ * is cached and cleared whenever a rate is saved.
+ */
+async function getSlotRates(
+  mealTime: MealTimeType
+): Promise<Record<string, number>> {
+  const rates = await cached(
+    cacheKeys.guestMealRates(mealTime),
+    RATES_TTL_SECONDS,
+    async () => {
+      const rows = await prisma.guestMealRate.findMany({
+        where: { mealTime },
+        select: { type: true, nonVegType: true, amount: true },
+      })
+      return Object.fromEntries(
+        rows.map((row) => [guestChoiceKey(row), row.amount])
+      )
+    }
+  )
+
+  return rates ?? {}
+}
+
+/**
+ * What a guest may book for a day and slot, and what each choice costs.
+ *
+ * The price map is the single pricing authority: `createGuestMeal` bills
+ * straight out of it, so whatever the form quotes is what lands on the bill.
+ *
+ * `menu` is whatever the prefect actually scheduled, by name, so a dish added
+ * next term shows up in the booking form on its own - nothing here knows or
+ * needs to know that tonight happens to be Roti.
+ */
 export async function getAllowedGuestMealOptions(
   date: Date,
   mealTime: MealTimeType
 ): Promise<{
+  dayOfWeek: DayOfWeek
+  menu: string[]
   offers: NonVegType[]
   allowed: NonVegType[]
-  price: number | null
+  pricing: GuestMealPricing
 }> {
   await requireUser()
 
-  const { nonVegPriority } = await getMessConfig()
-  const dishes = await getScheduledDishes(date, mealTime)
-  const offers = resolveOffers(dishes, nonVegPriority)
+  const [config, dishes, rates] = await Promise.all([
+    getMessConfig(),
+    getScheduledDishes(date, mealTime),
+    getSlotRates(mealTime),
+  ])
+
+  const offers = resolveOffers(dishes, config.nonVegPriority)
+  const allowed = getAllowedGuestTypes(offers)
 
   return {
+    dayOfWeek: istDayOfWeek(date),
+    menu: dishes.map((dish) => dish.name),
     offers,
-    allowed: getAllowedGuestTypes(offers),
-    // Flat for the night, so the form can show one price up front.
-    price: resolveScheduledMealPrice(dishes),
+    allowed,
+    pricing: buildGuestMealPricing({
+      allowed,
+      rates,
+      menuItemCost: resolveScheduledMealPrice(dishes),
+      fallback: config.guestMealFallbackCharge,
+    }),
   }
 }
 
@@ -222,13 +285,17 @@ export async function createGuestMeal(values: GuestMeal): Promise<ApiResponse> {
       if (!quota.ok) return { status: "error", message: quota.reason }
     }
 
+    // One read for both the rule check and the price: the form quotes out of
+    // this same call, so the guest cannot be shown one figure and billed
+    // another.
+    const { allowed, pricing } = await getAllowedGuestMealOptions(
+      values.date,
+      values.mealTime
+    )
+
     // Re-check server-side: the form filters the dropdown, but a crafted
     // request could still ask for an item the kitchen is not cooking.
     if (values.type === "NON_VEG") {
-      const { allowed } = await getAllowedGuestMealOptions(
-        values.date,
-        values.mealTime
-      )
       const requested = values.nonVegType ?? NonVegType.NONE
 
       if (!allowed.includes(requested)) {
@@ -245,28 +312,17 @@ export async function createGuestMeal(values: GuestMeal): Promise<ApiResponse> {
       }
     }
 
-    // The night's flat price, off the menu actually scheduled for that day -
-    // so a dish like Roti sets the price for every guest, and any dish the
-    // prefect adds later is picked up with no code change.
-    const scheduledPrice = resolveScheduledMealPrice(
-      await getScheduledDishes(values.date, values.mealTime)
-    )
-
-    const rate = await prisma.guestMealRate.findUnique({
-      where: {
-        mealTime_type_nonVegType: {
-          mealTime: values.mealTime,
+    // Exactly the figure the form quoted for this choice. A choice with no
+    // entry cannot reach here - the schema rules out NON_VEG without a tier
+    // and the check above rules out an unscheduled tier - but an unpriced
+    // booking would be worse than a fallback-priced one.
+    const chargePerMeal =
+      pricing.prices[
+        guestChoiceKey({
           type: values.type,
           nonVegType: values.nonVegType ?? NonVegType.NONE,
-        },
-      },
-    })
-
-    const chargePerMeal = resolveGuestMealCharge({
-      rate: rate?.amount,
-      menuItemCost: scheduledPrice,
-      fallback: config.guestMealFallbackCharge,
-    })
+        })
+      ] ?? config.guestMealFallbackCharge
 
     const meal = await prisma.guestMeal.create({
       data: {
