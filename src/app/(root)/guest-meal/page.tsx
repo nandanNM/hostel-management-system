@@ -44,6 +44,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { AlumniGuestBadge } from "@/components/AlumniGuestBadge"
 import { PageContainer } from "@/components/page-container"
 
 import { CreateGuestMealSheet } from "./_components/create-guest-meal-sheet"
@@ -170,7 +171,12 @@ function GuestMealsTable({ meals }: GuestMealsTableProps) {
               <TableCell className="capitalize">
                 {meal.mealTime.replace("_", " ")}
               </TableCell>
-              <TableCell>{meal.mealCharge}</TableCell>
+              <TableCell>
+                <span className="flex items-center gap-2">
+                  {meal.mealCharge}
+                  {meal.alumniId && <AlumniGuestBadge showLabel={false} />}
+                </span>
+              </TableCell>
               <TableCell>
                 <Badge variant="secondary">{meal.status.toLowerCase()}</Badge>
               </TableCell>

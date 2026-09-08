@@ -17,13 +17,16 @@ import {
   NonVegType,
 } from "@/lib/generated/prisma"
 import {
+  applyAlumniDiscount,
   buildGuestMealPricing,
   checkBookingWindow,
   checkGuestsPerBooking,
   checkMonthlyGuestQuota,
   guestChoiceKey,
   resolveScheduledMealPrice,
+  resolveTierPrices,
   type GuestMealPricing,
+  type PricedDish,
 } from "@/lib/guest-meal-rules"
 import { getAllowedGuestTypes, resolveOffers } from "@/lib/meal-priority"
 import { getMessConfig } from "@/lib/mess-config"
@@ -38,6 +41,7 @@ import { GuestMeal, guestMealSchema } from "@/lib/validations"
 
 const MENU_TTL_SECONDS = 60 * 60
 const RATES_TTL_SECONDS = 60 * 60
+const LIBRARY_TTL_SECONDS = 60 * 60
 
 /**
  * The non-veg options a guest meal may use for a given day and slot, derived
@@ -118,6 +122,28 @@ async function getSlotRates(
 }
 
 /**
+ * Every dish the prefect has defined, priced.
+ *
+ * The tier rate card is built from this, so a guest is charged for the tier
+ * they booked rather than for the night's dearest dish. The whole library and
+ * not just tonight's menu, because a tier the night has no dedicated dish for
+ * still has a price - veg on an egg night is the veg plate's price, not the
+ * egg's. Cleared whenever a dish is added, edited or deleted.
+ */
+async function getLibraryDishes(): Promise<PricedDish[]> {
+  const dishes = await cached(
+    cacheKeys.menuItemPrices(),
+    LIBRARY_TTL_SECONDS,
+    async () =>
+      prisma.menuItem.findMany({
+        select: { costPerUnit: true, offers: true },
+      })
+  )
+
+  return dishes ?? []
+}
+
+/**
  * What a guest may book for a day and slot, and what each choice costs.
  *
  * The price map is the single pricing authority: `createGuestMeal` bills
@@ -139,10 +165,11 @@ export async function getAllowedGuestMealOptions(
 }> {
   await requireUser()
 
-  const [config, dishes, rates] = await Promise.all([
+  const [config, dishes, rates, library] = await Promise.all([
     getMessConfig(),
     getScheduledDishes(date, mealTime),
     getSlotRates(mealTime),
+    getLibraryDishes(),
   ])
 
   const offers = resolveOffers(dishes, config.nonVegPriority)
@@ -156,19 +183,62 @@ export async function getAllowedGuestMealOptions(
     pricing: buildGuestMealPricing({
       allowed,
       rates,
+      tierPrices: resolveTierPrices(library, config.nonVegPriority),
       menuItemCost: resolveScheduledMealPrice(dishes),
       fallback: config.guestMealFallbackCharge,
     }),
   }
 }
 
-/** The booking horizon the prefect configured, for the date picker. */
-export async function getGuestBookingWindow(): Promise<{
+/**
+ * The booking settings the form needs before anything is picked: how far the
+ * date picker may reach, and what an alumni booking takes off each meal.
+ */
+export async function getGuestBookingSettings(): Promise<{
   maxDaysAhead: number
+  alumniDiscount: number
 }> {
   await requireUser()
-  const { guestBookingMaxDaysAhead } = await getMessConfig()
-  return { maxDaysAhead: guestBookingMaxDaysAhead }
+  const { guestBookingMaxDaysAhead, guestMealAlumniDiscount } =
+    await getMessConfig()
+  return {
+    maxDaysAhead: guestBookingMaxDaysAhead,
+    alumniDiscount: guestMealAlumniDiscount,
+  }
+}
+
+/** One alumnus, as the booking form's picker needs them. */
+export type AlumniOption = {
+  id: string
+  name: string
+  department: string
+  year: string
+  mobileNumber: string
+  /** Their photo, when the directory has one. */
+  image: string | null
+}
+
+/**
+ * The alumni directory, for the booking form's picker.
+ *
+ * Returned whole and filtered in the browser: the directory is a handful of
+ * rows per graduating year, so a round trip per keystroke would cost more than
+ * the list itself.
+ */
+export async function getAlumniOptions(): Promise<AlumniOption[]> {
+  await requireUser()
+
+  return prisma.alumni.findMany({
+    select: {
+      id: true,
+      name: true,
+      department: true,
+      year: true,
+      mobileNumber: true,
+      image: true,
+    },
+    orderBy: [{ year: "desc" }, { name: "asc" }],
+  })
 }
 
 export const deleteGuestMealRequest = async (
@@ -316,7 +386,7 @@ export async function createGuestMeal(values: GuestMeal): Promise<ApiResponse> {
     // entry cannot reach here - the schema rules out NON_VEG without a tier
     // and the check above rules out an unscheduled tier - but an unpriced
     // booking would be worse than a fallback-priced one.
-    const chargePerMeal =
+    const listPrice =
       pricing.prices[
         guestChoiceKey({
           type: values.type,
@@ -324,9 +394,29 @@ export async function createGuestMeal(values: GuestMeal): Promise<ApiResponse> {
         })
       ] ?? config.guestMealFallbackCharge
 
+    // The discount is decided here, from the directory and the config - never
+    // from what the form sent. A request naming an alumnus who is not in the
+    // directory is booked at full price rather than rejected: the guest is
+    // real either way, only the discount is not.
+    const alumni = values.alumniId
+      ? await prisma.alumni.findUnique({
+          where: { id: values.alumniId },
+          select: { id: true, name: true },
+        })
+      : null
+
+    const chargePerMeal = alumni
+      ? applyAlumniDiscount(listPrice, config.guestMealAlumniDiscount)
+      : listPrice
+
     const meal = await prisma.guestMeal.create({
       data: {
         ...values,
+        alumniId: alumni?.id ?? null,
+        // The guest *is* the alumnus, so the name comes off the directory row
+        // and not off the form: the two must never disagree on a booking that
+        // was discounted for that person.
+        name: alumni?.name ?? values.name,
         // The picker hands back the browser's local midnight, which for India
         // serialises to 18:30Z on the *previous* day. Store the India calendar
         // day instead, so the row cannot drift out of its own day's window.
@@ -343,7 +433,11 @@ export async function createGuestMeal(values: GuestMeal): Promise<ApiResponse> {
           actionType: "CREATE",
           entityType: "GUEST_MEAL",
           entityId: meal.id,
-          details: `Guest meal request created for ${values.mealTime.toLowerCase()} on ${values.date.toLocaleDateString()} with ${values.nonVegType === "NONE" ? "vegitarian" : values.nonVegType}.`,
+          details: `Guest meal request created for ${values.mealTime.toLowerCase()} on ${values.date.toLocaleDateString()} with ${values.nonVegType === "NONE" ? "vegitarian" : values.nonVegType}.${
+            alumni
+              ? ` Alumni booking for ${alumni.name} at ₹${chargePerMeal.toFixed(2)} per meal (₹${listPrice.toFixed(2)} less ₹${config.guestMealAlumniDiscount.toFixed(2)}).`
+              : ""
+          }`,
         },
       })
       .catch((err) => {

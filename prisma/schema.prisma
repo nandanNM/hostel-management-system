@@ -226,13 +226,22 @@ model GuestMeal {
   status        GuestMealStatusType @default(PENDING)
   createdAt     DateTime            @default(now()) @map("created_at")
 
+  /// Set when the guest is an alumnus picked from the directory. Drives the
+  /// alumni discount at booking time and the badge every guest meal surface
+  /// shows afterwards.
+  alumniId String? @map("alumni_id")
+
   user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// Restrict, like the approver: a booking must always be able to name the
+  /// alumnus it was discounted for, so the directory row outlives it.
+  alumni     Alumni?    @relation(fields: [alumniId], references: [id], onDelete: Restrict)
   userBill   UserBill[]
   approvedBy String?    @map("approved_by")
   approvedAt DateTime?  @map("approved_at")
 
   approver User? @relation("GuestMealApprover", fields: [approvedBy], references: [id], onDelete: Restrict)
 
+  @@index([alumniId])
   @@map("guest_meals")
 }
 
@@ -444,6 +453,8 @@ model Alumni {
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
+  guestMeals GuestMeal[]
+
   @@index([name])
   @@map("alumni")
 }
@@ -584,6 +595,9 @@ model MessConfig {
 
   /// Charged when no rate and no menu item cost is configured.
   guestMealFallbackCharge Float @default(60) @map("guest_meal_fallback_charge")
+
+  /// Taken off each meal booked for an alumnus. 0 disables the discount.
+  guestMealAlumniDiscount Float @default(5) @map("guest_meal_alumni_discount")
 
   /// 0 disables the cap.
   maxGuestsPerBooking          Int @default(5) @map("max_guests_per_booking")

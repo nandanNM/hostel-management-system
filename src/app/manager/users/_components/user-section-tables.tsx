@@ -12,6 +12,7 @@ import { formatIST } from "@/lib/date"
 import { BillEntryType } from "@/lib/generated/prisma"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
+import { AlumniGuestBadge } from "@/components/AlumniGuestBadge"
 import { DataTable } from "@/components/data-table/data-table"
 
 import type {
@@ -109,7 +110,12 @@ const guestMealColumns: ColumnDef<GuestMealRow, unknown>[] = [
   {
     id: "name",
     header: "Guest",
-    cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
+    cell: ({ row }) => (
+      <span className="flex items-center gap-2 font-medium">
+        {row.original.name}
+        {row.original.alumniId && <AlumniGuestBadge showLabel={false} />}
+      </span>
+    ),
   },
   {
     id: "date",

@@ -37,6 +37,7 @@ const messConfigSchema = z.object({
     .min(0)
     .max(24 * 60 - 1),
   guestMealFallbackCharge: z.number().min(0).max(10_000),
+  guestMealAlumniDiscount: z.number().min(0).max(10_000),
   maxGuestsPerBooking: z.number().int().min(0).max(100),
   maxGuestMealsPerUserPerMonth: z.number().int().min(0).max(1_000),
   mealPreferenceLockMinutes: z

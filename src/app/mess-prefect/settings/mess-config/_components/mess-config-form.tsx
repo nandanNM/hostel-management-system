@@ -488,6 +488,30 @@ export function MessConfigForm({
             </p>
           </div>
 
+          <div className="space-y-1.5 sm:max-w-xs">
+            <Label htmlFor="alumniDiscount">Alumni discount</Label>
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground text-sm">- ₹</span>
+              <Input
+                id="alumniDiscount"
+                type="number"
+                inputMode="numeric"
+                min={0}
+                value={values.guestMealAlumniDiscount}
+                onChange={(event) =>
+                  set(
+                    "guestMealAlumniDiscount",
+                    Math.max(0, Number(event.target.value) || 0)
+                  )
+                }
+              />
+            </div>
+            <p className="text-muted-foreground text-xs">
+              Taken off each meal booked for an alumnus from the directory. Set
+              0 to switch the discount off.
+            </p>
+          </div>
+
           <div className="overflow-x-auto rounded-md border">
             <Table>
               <TableHeader>

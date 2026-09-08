@@ -142,6 +142,7 @@ export async function getUserGuestMeals(userId: string) {
       numberOfMeals: true,
       mealCharge: true,
       status: true,
+      alumniId: true,
     },
   })
 }
