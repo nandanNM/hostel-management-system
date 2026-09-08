@@ -36,6 +36,7 @@ import {
 import { Badge } from "@/components/ui/crazxy-ui/badge"
 import { Loader } from "@/components/ui/loader"
 import { Separator } from "@/components/ui/separator"
+import { AlumniGuestBadge } from "@/components/AlumniGuestBadge"
 import { P } from "@/components/custom/p"
 
 import { useUpdateGuestMealStatus } from "../_lib/mutations"
@@ -146,6 +147,7 @@ export function GuestRequestsList() {
                       <h4 className="text-foreground text-lg font-semibold">
                         {request.name}
                       </h4>
+                      {request.alumniId && <AlumniGuestBadge />}
                       <Badge
                         variant={request.type === "VEG" ? "default" : "orange"}
                       >

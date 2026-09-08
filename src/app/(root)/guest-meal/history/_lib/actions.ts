@@ -28,6 +28,8 @@ export interface GuestMealHistoryRow {
   mealTime: MealTimeType
   mealCharge: number
   status: GuestMealStatusType
+  /** Set when the guest was an alumnus, which is why the charge is lower. */
+  alumniId: string | null
 }
 
 interface PaginatedGuestMealHistory {
@@ -70,6 +72,7 @@ export async function getPaginatedGuestMealHistory(
         mealTime: true,
         mealCharge: true,
         status: true,
+        alumniId: true,
       },
     }),
     prisma.guestMeal.count({ where: whereClause }),

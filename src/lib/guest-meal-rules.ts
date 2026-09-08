@@ -2,10 +2,16 @@ import { differenceInCalendarDays } from "date-fns"
 
 import { istWallClock, istYmd } from "@/lib/date"
 import { MealTimeType, MealType, NonVegType } from "@/lib/generated/prisma"
+import { NON_VEG_PRIORITY } from "@/lib/meal-priority"
 
 export type BookingWindowConfig = {
   guestBookingMaxDaysAhead: number
   guestBookingCutoffMinutes: number
+  /**
+   * Not read by the booking window any more: today's lunch is closed outright
+   * rather than at a cutoff, so there is no lunch deadline to compute. Kept
+   * because the caller passes the mess config whole.
+   */
   lunchStartMinute: number
   dinnerStartMinute: number
 }
@@ -29,9 +35,9 @@ function formatMinute(minute: number): string {
 /**
  * Whether a guest meal may still be booked for the given India day and slot.
  *
- * Rejects days in the past, days beyond the booking horizon, and same-day
- * bookings placed after the cutoff — the kitchen has already bought for that
- * meal by then.
+ * Rejects days in the past, days beyond the booking horizon, today's lunch
+ * outright, and same-day bookings placed after the cutoff — the kitchen has
+ * already bought for that meal by then.
  */
 export function checkBookingWindow(
   bookedFor: Date,
@@ -56,16 +62,24 @@ export function checkBookingWindow(
   }
 
   if (daysAhead === 0) {
-    const slotStart =
-      mealTime === MealTimeType.LUNCH
-        ? config.lunchStartMinute
-        : config.dinnerStartMinute
-    const closesAt = slotStart - config.guestBookingCutoffMinutes
+    // The kitchen's lunch count is generated in the morning, well before a
+    // window measured off the slot start would close, so today's lunch is
+    // never bookable however early it is. Today's dinner still is.
+    if (mealTime === MealTimeType.LUNCH) {
+      return {
+        ok: false,
+        reason:
+          "Today's lunch count has already gone to the kitchen. You can book today's dinner, or lunch from tomorrow.",
+      }
+    }
+
+    // Only dinner can still be booked today, so only its start matters here.
+    const closesAt = config.dinnerStartMinute - config.guestBookingCutoffMinutes
 
     if (istMinuteOfDay(now) > closesAt) {
       return {
         ok: false,
-        reason: `Bookings for today's ${mealTime.toLowerCase()} closed at ${formatMinute(closesAt)}.`,
+        reason: `Bookings for today's dinner closed at ${formatMinute(closesAt)}.`,
       }
     }
   }
@@ -111,15 +125,15 @@ export function checkMonthlyGuestQuota(
 /**
  * The flat price the scheduled menu sets for one guest meal that night.
  *
- * Absent a rate row, a guest pays for the *day* and not for the tier they
- * picked: a roti night costs the same with chicken, with egg or with veg.
- * Where a slot lists several dishes the dearest sets the price, so adding a
- * cheap side can never undercut the night. A rate row overrides this per meal
- * time and tier — see `buildGuestMealPricing`.
+ * The last resort before the configured fallback: it now only prices a tier
+ * that the dish library cannot price on its own — see `resolveTierPrices`,
+ * which is what makes a guest pay for the tier they booked rather than for
+ * whatever the night's dearest dish happened to cost. Where a slot lists
+ * several dishes the dearest sets this figure, so a cheap side cannot
+ * undercut the night.
  *
- * This replaces looking the dish up by *name* ("Veg"/"Chicken"/"Egg"...),
- * which could never match a dish called Roti and so charged a roti night at
- * the plain tier rate.
+ * Never looks a dish up by *name* ("Veg"/"Chicken"/"Egg"...), which could
+ * not match a dish called Roti.
  */
 export function resolveScheduledMealPrice(
   dishes: { costPerUnit: number }[]
@@ -129,15 +143,18 @@ export function resolveScheduledMealPrice(
 }
 
 /**
- * Price for one guest meal: the prefect's rate table first, then what the
- * scheduled menu sets, then the configured fallback.
+ * Price for one guest meal: the prefect's rate table first, then what a plate
+ * of that tier costs in the dish library, then what the scheduled menu sets,
+ * then the configured fallback.
  */
 export function resolveGuestMealCharge(args: {
   rate?: number | null
+  tierPrice?: number | null
   menuItemCost?: number | null
   fallback: number
 }): number {
   if (args.rate != null && args.rate > 0) return args.rate
+  if (args.tierPrice != null && args.tierPrice > 0) return args.tierPrice
   if (args.menuItemCost != null && args.menuItemCost > 0)
     return args.menuItemCost
   return args.fallback
@@ -171,6 +188,66 @@ export type GuestMealPricing = {
 }
 
 /**
+ * What one meal costs once the alumni discount is taken off.
+ *
+ * Applied on top of the price map rather than inside it: the discount belongs
+ * to who the guest is, not to what the kitchen is cooking, and the same figure
+ * has to come out on the form and on the bill. Never goes below zero - a
+ * discount larger than the meal must not turn into a credit.
+ */
+export function applyAlumniDiscount(price: number, discount: number): number {
+  if (!(discount > 0)) return price
+  return Math.max(0, price - discount)
+}
+
+/** A library dish, as far as pricing cares: what it costs and what it serves. */
+export type PricedDish = { costPerUnit: number; offers: NonVegType[] }
+
+/**
+ * What one plate of each tier costs, read off the prefect's dish library.
+ *
+ * A dish's *headline* tier is the richest thing it offers, so the library
+ * doubles as a tier rate card - Chicken ₹60, Fish ₹55, Egg ₹50 - and a dish
+ * that offers nothing is a veg plate. A guest then pays for the tier they
+ * booked and not for whatever the night happened to cost: veg on a fish night
+ * was billed the fish price, and egg on a roti night the roti price.
+ *
+ * Nothing here reads a dish name, so a dish the prefect adds next term prices
+ * itself. Roti, which offers chicken and egg, prices chicken without ever
+ * being "the chicken dish" - and where two dishes share a headline tier the
+ * cheaper one sets the rate, so one expensive dish cannot quietly raise a
+ * tier for every night that serves it.
+ */
+export function resolveTierPrices(
+  dishes: PricedDish[],
+  priority: NonVegType[] = NON_VEG_PRIORITY
+): Record<string, number> {
+  const chain = (priority.length > 0 ? priority : NON_VEG_PRIORITY).filter(
+    (tier) => tier !== NonVegType.NONE
+  )
+  const prices: Record<string, number> = {}
+
+  for (const dish of dishes) {
+    // A dish with no price set says nothing about what its tier costs.
+    if (!(dish.costPerUnit > 0)) continue
+
+    const headline = chain.find((tier) => dish.offers.includes(tier))
+    const key = guestChoiceKey(
+      headline
+        ? { type: MealType.NON_VEG, nonVegType: headline }
+        : { type: MealType.VEG, nonVegType: NonVegType.NONE }
+    )
+
+    const set = prices[key]
+    if (set === undefined || dish.costPerUnit < set) {
+      prices[key] = dish.costPerUnit
+    }
+  }
+
+  return prices
+}
+
+/**
  * What every choice in one slot costs.
  *
  * The booking form used to quote `resolveScheduledMealPrice` on its own while
@@ -179,10 +256,15 @@ export type GuestMealPricing = {
  * rate table is keyed by meal time as well as tier, lunch and dinner were
  * quoted the same menu figure while being charged apart. Both sides read this
  * now, so the quote is the charge by construction.
+ *
+ * The night's own price only prices a tier the library cannot, which is why
+ * `tierPrices` is not optional: a caller that forgot it would silently go
+ * back to billing every choice at the night's rate.
  */
 export function buildGuestMealPricing(args: {
   allowed: NonVegType[]
   rates: Record<string, number>
+  tierPrices: Record<string, number>
   menuItemCost: number | null
   fallback: number
 }): GuestMealPricing {
@@ -192,6 +274,7 @@ export function buildGuestMealPricing(args: {
     const key = guestChoiceKey(choice)
     prices[key] = resolveGuestMealCharge({
       rate: args.rates[key],
+      tierPrice: args.tierPrices[key],
       menuItemCost: args.menuItemCost,
       fallback: args.fallback,
     })

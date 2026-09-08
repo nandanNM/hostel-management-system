@@ -15,14 +15,26 @@ import {
   Egg,
   Fish,
   ForkKnife,
+  GraduationCap,
   Plant,
   type Icon,
 } from "@phosphor-icons/react"
-import { addDays, format, isAfter, isBefore, startOfDay } from "date-fns"
+import {
+  addDays,
+  format,
+  isAfter,
+  isBefore,
+  isSameDay,
+  startOfDay,
+} from "date-fns"
 import { useForm } from "react-hook-form"
 
 import type { NonVegType as NonVegTier } from "@/lib/generated/prisma"
-import { guestChoiceKey, type GuestMealPricing } from "@/lib/guest-meal-rules"
+import {
+  applyAlumniDiscount,
+  guestChoiceKey,
+  type GuestMealPricing,
+} from "@/lib/guest-meal-rules"
 import { cn } from "@/lib/utils"
 import { guestMealSchema, type GuestMeal } from "@/lib/validations"
 import { Button } from "@/components/ui/button"
@@ -59,10 +71,24 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet"
 import LoadingButton from "@/components/LoadingButton"
+import { Checkbox } from "@/components/motion/checkbox"
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+  ComboboxTrigger,
+  type ComboboxFilter,
+} from "@/components/motion/combobox"
+import UserAvatar from "@/components/UserAvatar"
 
 import {
   getAllowedGuestMealOptions,
-  getGuestBookingWindow,
+  getAlumniOptions,
+  getGuestBookingSettings,
+  type AlumniOption,
 } from "../_lib/action"
 import { useCreateGuestMeal } from "../_lib/mutations"
 
@@ -71,6 +97,9 @@ type createGuestMealSheetProps = React.ComponentPropsWithRef<typeof Sheet>
 function inr(n: number) {
   return `₹${n.toFixed(2)}`
 }
+
+/** Ties the checkbox to the label the graduation cap sits in. */
+const ALUMNI_TOGGLE_ID = "alumni-booking"
 
 const TIER_ICONS: Record<string, Icon> = {
   MUTTON: Cow,
@@ -118,6 +147,30 @@ function prettifyTier(tier: string) {
   return tier.charAt(0) + tier.slice(1).toLowerCase()
 }
 
+/**
+ * Matches typed text against the alumnus's name, department and year.
+ *
+ * The default filter also searches the item's `value`, which here is a cuid,
+ * so a stray letter could match an id nobody typed. Substring rather than the
+ * default subsequence match, too: on a list of names, "ana" should not pull up
+ * "Nandan".
+ */
+const filterAlumni: ComboboxFilter = (_value, query, keywords) => {
+  const needle = query.trim().toLocaleLowerCase()
+  if (!needle) return true
+  return keywords.join(" ").toLocaleLowerCase().includes(needle)
+}
+
+/**
+ * The alumnus's number in the form's own 10-digit shape, or null when the
+ * directory holds something else - a landline, a +91 prefix, a blank. Better
+ * to leave the field empty than to prefill something that fails validation.
+ */
+function tenDigitMobile(stored: string): string | null {
+  const digits = stored.replace(/\D/g, "")
+  return digits.length === 10 ? digits : null
+}
+
 export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
   const { mutate: createGuestMeal, isPending: isCreatePending } =
     useCreateGuestMeal(props.onOpenChange)
@@ -136,6 +189,16 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
   const [pricing, setPricing] = useState<GuestMealPricing | null>(null)
   // The prefect sets the horizon; 3 days was hardcoded here before.
   const [maxDaysAhead, setMaxDaysAhead] = useState(3)
+  // What an alumni booking takes off each meal. Read from the same config the
+  // server bills from, so the quote below is the charge.
+  const [alumniDiscount, setAlumniDiscount] = useState(0)
+  // Booking for an alumnus: the guest's name then comes off the directory
+  // rather than being typed, which is what lets every log mark it as one.
+  const [isAlumniBooking, setIsAlumniBooking] = useState(false)
+  // null until the directory has been read - an empty directory is a real
+  // answer ("no alumni yet") and must not read as still loading.
+  const [alumni, setAlumni] = useState<AlumniOption[] | null>(null)
+  const [alumniError, setAlumniError] = useState(false)
 
   const form = useForm<GuestMeal>({
     resolver: zodResolver(guestMealSchema),
@@ -147,14 +210,17 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
       mealTime: "LUNCH",
       numberOfMeals: 1,
       date: new Date(),
+      alumniId: null,
     },
   })
 
   useEffect(() => {
     let cancelled = false
-    getGuestBookingWindow()
-      .then(({ maxDaysAhead: horizon }) => {
-        if (!cancelled) setMaxDaysAhead(horizon)
+    getGuestBookingSettings()
+      .then(({ maxDaysAhead: horizon, alumniDiscount: discount }) => {
+        if (cancelled) return
+        setMaxDaysAhead(horizon)
+        setAlumniDiscount(discount)
       })
       .catch(() => {})
     return () => {
@@ -164,6 +230,21 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
 
   const watchedDate = form.watch("date")
   const watchedMealTime = form.watch("mealTime")
+
+  // Today is a dinner-only day: the kitchen's lunch count is generated in the
+  // morning, so there is nothing left to add a guest to. The server rejects it
+  // either way - this only saves the guest filling the form out first.
+  const lunchClosedForToday = watchedDate
+    ? isSameDay(watchedDate, new Date())
+    : false
+
+  // The form opens on today with lunch selected, so this has to snap on mount
+  // and not only when the date changes.
+  useEffect(() => {
+    if (lunchClosedForToday && form.getValues("mealTime") === "LUNCH") {
+      form.setValue("mealTime", "DINNER", { shouldValidate: false })
+    }
+  }, [lunchClosedForToday, watchedMealTime, form])
 
   useEffect(() => {
     if (!watchedDate) return
@@ -217,14 +298,84 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
     allowedNonVeg ?? NON_VEG_OPTIONS.filter((type) => type !== "NONE")
   ).filter((type) => type !== "NONE")
 
+  const watchedAlumniId = form.watch("alumniId")
+
+  // Fetched only once the box is ticked - most bookings are for an ordinary
+  // guest and never need the directory at all.
+  useEffect(() => {
+    if (!isAlumniBooking || alumni !== null) return
+    let cancelled = false
+
+    getAlumniOptions()
+      .then((rows) => {
+        if (!cancelled) setAlumni(rows)
+      })
+      .catch(() => {
+        if (!cancelled) setAlumniError(true)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [isAlumniBooking, alumni])
+
+  const selectedAlumni =
+    alumni?.find((person) => person.id === watchedAlumniId) ?? null
+
+  /** Picking an alumnus fills the booking in as that person. */
+  function pickAlumni(id: string) {
+    const person = alumni?.find((row) => row.id === id)
+    if (!person) return
+
+    form.setValue("alumniId", person.id, { shouldValidate: false })
+    form.setValue("name", person.name, { shouldValidate: true })
+
+    const mobile = tenDigitMobile(person.mobileNumber)
+    if (mobile) form.setValue("mobileNumber", mobile, { shouldValidate: true })
+  }
+
+  /**
+   * Unticking undoes what the picker filled in: those fields held the
+   * alumnus's details, not this guest's, and the name field is about to come
+   * back on screen for a name to be typed into.
+   */
+  function toggleAlumniBooking(checked: boolean) {
+    setIsAlumniBooking(checked)
+    if (checked) return
+
+    if (selectedAlumni) {
+      form.setValue("name", "", { shouldValidate: false })
+      // Only the number the picker wrote - a hand-typed one stays.
+      if (
+        form.getValues("mobileNumber") ===
+        tenDigitMobile(selectedAlumni.mobileNumber)
+      ) {
+        form.setValue("mobileNumber", "", { shouldValidate: false })
+      }
+    }
+
+    form.setValue("alumniId", null, { shouldValidate: false })
+  }
+
   // Lunch and dinner, and veg and each tier, can each carry their own rate,
   // so every dropdown row is priced from the same map the server bills from.
   const watchedType = form.watch("type")
   const watchedNonVegType = form.watch("nonVegType")
   const watchedMeals = Number(form.watch("numberOfMeals") || 0)
 
-  const priceFor = (type: "VEG" | "NON_VEG", nonVegType: NonVegTier) =>
-    pricing?.prices[guestChoiceKey({ type, nonVegType })] ?? null
+  // An alumni booking is discounted per meal, and the server discounts the
+  // same figure with the same function - so every price on screen, dropdown
+  // rows included, is already net. Quoting gross here and billing net would
+  // put the form back to disagreeing with the bill.
+  const discountApplies = selectedAlumni !== null && alumniDiscount > 0
+
+  const priceFor = (type: "VEG" | "NON_VEG", nonVegType: NonVegTier) => {
+    const listed = pricing?.prices[guestChoiceKey({ type, nonVegType })] ?? null
+    if (listed === null) return null
+    return discountApplies
+      ? applyAlumniDiscount(listed, alumniDiscount)
+      : listed
+  }
 
   const vegPrice = priceFor("VEG", "NONE")
 
@@ -287,19 +438,145 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
             {/* min-h-0 is what lets this shrink inside the flex column - without
                 it the fields push the footer past the bottom of the screen. */}
             <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel> Guest Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter guest name" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+              {/* First thing on the form: who the guest is decides both the
+                  name field below and what the meal costs. Plain, like every
+                  other field here - the panel further down is the menu's, and
+                  a second boxed block would read as another notice. */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <Checkbox
+                    id={ALUMNI_TOGGLE_ID}
+                    checked={isAlumniBooking}
+                    onCheckedChange={toggleAlumniBooking}
+                    aria-label="Booking for an alumnus"
+                  />
+                  {/* Its own label rather than the checkbox's, so the cap sits
+                      between the box and the words and stays clickable. */}
+                  <label
+                    htmlFor={ALUMNI_TOGGLE_ID}
+                    className="flex cursor-pointer items-center gap-2 text-sm font-medium select-none"
+                  >
+                    <GraduationCap
+                      weight="duotone"
+                      className="text-muted-foreground size-4 shrink-0"
+                      aria-hidden
+                    />
+                    Booking for an alumnus
+                  </label>
+                </div>
+
+                {isAlumniBooking && (
+                  <div className="space-y-1.5">
+                    <Combobox
+                      value={watchedAlumniId ?? undefined}
+                      onValueChange={pickAlumni}
+                      filter={filterAlumni}
+                      disabled={alumniError || alumni?.length === 0}
+                    >
+                      {/* Matched to this form's Input: same height, radius,
+                          border and shadow, and free to shrink on a phone. */}
+                      <ComboboxTrigger className="border-input h-9 min-w-0 rounded-md shadow-xs">
+                        <ComboboxInput
+                          className="h-9"
+                          aria-label="Search alumni"
+                          placeholder={
+                            alumniError
+                              ? "Could not load the directory"
+                              : alumni?.length === 0
+                                ? "No alumni in the directory yet"
+                                : "Search alumni by name…"
+                          }
+                        />
+                      </ComboboxTrigger>
+                      <ComboboxContent className="rounded-md">
+                        <ComboboxList ariaLabel="Alumni">
+                          <ComboboxEmpty>
+                            {alumni === null
+                              ? "Loading the directory…"
+                              : "No alumnus by that name."}
+                          </ComboboxEmpty>
+                          {(alumni ?? []).map((person) => (
+                            <ComboboxItem
+                              key={person.id}
+                              value={person.id}
+                              textValue={person.name}
+                              keywords={[person.department, person.year]}
+                            >
+                              <span className="flex min-w-0 items-center gap-2.5">
+                                {/* Their photo when the directory has one.
+                                    UserAvatar falls back to a generic
+                                    silhouette rather than failing, so the cap
+                                    - which at least says "alumnus" - takes
+                                    the no-photo case instead. */}
+                                {person.image ? (
+                                  <UserAvatar
+                                    size={28}
+                                    avatarUrl={person.image}
+                                    className="size-7"
+                                  />
+                                ) : (
+                                  <span className="grid size-7 shrink-0 place-items-center">
+                                    <GraduationCap
+                                      weight="duotone"
+                                      className="text-muted-foreground size-4"
+                                      aria-hidden
+                                    />
+                                  </span>
+                                )}
+                                <span className="min-w-0">
+                                  <span className="text-foreground block truncate font-medium">
+                                    {person.name}
+                                  </span>
+                                  <span className="text-muted-foreground block truncate text-xs">
+                                    {person.department} · {person.year}
+                                  </span>
+                                </span>
+                              </span>
+                            </ComboboxItem>
+                          ))}
+                        </ComboboxList>
+                      </ComboboxContent>
+                    </Combobox>
+                    {/* The Guest Name field is hidden while this is on, so
+                        its "name required" has to surface here instead. */}
+                    <p
+                      className={cn(
+                        "text-xs",
+                        !selectedAlumni && form.formState.errors.name
+                          ? "text-destructive"
+                          : "text-muted-foreground"
+                      )}
+                    >
+                      {selectedAlumni
+                        ? alumniDiscount > 0
+                          ? `${selectedAlumni.name} gets ${inr(alumniDiscount)} off every meal.`
+                          : `Booking for ${selectedAlumni.name}. No alumni discount is set.`
+                        : form.formState.errors.name
+                          ? "Pick the alumnus this meal is for."
+                          : "Pick the alumnus - their name becomes the guest name."}
+                    </p>
+                  </div>
                 )}
-              />
+              </div>
+
+              {/* Nothing to ask for on an alumni booking: the guest *is* the
+                  alumnus, so the picker above has already named them. One
+                  less field to scroll past and nothing to type. */}
+              {!isAlumniBooking && (
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel> Guest Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter guest name" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
               <div className="flex flex-wrap gap-4">
                 <FormField
                   control={form.control}
@@ -358,7 +635,10 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
                       <FormLabel>Meal Time</FormLabel>
                       <Select
                         onValueChange={field.onChange}
-                        defaultValue={field.value}
+                        // Controlled: the effect above snaps this to dinner on
+                        // today, which an uncontrolled select would keep
+                        // showing as Lunch.
+                        value={field.value}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -367,12 +647,22 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
                         </FormControl>
                         <SelectContent>
                           {MEAL_TIME_OPTIONS.map((time) => (
-                            <SelectItem key={time} value={time}>
+                            <SelectItem
+                              key={time}
+                              value={time}
+                              disabled={time === "LUNCH" && lunchClosedForToday}
+                            >
                               {time.charAt(0) + time.slice(1).toLowerCase()}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
+                      {lunchClosedForToday && (
+                        <FormDescription>
+                          Today&apos;s lunch count is already with the kitchen -
+                          book today&apos;s dinner, or lunch from tomorrow.
+                        </FormDescription>
+                      )}
                       <FormMessage />
                     </FormItem>
                   )}
@@ -543,6 +833,8 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
                         {watchedMeals > 1 &&
                           `, so ${inr(unitPrice * watchedMeals)} in total`}
                         .
+                        {discountApplies &&
+                          ` The ${inr(alumniDiscount)} alumni discount is already off.`}
                       </FormDescription>
                     )}
                     <FormMessage />

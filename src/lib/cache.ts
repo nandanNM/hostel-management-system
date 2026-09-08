@@ -32,6 +32,8 @@ export const cacheKeys = {
     `${V}:meal-schedule:${dayOfWeek}:${mealTime}`,
   /** The prefect's guest rates for one slot, read on every booking quote. */
   guestMealRates: (mealTime: string) => `${V}:guest-meal-rates:${mealTime}`,
+  /** Every dish, priced - the tier rate card behind a guest quote. */
+  menuItemPrices: () => `${V}:menu-item-prices`,
 } as const
 
 /** Both slot keys, for clearing after a rate edit. */

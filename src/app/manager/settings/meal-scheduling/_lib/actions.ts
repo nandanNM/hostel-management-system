@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache"
 import requireManager from "@/data/manager/require-manager"
 import { ApiResponse } from "@/types"
 
-import { invalidate, mealScheduleKeys } from "@/lib/cache"
+import { cacheKeys, invalidate, mealScheduleKeys } from "@/lib/cache"
 import { DayOfWeek, MealTimeType, NonVegType } from "@/lib/generated/prisma"
 import { describeOffers, OFFERABLE_TYPES } from "@/lib/meal-priority"
 import prisma from "@/lib/prisma"
@@ -61,7 +61,7 @@ export async function upsertMenuItem(data: {
       })
       .catch((err) => console.error("Activity log creation failed:", err))
 
-    await invalidate(...mealScheduleKeys())
+    await invalidate(...mealScheduleKeys(), cacheKeys.menuItemPrices())
     revalidatePath("/manager/settings/meal-scheduling")
     return { status: "success", message: "Menu item saved successfully" }
   } catch (error) {
@@ -100,7 +100,7 @@ export async function deleteMenuItem(id: string): Promise<ApiResponse> {
       })
       .catch((err) => console.error("Activity log creation failed:", err))
 
-    await invalidate(...mealScheduleKeys())
+    await invalidate(...mealScheduleKeys(), cacheKeys.menuItemPrices())
     revalidatePath("/manager/settings/meal-scheduling")
     return { status: "success", message: "Menu item deleted successfully" }
   } catch {
@@ -245,7 +245,7 @@ export async function seedDefaultMenuItems(): Promise<ApiResponse> {
       })
       .catch((err) => console.error("Activity log creation failed:", err))
 
-    await invalidate(...mealScheduleKeys())
+    await invalidate(...mealScheduleKeys(), cacheKeys.menuItemPrices())
     revalidatePath("/manager/settings/meal-scheduling")
     return {
       status: "success",

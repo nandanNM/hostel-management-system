@@ -131,6 +131,18 @@ export async function deleteAlumni(id: string): Promise<ApiResponse> {
     const existing = await prisma.alumni.findUnique({ where: { id } })
     if (!existing) return { status: "error", message: "Alumni not found" }
 
+    // Guest meals booked for this alumnus name them for the discount they
+    // were charged at, and the foreign key is RESTRICT so those rows keep
+    // their explanation. Say that plainly rather than letting the database's
+    // constraint error reach the prefect.
+    const bookings = await prisma.guestMeal.count({ where: { alumniId: id } })
+    if (bookings > 0) {
+      return {
+        status: "error",
+        message: `${existing.name} has ${bookings} guest meal booking(s) on record and cannot be removed - those bills name them for the alumni rate they were charged.`,
+      }
+    }
+
     await prisma.alumni.delete({ where: { id } })
 
     await prisma.activityLog.create({

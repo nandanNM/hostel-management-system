@@ -5,6 +5,7 @@ import { ColumnDef } from "@tanstack/react-table"
 
 import { formatIST } from "@/lib/date"
 import { GuestMealStatusType } from "@/lib/generated/prisma"
+import { AlumniGuestBadge } from "@/components/AlumniGuestBadge"
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header"
 import { Badge } from "@/components/reui/badge"
 
@@ -34,6 +35,12 @@ export function getColumns(): ColumnDef<GuestMealHistoryRow>[] {
       accessorKey: "name",
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Guest" />
+      ),
+      cell: ({ row }) => (
+        <span className="flex items-center gap-2">
+          {row.original.name}
+          {row.original.alumniId && <AlumniGuestBadge showLabel={false} />}
+        </span>
       ),
     },
     {

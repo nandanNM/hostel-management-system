@@ -83,6 +83,11 @@ export const guestMealSchema = z
       .string()
       .length(10, "Phone must be 10 digits")
       .regex(/^\d+$/, "Phone must be numbers only"),
+    /**
+     * The alumnus this meal is booked for, when one was picked. Only a hint:
+     * the server re-reads the directory row and decides the discount itself.
+     */
+    alumniId: z.string().nullish(),
     ...mealSchema.shape,
   })
   .refine(

@@ -26,6 +26,8 @@ export interface GuestMealLogRow {
   numberOfMeals: number
   mealCharge: number
   status: GuestMealStatusType
+  /** Set when the guest was an alumnus, which is why the charge is lower. */
+  alumniId: string | null
   user: {
     id: string
     name: string | null
@@ -114,6 +116,7 @@ export async function getGuestMealLogsForManager(
     numberOfMeals: true,
     mealCharge: true,
     status: true,
+    alumniId: true,
     user: { select: { id: true, name: true, email: true, image: true } },
   } satisfies Prisma.GuestMealSelect
 
