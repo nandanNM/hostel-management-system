@@ -1,0 +1,56 @@
+name: CodeQL
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Monday, 03:17 UTC. The scheduled run is not redundant: CodeQL's query
+    # packs keep improving, so a weekly scan of unchanged code finds classes of
+    # bug that were not yet detectable when that code merged.
+    - cron: "17 3 * * 1"
+  workflow_dispatch:
+
+# A new push supersedes the previous scan - but never on main, where the
+# Security tab's state should come from a definitive run per commit.
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    name: Analyze TypeScript
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      # Uploading the results to the repository's Security tab.
+      security-events: write
+      # Reading the run that produced them, for the pull request context.
+      actions: read
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Initialise CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+          # Nothing is compiled: the JS/TS extractor reads source directly, so
+          # a build here would only cost minutes. It would also be actively
+          # wrong - `pnpm build` runs `prisma migrate deploy`, which must never
+          # run outside a real deploy.
+          build-mode: none
+          # Wider than the default suite. Worth the extra alerts on an app that
+          # handles authentication, meal counts and money; if the noise ever
+          # outweighs that, drop this line to fall back to the default queries.
+          queries: security-extended
+
+      - name: Analyse
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:javascript-typescript"

@@ -127,12 +127,32 @@ jobs:
       # which must never touch a real database from CI.
       - run: pnpm exec next build
 
+  # Vulnerable dependencies, caught before they merge rather than reported
+  # afterwards by Dependabot. Pull requests only - the action compares the
+  # base and head of a PR and has nothing to diff on a plain push.
+  dependencies:
+    name: Dependency review
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      # Writing the review summary onto the pull request.
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/dependency-review-action@v4
+        with:
+          # A moderate advisory on a hostel's billing app is worth stopping for.
+          fail-on-severity: moderate
+          comment-summary-in-pr: on-failure
+
   # Single gate for branch protection.
   ci:
     name: CI
     runs-on: ubuntu-latest
     if: always()
-    needs: [typecheck, lint, format, test, prisma, build]
+    needs: [typecheck, lint, format, test, prisma, build, dependencies]
     steps:
       # Only a real failure is a failure. A cancelled job means the run was
       # superseded or someone cancelled it by hand - reporting that as a broken
