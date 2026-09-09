@@ -19,14 +19,7 @@ import {
   Plant,
   type Icon,
 } from "@phosphor-icons/react"
-import {
-  addDays,
-  format,
-  isAfter,
-  isBefore,
-  isSameDay,
-  startOfDay,
-} from "date-fns"
+import { addDays, format, isAfter, isBefore, startOfDay } from "date-fns"
 import { useForm } from "react-hook-form"
 
 import type { NonVegType as NonVegTier } from "@/lib/generated/prisma"
@@ -183,6 +176,10 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
   // up here - nothing in this form knows any dish by name.
   const [menu, setMenu] = useState<string[]>([])
   const [dayOfWeek, setDayOfWeek] = useState<string | null>(null)
+  // The slots the kitchen already has a count for, straight from
+  // daily_meal_activities. Empty until the first fetch answers, so nothing is
+  // closed on a guess.
+  const [generatedSlots, setGeneratedSlots] = useState<string[]>([])
   // Price per meal for every choice in the slot. The server bills out of this
   // same map, so the figure below is the figure charged - the form used to
   // quote the menu price while the rate table did the billing.
@@ -231,20 +228,22 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
   const watchedDate = form.watch("date")
   const watchedMealTime = form.watch("mealTime")
 
-  // Today is a dinner-only day: the kitchen's lunch count is generated in the
-  // morning, so there is nothing left to add a guest to. The server rejects it
-  // either way - this only saves the guest filling the form out first.
-  const lunchClosedForToday = watchedDate
-    ? isSameDay(watchedDate, new Date())
-    : false
+  // A slot closes when its count has gone to the kitchen - not because of the
+  // clock, and never for a count nobody generated. The server rejects a closed
+  // slot either way; this saves the guest filling the form out first.
+  const isSlotClosed = (slot: string) => generatedSlots.includes(slot)
 
-  // The form opens on today with lunch selected, so this has to snap on mount
-  // and not only when the date changes.
+  // Leaving a closed slot selected would only fail on submit, so move to the
+  // other one when it is still open.
   useEffect(() => {
-    if (lunchClosedForToday && form.getValues("mealTime") === "LUNCH") {
-      form.setValue("mealTime", "DINNER", { shouldValidate: false })
-    }
-  }, [lunchClosedForToday, watchedMealTime, form])
+    const selected = form.getValues("mealTime")
+    if (!generatedSlots.includes(selected)) return
+
+    const open = MEAL_TIME_OPTIONS.find(
+      (slot) => !generatedSlots.includes(slot)
+    )
+    if (open) form.setValue("mealTime", open, { shouldValidate: false })
+  }, [generatedSlots, watchedMealTime, form])
 
   useEffect(() => {
     if (!watchedDate) return
@@ -258,6 +257,7 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
         setPricing(slotPricing)
         setMenu(slot.menu)
         setDayOfWeek(slot.dayOfWeek)
+        setGeneratedSlots(slot.generatedSlots)
 
         const tiers = allowed.filter((type) => type !== "NONE")
         setAllowedNonVeg(tiers)
@@ -287,6 +287,9 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
         setPricing(null)
         setMenu([])
         setDayOfWeek(null)
+        // Better to let the server refuse a closed slot than to close one on
+        // the strength of an answer that never arrived.
+        setGeneratedSlots([])
       })
 
     return () => {
@@ -650,17 +653,23 @@ export function CreateGuestMealSheet({ ...props }: createGuestMealSheetProps) {
                             <SelectItem
                               key={time}
                               value={time}
-                              disabled={time === "LUNCH" && lunchClosedForToday}
+                              disabled={isSlotClosed(time)}
                             >
                               {time.charAt(0) + time.slice(1).toLowerCase()}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
-                      {lunchClosedForToday && (
+                      {generatedSlots.length > 0 && (
                         <FormDescription>
-                          Today&apos;s lunch count is already with the kitchen -
-                          book today&apos;s dinner, or lunch from tomorrow.
+                          {generatedSlots
+                            .map((slot) => slot.toLowerCase())
+                            .join(" and ")}{" "}
+                          {generatedSlots.length > 1
+                            ? "counts are"
+                            : "count is"}{" "}
+                          already with the kitchen for this date, so nothing
+                          more can be added.
                         </FormDescription>
                       )}
                       <FormMessage />

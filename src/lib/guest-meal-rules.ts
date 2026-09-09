@@ -7,11 +7,6 @@ import { NON_VEG_PRIORITY } from "@/lib/meal-priority"
 export type BookingWindowConfig = {
   guestBookingMaxDaysAhead: number
   guestBookingCutoffMinutes: number
-  /**
-   * Not read by the booking window any more: today's lunch is closed outright
-   * rather than at a cutoff, so there is no lunch deadline to compute. Kept
-   * because the caller passes the mess config whole.
-   */
   lunchStartMinute: number
   dinnerStartMinute: number
 }
@@ -35,15 +30,20 @@ function formatMinute(minute: number): string {
 /**
  * Whether a guest meal may still be booked for the given India day and slot.
  *
- * Rejects days in the past, days beyond the booking horizon, today's lunch
- * outright, and same-day bookings placed after the cutoff — the kitchen has
- * already bought for that meal by then.
+ * Rejects days in the past, days beyond the booking horizon, slots whose count
+ * has already been generated, and same-day bookings placed after the cutoff.
+ *
+ * `countGenerated` is the authority on whether the kitchen has the number yet —
+ * see `getGeneratedSlots`. This used to be assumed rather than read: today's
+ * lunch was refused outright on the grounds that the count is generated in the
+ * morning, which closed lunch bookings on every day nobody generated one.
  */
 export function checkBookingWindow(
   bookedFor: Date,
   mealTime: MealTimeType,
   config: BookingWindowConfig,
-  now: Date = new Date()
+  now: Date = new Date(),
+  countGenerated = false
 ): RuleResult {
   const daysAhead = differenceInCalendarDays(
     new Date(`${istYmd(bookedFor)}T00:00:00.000Z`),
@@ -61,25 +61,26 @@ export function checkBookingWindow(
     }
   }
 
-  if (daysAhead === 0) {
-    // The kitchen's lunch count is generated in the morning, well before a
-    // window measured off the slot start would close, so today's lunch is
-    // never bookable however early it is. Today's dinner still is.
-    if (mealTime === MealTimeType.LUNCH) {
-      return {
-        ok: false,
-        reason:
-          "Today's lunch count has already gone to the kitchen. You can book today's dinner, or lunch from tomorrow.",
-      }
+  // The count is out, so the kitchen is cooking to a number this booking is
+  // not in. That closes the slot however early it still is.
+  if (countGenerated) {
+    return {
+      ok: false,
+      reason: `The ${mealTime.toLowerCase()} count has already gone to the kitchen, so nothing more can be added to it.`,
     }
+  }
 
-    // Only dinner can still be booked today, so only its start matters here.
-    const closesAt = config.dinnerStartMinute - config.guestBookingCutoffMinutes
+  if (daysAhead === 0) {
+    const slotStart =
+      mealTime === MealTimeType.LUNCH
+        ? config.lunchStartMinute
+        : config.dinnerStartMinute
+    const closesAt = slotStart - config.guestBookingCutoffMinutes
 
     if (istMinuteOfDay(now) > closesAt) {
       return {
         ok: false,
-        reason: `Bookings for today's dinner closed at ${formatMinute(closesAt)}.`,
+        reason: `Bookings for today's ${mealTime.toLowerCase()} closed at ${formatMinute(closesAt)}.`,
       }
     }
   }
