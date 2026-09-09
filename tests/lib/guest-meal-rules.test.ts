@@ -38,7 +38,7 @@ describe("checkBookingWindow", () => {
   it("accepts a booking placed well before the slot", () => {
     expect(
       checkBookingWindow(
-        new Date("2026-08-02T06:00:00.000Z"),
+        new Date("2026-08-01T06:00:00.000Z"),
         "LUNCH",
         CONFIG,
         MORNING
@@ -64,31 +64,64 @@ describe("checkBookingWindow", () => {
     expect(checkBookingWindow(day8, "LUNCH", CONFIG, MORNING).ok).toBe(false)
   })
 
-  it("refuses today's lunch outright, however early it is", () => {
-    // The count goes to the kitchen in the morning, so a window measured off
-    // the 12:30 slot start closed before it was ever open.
+  it("takes today's lunch while no count has been generated", () => {
+    // The regression: lunch was refused for the whole of today on the theory
+    // that the count is always generated in the morning. On a day nobody
+    // generated one - which is most days on this hostel's dev data - that
+    // closed a slot the kitchen could still have cooked for.
     const today = new Date("2026-08-01T06:00:00.000Z")
     const dawn = new Date("2026-07-31T22:30:00.000Z") // 04:00 IST
 
-    for (const now of [dawn, MORNING]) {
-      const result = checkBookingWindow(today, "LUNCH", CONFIG, now)
+    expect(checkBookingWindow(today, "LUNCH", CONFIG, dawn).ok).toBe(true)
+    expect(checkBookingWindow(today, "LUNCH", CONFIG, MORNING).ok).toBe(true)
+  })
+
+  it("refuses a slot whose count has already gone to the kitchen", () => {
+    const today = new Date("2026-08-01T06:00:00.000Z")
+    const dawn = new Date("2026-07-31T22:30:00.000Z") // 04:00 IST
+
+    // Closed however early it is - the number is out, not the clock's doing.
+    for (const slot of ["LUNCH", "DINNER"] as const) {
+      const result = checkBookingWindow(today, slot, CONFIG, dawn, true)
       expect(result.ok).toBe(false)
       expect(result.ok === false && result.reason).toMatch(
         /already gone to the kitchen/
       )
+      expect(result.ok === false && result.reason).toContain(slot.toLowerCase())
     }
   })
 
-  it("still takes today's dinner, up to its cutoff", () => {
-    // Dinner starts 20:30 IST, cutoff 120 min -> closes 18:30 IST
+  it("closes each slot at its own cutoff", () => {
+    // Lunch starts 12:30 IST, dinner 20:30, cutoff 120 min -> 10:30 and 18:30.
     const today = new Date("2026-08-01T06:00:00.000Z")
+    const at1029 = new Date("2026-08-01T04:59:00.000Z") // 10:29 IST
+    const at1031 = new Date("2026-08-01T05:01:00.000Z") // 10:31 IST
     const at1800 = new Date("2026-08-01T12:30:00.000Z") // 18:00 IST
     const at1831 = new Date("2026-08-01T13:01:00.000Z") // 18:31 IST
 
+    expect(checkBookingWindow(today, "LUNCH", CONFIG, at1029).ok).toBe(true)
+    const lateLunch = checkBookingWindow(today, "LUNCH", CONFIG, at1031)
+    expect(lateLunch.ok).toBe(false)
+    expect(lateLunch.ok === false && lateLunch.reason).toContain("10:30 AM")
+
+    // Dinner is still open at a time lunch has long closed.
     expect(checkBookingWindow(today, "DINNER", CONFIG, at1800).ok).toBe(true)
-    const late = checkBookingWindow(today, "DINNER", CONFIG, at1831)
-    expect(late.ok).toBe(false)
-    expect(late.ok === false && late.reason).toContain("6:30 PM")
+    const lateDinner = checkBookingWindow(today, "DINNER", CONFIG, at1831)
+    expect(lateDinner.ok).toBe(false)
+    expect(lateDinner.ok === false && lateDinner.reason).toContain("6:30 PM")
+  })
+
+  it("does not let a generated count reach into another day", () => {
+    // Tomorrow's booking is unaffected by today's count, and a past date is
+    // still reported as past rather than as a closed count.
+    const tomorrow = new Date("2026-08-02T06:00:00.000Z")
+    const yesterday = new Date("2026-07-31T06:00:00.000Z")
+
+    expect(
+      checkBookingWindow(tomorrow, "LUNCH", CONFIG, MORNING, false).ok
+    ).toBe(true)
+    const past = checkBookingWindow(yesterday, "LUNCH", CONFIG, MORNING, true)
+    expect(past.ok === false && past.reason).toMatch(/already passed/)
   })
 
   it("leaves tomorrow's lunch bookable", () => {
@@ -114,9 +147,9 @@ describe("checkBookingWindow", () => {
   })
 
   it("reports the horizon, not the kitchen, for a far-off lunch", () => {
-    // The lunch rule must not swallow a date that is out of range entirely.
+    // A date out of range entirely must say so, whatever the count says.
     const far = new Date("2026-08-20T06:00:00.000Z")
-    const result = checkBookingWindow(far, "LUNCH", CONFIG, MORNING)
+    const result = checkBookingWindow(far, "LUNCH", CONFIG, MORNING, true)
     expect(result.ok === false && result.reason).toMatch(/up to 7 day/)
   })
 })

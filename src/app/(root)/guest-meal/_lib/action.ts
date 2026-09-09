@@ -28,6 +28,7 @@ import {
   type GuestMealPricing,
   type PricedDish,
 } from "@/lib/guest-meal-rules"
+import { getGeneratedSlots, isMealCountGenerated } from "@/lib/meal-count"
 import { getAllowedGuestTypes, resolveOffers } from "@/lib/meal-priority"
 import { getMessConfig } from "@/lib/mess-config"
 import prisma from "@/lib/prisma"
@@ -162,14 +163,21 @@ export async function getAllowedGuestMealOptions(
   offers: NonVegType[]
   allowed: NonVegType[]
   pricing: GuestMealPricing
+  /**
+   * The slots on this day the kitchen already has a count for, so the form can
+   * close them. Both slots and not just the one being asked about: the meal
+   * time dropdown has to know before you pick one.
+   */
+  generatedSlots: MealTimeType[]
 }> {
   await requireUser()
 
-  const [config, dishes, rates, library] = await Promise.all([
+  const [config, dishes, rates, library, generatedSlots] = await Promise.all([
     getMessConfig(),
     getScheduledDishes(date, mealTime),
     getSlotRates(mealTime),
     getLibraryDishes(),
+    getGeneratedSlots(date),
   ])
 
   const offers = resolveOffers(dishes, config.nonVegPriority)
@@ -180,6 +188,7 @@ export async function getAllowedGuestMealOptions(
     menu: dishes.map((dish) => dish.name),
     offers,
     allowed,
+    generatedSlots,
     pricing: buildGuestMealPricing({
       allowed,
       rates,
@@ -322,7 +331,9 @@ export async function createGuestMeal(values: GuestMeal): Promise<ApiResponse> {
     const bookingWindow = checkBookingWindow(
       values.date,
       values.mealTime,
-      config
+      config,
+      new Date(),
+      await isMealCountGenerated(values.date, values.mealTime)
     )
     if (!bookingWindow.ok)
       return { status: "error", message: bookingWindow.reason }

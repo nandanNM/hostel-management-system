@@ -16,6 +16,7 @@ import {
   UserStatusType,
 } from "@/lib/generated/prisma"
 import getSession from "@/lib/get-session"
+import { isMealCountGenerated } from "@/lib/meal-count"
 import {
   assignBucket,
   resolveOffers,
@@ -89,14 +90,10 @@ export async function POST() {
     const guestDayEnd = istEndOfDay(now)
     const dayOfWeek = formatIST(now, "EEEE").toUpperCase() as DayOfWeek
 
-    const alreadyGenerated = await prisma.dailyMealActivity.findFirst({
-      where: {
-        mealTime,
-        date: todayStart,
-      },
-    })
-
-    if (alreadyGenerated) {
+    // The same question guest booking asks before it takes a request, through
+    // the same function - the two must never disagree about whether the
+    // kitchen already has today's number.
+    if (await isMealCountGenerated(now, mealTime)) {
       return Response.json({ error: "Already Generated" }, { status: 400 })
     }
 
